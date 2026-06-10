@@ -171,6 +171,16 @@ CORS_ALLOWED_ORIGINS = config(
     cast=Csv(),
 )
 
+# --- CSRF -------------------------------------------------------------------
+# Required so the Django admin (/admin/) login POST passes Origin checks when
+# served over HTTPS (e.g. on Railway). Must include the scheme, e.g.
+# https://your-app.up.railway.app — comma-separated for multiple hosts.
+CSRF_TRUSTED_ORIGINS = config(
+    "CSRF_TRUSTED_ORIGINS",
+    default="",
+    cast=Csv(),
+)
+
 # --- DRF --------------------------------------------------------------------
 REST_FRAMEWORK = {
     # JWT for the admin write-API; SessionAuthentication keeps the Django admin
