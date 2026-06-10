@@ -181,6 +181,16 @@ CSRF_TRUSTED_ORIGINS = config(
     cast=Csv(),
 )
 
+# Railway injects RAILWAY_PUBLIC_DOMAIN at runtime (e.g.
+# webrand-production.up.railway.app). Auto-allow it so the deploy healthcheck
+# (/api/vacancies/) and the Django admin work without hardcoding the generated
+# domain — it isn't known until the first deploy, and DEBUG=False otherwise
+# rejects it with a 400 DisallowedHost.
+RAILWAY_PUBLIC_DOMAIN = config("RAILWAY_PUBLIC_DOMAIN", default="")
+if RAILWAY_PUBLIC_DOMAIN:
+    ALLOWED_HOSTS.append(RAILWAY_PUBLIC_DOMAIN)
+    CSRF_TRUSTED_ORIGINS.append(f"https://{RAILWAY_PUBLIC_DOMAIN}")
+
 # --- DRF --------------------------------------------------------------------
 REST_FRAMEWORK = {
     # JWT for the admin write-API; SessionAuthentication keeps the Django admin
