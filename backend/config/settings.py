@@ -235,6 +235,10 @@ X_FRAME_OPTIONS = "DENY"
 SECURE_SSL = config("SECURE_SSL", default=False, cast=bool)
 if SECURE_SSL:
     SECURE_SSL_REDIRECT = True
+    # Railway's internal healthcheck probes over plain HTTP without
+    # X-Forwarded-Proto, so the SSL redirect would bounce it to an
+    # unreachable https URL and fail the deploy. Exempt just that path.
+    SECURE_REDIRECT_EXEMPT = [r"^api/vacancies/$"]
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     SECURE_HSTS_SECONDS = 31536000
