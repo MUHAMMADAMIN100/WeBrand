@@ -1,7 +1,22 @@
+import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
 
 export default function NotFound() {
+  // Vercel переписывает все пути на / — мусорные URL отдают 200 (soft 404).
+  // Динамический noindex говорит Google не индексировать такие страницы;
+  // убираем тег при анмаунте, чтобы он не «протёк» на клиентскую навигацию.
+  useEffect(() => {
+    document.title = 'Страница не найдена — Webrand'
+    const meta = document.createElement('meta')
+    meta.name = 'robots'
+    meta.content = 'noindex'
+    document.head.appendChild(meta)
+    return () => {
+      meta.remove()
+    }
+  }, [])
+
   return (
     <main className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-white px-6 text-center">
       {/* Soft brand glow */}

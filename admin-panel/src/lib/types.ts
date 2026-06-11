@@ -33,6 +33,27 @@ export type Project = {
   is_published: boolean
 }
 
+// News list item (feed shape — no heavy body). Mirrors NewsListSerializer.
+export type NewsListItem = {
+  slug: string
+  title: string
+  excerpt: string
+  cover: string | null
+  keywords: string[]
+  is_published: boolean
+  published_at: string
+  sort_order: number
+}
+
+// Full article incl. body + SEO fields. Mirrors NewsDetailSerializer.
+export type News = NewsListItem & {
+  body: string
+  meta_title: string
+  meta_description: string
+  created_at: string
+  updated_at: string
+}
+
 export type Lead = {
   id: number
   kind: 'lead' | 'application'

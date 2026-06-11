@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     # local
     "apps.catalog",
     "apps.leads",
+    "apps.news",
 ]
 
 MIDDLEWARE = [

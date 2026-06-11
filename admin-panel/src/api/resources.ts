@@ -1,5 +1,7 @@
-import type { Lead, Project, Vacancy } from '../lib/types'
+import type { Lead, News, NewsListItem, Project, Vacancy } from '../lib/types'
 import { apiJson } from './client'
+
+type Paginated<T> = { count: number; next: string | null; previous: string | null; results: T[] }
 
 // ---- Vacancies (JSON) ------------------------------------------------------
 export const listVacancies = () => apiJson<Vacancy[]>('/api/vacancies/', { auth: true })
@@ -74,6 +76,64 @@ export const patchProject = (id: number, data: Record<string, unknown>) =>
 
 export const deleteProject = (id: number) =>
   apiJson<void>(`/api/projects/${id}/`, { method: 'DELETE' })
+
+// ---- News (multipart for cover upload) -------------------------------------
+export type NewsInput = {
+  slug: string
+  title: string
+  excerpt: string
+  body: string
+  meta_title: string
+  meta_description: string
+  keywords: string[]
+  is_published: boolean
+  published_at: string // ISO / datetime-local string; '' → omitted (server default)
+  sort_order: number
+  cover?: File | null
+}
+
+function newsFormData(data: NewsInput, withSlug: boolean): FormData {
+  const fd = new FormData()
+  if (withSlug) fd.append('slug', data.slug)
+  fd.append('title', data.title)
+  fd.append('excerpt', data.excerpt)
+  fd.append('body', data.body)
+  fd.append('meta_title', data.meta_title)
+  fd.append('meta_description', data.meta_description)
+  fd.append('is_published', String(data.is_published))
+  fd.append('sort_order', String(data.sort_order))
+  fd.append('keywords', JSON.stringify(data.keywords)) // JSONField accepts a JSON string
+  if (data.published_at) fd.append('published_at', data.published_at)
+  if (data.cover) fd.append('cover', data.cover)
+  return fd
+}
+
+// Admin reads every article (drafts included) for client-side filtering — one
+// big page, then unwrap the paginated envelope.
+export const listNews = () =>
+  apiJson<Paginated<NewsListItem>>('/api/news/?page_size=1000', { auth: true }).then((p) => p.results)
+
+// Full article (incl. body + SEO) for the edit drawer.
+export const getNews = (slug: string) => apiJson<News>(`/api/news/${slug}/`, { auth: true })
+
+export const createNews = (data: NewsInput) =>
+  apiJson<News>('/api/news/', { method: 'POST', body: newsFormData(data, true) })
+
+// PATCH so an unchanged cover is preserved when no new file is attached. The
+// slug is the PK and is never sent on update.
+export const updateNews = (slug: string, data: NewsInput) =>
+  apiJson<News>(`/api/news/${slug}/`, { method: 'PATCH', body: newsFormData(data, false) })
+
+// Lightweight inline change (e.g. publish toggle) via JSON PATCH.
+export const patchNews = (slug: string, data: Record<string, unknown>) =>
+  apiJson<News>(`/api/news/${slug}/`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  })
+
+export const deleteNews = (slug: string) =>
+  apiJson<void>(`/api/news/${slug}/`, { method: 'DELETE' })
 
 // ---- Leads journal (read-only) ---------------------------------------------
 export const listLeads = () => apiJson<Lead[]>('/api/leads/journal/', { auth: true })

@@ -107,7 +107,7 @@ PROJECTS = [
         "category": "Разработка",
         "tags": ["Marketplace", "E-commerce", "Web App"],
         "accent": "#EC4899",
-        "logo": "todo.png",
+        "logo": "todo.webp",
         "url": "https://todo.tj/",
     },
     {
@@ -152,7 +152,7 @@ PROJECTS = [
         "category": "Разработка",
         "tags": ["Website", "Education", "Lead-gen"],
         "accent": "#DC2626",
-        "logo": "grantchina.png",
+        "logo": "grantchina.webp",
         "url": "https://www.grantchina.tj/",
     },
     {
@@ -196,7 +196,7 @@ PROJECTS = [
         "category": "SMM",
         "tags": ["Instagram", "Sales", "Brand"],
         "accent": "#7C1D1D",
-        "logo": "barf.png",
+        "logo": "barf.webp",
         "url": "https://www.instagram.com/barf.dushanbe/",
     },
     {
@@ -229,7 +229,7 @@ PROJECTS = [
         "category": "SMM",
         "tags": ["Healthcare", "Instagram", "Trust"],
         "accent": "#047857",
-        "logo": "asan.png",
+        "logo": "asan.webp",
         "url": "https://www.instagram.com/asan_dushanbe/",
     },
 ]

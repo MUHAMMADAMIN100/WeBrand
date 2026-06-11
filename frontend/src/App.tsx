@@ -13,11 +13,43 @@ import Footer from './components/Footer'
 import ContactModal from './components/ContactModal'
 import ServiceDetailModal from './components/ServiceDetailModal'
 import NotFound from './components/NotFound'
+import News from './pages/News'
+import NewsArticlePage from './pages/NewsArticle'
+import { Seo } from './components/Seo'
 import { ModalProvider } from './context/ModalContext'
 
+// Home-only structured data (moved out of index.html so it appears once, on the
+// home page, instead of on every SPA route).
+const LOCAL_BUSINESS_JSONLD = {
+  '@context': 'https://schema.org',
+  '@type': 'LocalBusiness',
+  name: 'Webrand',
+  description:
+    'Digital-агентство в Душанбе: разработка сайтов, дизайн и брендинг, SMM, онлайн-эквайринг и продвижение для бизнеса.',
+  url: 'https://webrand-flame.vercel.app/',
+  image: 'https://webrand-flame.vercel.app/og-image.png',
+  telephone: '+992988645543',
+  email: 'info@webrand.tj',
+  areaServed: 'Dushanbe',
+  address: { '@type': 'PostalAddress', addressLocality: 'Dushanbe', addressCountry: 'TJ' },
+  sameAs: [
+    'https://t.me/Webrandushanbe',
+    'https://www.instagram.com/webrand.tj',
+    'https://wa.me/992985829367',
+  ],
+}
+
 function Home() {
+  // /devprojects и /smmprojects — клиентский фильтр того же контента,
+  // поэтому canonical у всех трёх роутов указывает на главную.
   return (
     <div className="relative min-h-screen bg-white">
+      <Seo
+        title="Webrand — Комплексные digital-решения для бизнеса"
+        description="Webrand — digital-агентство в Душанбе. Разработка сайтов, дизайн и брендинг, SMM, эквайринг и продвижение для бизнеса."
+        path="/"
+        jsonLd={LOCAL_BUSINESS_JSONLD}
+      />
       <Navbar />
       <main>
         <Hero />
@@ -44,9 +76,14 @@ function Vacancies() {
 
   return (
     <div className="relative min-h-screen bg-white">
+      <Seo
+        title="Вакансии Webrand — работа в digital-агентстве в Душанбе"
+        description="Открытые вакансии Webrand: дизайнер, SMM-специалист, разработчик и другие роли. Присоединяйтесь к команде digital-агентства в Душанбе."
+        path="/vacancies"
+      />
       <Navbar />
       <main>
-        <Careers />
+        <Careers headingLevel="h1" />
       </main>
       <Footer />
       <ContactModal />
@@ -64,6 +101,8 @@ function App() {
           <Route path="/devprojects" element={<Home />} />
           <Route path="/smmprojects" element={<Home />} />
           <Route path="/vacancies" element={<Vacancies />} />
+          <Route path="/news" element={<News />} />
+          <Route path="/news/:slug" element={<NewsArticlePage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </ModalProvider>

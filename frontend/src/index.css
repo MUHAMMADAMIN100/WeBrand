@@ -25,6 +25,50 @@
   }
 }
 
+/* Editorial article body (news/blog). The article HTML comes from the admin/seed
+   as plain tags (h2/h3/p/ul/ol/blockquote/a/strong) — styled here so the markup
+   stays clean. No Tailwind typography plugin needed. */
+@layer components {
+  .article-body {
+    @apply text-[1.0625rem] leading-[1.8] text-neutral-700;
+  }
+  .article-body > * + * {
+    @apply mt-5;
+  }
+  .article-body h2 {
+    @apply mt-12 text-2xl font-extrabold tracking-tight text-neutral-900 md:text-3xl;
+  }
+  .article-body h3 {
+    @apply mt-9 text-xl font-bold tracking-tight text-neutral-900;
+  }
+  .article-body p {
+    @apply text-neutral-700;
+  }
+  .article-body a {
+    @apply font-semibold text-brand-600 underline decoration-brand-300 underline-offset-2 transition-colors hover:text-brand-700 hover:decoration-brand-600;
+  }
+  .article-body strong {
+    @apply font-bold text-neutral-900;
+  }
+  .article-body ul,
+  .article-body ol {
+    @apply mt-5 space-y-2.5 pl-1;
+  }
+  .article-body ul > li {
+    @apply relative pl-6;
+  }
+  .article-body ul > li::before {
+    content: '';
+    @apply absolute left-0 top-[0.7em] h-1.5 w-1.5 -translate-y-1/2 rounded-full bg-brand-500;
+  }
+  .article-body ol {
+    @apply list-decimal pl-6 marker:font-semibold marker:text-brand-600;
+  }
+  .article-body blockquote {
+    @apply border-l-4 border-brand-200 bg-brand-50/50 py-2 pl-5 pr-4 text-neutral-700;
+  }
+}
+
 /* Honour reduced-motion: silence the looping/auto-playing animations */
 @media (prefers-reduced-motion: reduce) {
   html {

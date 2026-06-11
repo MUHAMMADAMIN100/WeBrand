@@ -22,6 +22,8 @@ export default function Footer() {
                 whileHover={{ scale: 1.05 }}
                 src="/logos/main-logo.png"
                 alt="Webrand"
+                width={388}
+                height={81}
                 className="h-12 w-auto object-contain"
               />
             </a>
@@ -60,6 +62,14 @@ export default function Footer() {
                   </a>
                 )
               })}
+              {/* Blog/News — intentionally not in the header nav, but linked here
+                  so crawlers can discover the /news section. */}
+              <Link
+                to="/news"
+                className="text-neutral-700 hover:text-brand-600 transition-colors font-semibold"
+              >
+                Блог
+              </Link>
             </nav>
 
             <motion.button

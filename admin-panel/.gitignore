@@ -1,10 +1,46 @@
+# Dependencies
 node_modules
+.pnp
+.pnp.js
+
+# Build output
 dist
 dist-ssr
+build
 *.local
+*.tsbuildinfo
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Env
+.env
 .env.local
+.env.*.local
+
+# Editor / OS
 .vscode/*
 !.vscode/extensions.json
+.idea
 .DS_Store
-tsconfig.tsbuildinfo
+Thumbs.db
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Vercel
+.vercel
+
+# Claude Code / agents (local artifacts)
+.claude
+.agents
+.shots
 _e2e_shots

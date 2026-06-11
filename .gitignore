@@ -1,0 +1,19 @@
+# --- Claude Code (local-only state; project skills stay tracked) ---
+.claude/settings.local.json
+
+# --- OS junk ---
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# --- Editors ---
+.idea/
+*.swp
+*.swo
+
+# --- Logs ---
+*.log
+
+.agents
+.claude
+.skills-lock.json

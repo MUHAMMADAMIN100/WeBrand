@@ -1,10 +1,12 @@
-import { Briefcase, FolderKanban, Inbox, LogOut, type LucideIcon } from 'lucide-react'
+import { Briefcase, FolderKanban, Inbox, Newspaper, LogOut, type LucideIcon } from 'lucide-react'
 import { NavLink } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { BrandLogo } from './Brand'
 
 const NAV: { to: string; label: string; Icon: LucideIcon }[] = [
   { to: '/vacancies', label: 'Вакансии', Icon: Briefcase },
   { to: '/projects', label: 'Проекты', Icon: FolderKanban },
+  { to: '/news', label: 'Новости', Icon: Newspaper },
   { to: '/leads', label: 'Заявки', Icon: Inbox },
 ]
 
@@ -13,18 +15,11 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
 
   return (
     <aside className="flex h-full w-64 flex-col border-r border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900">
-      {/* Brand */}
-      <div className="flex items-center gap-2.5 px-5 py-5">
-        <div className="grid h-9 w-9 place-items-center rounded-xl bg-brand-600 shadow-sm shadow-brand-600/30">
-          <svg viewBox="0 0 32 32" className="h-5 w-5" aria-hidden="true">
-            <text x="16" y="22" fontFamily="Manrope, sans-serif" fontSize="18" fontWeight="800" fill="#fff" textAnchor="middle">W</text>
-          </svg>
-        </div>
-        <div className="leading-tight">
-          <div className="text-sm font-extrabold tracking-tight text-neutral-900 dark:text-neutral-100">Webrand</div>
-          <div className="text-[11px] font-medium uppercase tracking-wider text-neutral-400 dark:text-neutral-500">
-            Админ-панель
-          </div>
+      {/* Brand — the real Webrand lockup (themed), wordmark included */}
+      <div className="px-5 py-5">
+        <BrandLogo className="h-7" />
+        <div className="mt-1.5 text-[11px] font-medium uppercase tracking-wider text-neutral-400 dark:text-neutral-500">
+          Админ-панель
         </div>
       </div>
 

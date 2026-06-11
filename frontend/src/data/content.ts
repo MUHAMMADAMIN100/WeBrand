@@ -366,7 +366,7 @@ export const portfolio: PortfolioItem[] = [
     category: "Разработка",
     tags: ["Marketplace", "E-commerce", "Web App"],
     accent: "#EC4899",
-    logo: "/logos/todo.png",
+    logo: "/logos/todo.webp",
     url: "https://todo.tj/",
   },
   {
@@ -409,7 +409,7 @@ export const portfolio: PortfolioItem[] = [
     category: "Разработка",
     tags: ["Website", "Education", "Lead-gen"],
     accent: "#DC2626",
-    logo: "/logos/grantchina.png",
+    logo: "/logos/grantchina.webp",
     url: "https://www.grantchina.tj/",
   },
   {
@@ -453,7 +453,7 @@ export const portfolio: PortfolioItem[] = [
     category: "SMM",
     tags: ["Instagram", "Sales", "Brand"],
     accent: "#7C1D1D",
-    logo: "/logos/barf.png",
+    logo: "/logos/barf.webp",
     url: "https://www.instagram.com/barf.dushanbe/",
   },
   {
@@ -486,7 +486,7 @@ export const portfolio: PortfolioItem[] = [
     category: "SMM",
     tags: ["Healthcare", "Instagram", "Trust"],
     accent: "#047857",
-    logo: "/logos/asan.png",
+    logo: "/logos/asan.webp",
     url: "https://www.instagram.com/asan_dushanbe/",
   },
 ]
@@ -500,19 +500,19 @@ export const partners: Partner[] = [
   { name: "Корманд TJ", logo: "/logos/kormand.png" },
   { name: "SHAKL", logo: "/logos/shakl.png" },
   { name: "SABT", logo: "/logos/sabt.png" },
-  { name: "Айва", logo: "/logos/aiva.png" },
+  { name: "Айва", logo: "/logos/aiva.webp" },
   { name: "LOFTORY", logo: "/logos/loftory.webp" },
   { name: "GetUp", logo: "/logos/getup.jpg" },
-  { name: "АСАН", logo: "/logos/asan.png" },
+  { name: "АСАН", logo: "/logos/asan.webp" },
   { name: "Армут", logo: "/logos/armut.png" },
-  { name: "STAR", logo: "/logos/star.png" },
+  { name: "STAR", logo: "/logos/star.webp" },
   { name: "SAPPORO", logo: "/logos/sapporo.webp" },
-  { name: "BARF", logo: "/logos/barf.png" },
+  { name: "BARF", logo: "/logos/barf.webp" },
   { name: "Khotiri Jam", logo: "/logos/khotiri-jam.png" },
-  { name: "Todo", logo: "/logos/todo.png" },
-  { name: "Grant China", logo: "/logos/grantchina.png" },
+  { name: "Todo", logo: "/logos/todo.webp" },
+  { name: "Grant China", logo: "/logos/grantchina.webp" },
   { name: "iram.cinema", logo: "/logos/iram-cinema.png" },
-  { name: "Javonon Group", logo: "/logos/javonon-group.png" },
+  { name: "Javonon Group", logo: "/logos/javonon-group.webp" },
 ]
 
 // Applicant experience enum — cross-app contract. Keep in sync with

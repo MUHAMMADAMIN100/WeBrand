@@ -41,6 +41,7 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/", include("apps.catalog.urls")),
     path("api/", include("apps.leads.urls")),
+    path("api/", include("apps.news.urls")),
     # JWT auth (admin panel)
     path("api/auth/login/", ThrottledTokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("api/auth/refresh/", TokenRefreshView.as_view(), name="token_refresh"),

@@ -127,6 +127,8 @@ export default function Navbar() {
             transition={{ type: 'spring', stiffness: 400, damping: 17 }}
             src="/logos/main-logo.png"
             alt="Webrand"
+            width={388}
+            height={81}
             className={`w-auto object-contain transition-[height] duration-300 ${scrolled ? 'h-8' : 'h-9 sm:h-10'
               }`}
           />

@@ -42,7 +42,10 @@ const EASE = [0.16, 1, 0.3, 1] as const
 // The API returns vacancies keyed by `slug`; the frontend Vacancy type uses `id`.
 type ApiVacancy = Omit<Vacancy, 'id'> & { slug: string }
 
-export default function Careers() {
+// На главной Careers — секция (h2); на странице /vacancies это главный
+// заголовок страницы, поэтому роут передаёт headingLevel="h1".
+export default function Careers({ headingLevel = 'h2' }: { headingLevel?: 'h1' | 'h2' }) {
+  const Heading = headingLevel
   const reduce = useReducedMotion()
   const { openApply } = useModal()
 
@@ -88,9 +91,9 @@ export default function Careers() {
           <span className="text-sm font-bold uppercase tracking-[0.2em] text-brand-600">
             — Вакансии
           </span>
-          <h2 className="mt-5 text-4xl font-extrabold leading-[1.05] tracking-tight text-neutral-900 sm:text-5xl lg:text-6xl">
+          <Heading className="mt-5 text-4xl font-extrabold leading-[1.05] tracking-tight text-neutral-900 sm:text-5xl lg:text-6xl">
             Присоединяйся <span className="text-brand-600">к команде</span>
-          </h2>
+          </Heading>
           <p className="mt-5 text-lg leading-relaxed text-neutral-600">
             Мы растём и ищем людей, которым нравится делать сильные digital-продукты.
             Откликнись — расскажем подробнее и обсудим условия.
