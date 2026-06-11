@@ -189,6 +189,9 @@ CSRF_TRUSTED_ORIGINS = config(
 RAILWAY_PUBLIC_DOMAIN = config("RAILWAY_PUBLIC_DOMAIN", default="")
 if RAILWAY_PUBLIC_DOMAIN:
     ALLOWED_HOSTS.append(RAILWAY_PUBLIC_DOMAIN)
+    # Railway probes with Host: healthcheck.railway.app — without this the
+    # deploy healthcheck gets a 400 DisallowedHost and the deploy fails.
+    ALLOWED_HOSTS.append("healthcheck.railway.app")
     CSRF_TRUSTED_ORIGINS.append(f"https://{RAILWAY_PUBLIC_DOMAIN}")
 
 # --- DRF --------------------------------------------------------------------
