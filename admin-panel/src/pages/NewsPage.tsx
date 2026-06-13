@@ -25,10 +25,12 @@ import { TableSkeleton } from '../components/ui/Skeleton'
 import { EmptyState } from '../components/ui/EmptyState'
 import { ConfirmDialog } from '../components/ui/ConfirmDialog'
 import { Toggle } from '../components/ui/Toggle'
+import { Pagination } from '../components/ui/Pagination'
 import { FilterBar } from '../components/filters/FilterBar'
 import { SegmentedControl, type Segment } from '../components/filters/SegmentedControl'
 import { SearchInput } from '../components/filters/SearchInput'
 import { useDebounce } from '../lib/useDebounce'
+import { usePagination } from '../lib/usePagination'
 import type { News, NewsListItem } from '../lib/types'
 import { deleteNews, getNews, listNews, patchNews } from '../api/resources'
 import { useToast } from '../context/ToastContext'
@@ -193,6 +195,10 @@ export default function NewsPage() {
     })
   }, [items, filters.status, search])
 
+  // Client-side pagination (12/page) over the filtered list. Drag-reorder (when
+  // unfiltered) operates within the visible page; resets to page 1 on filter change.
+  const pg = usePagination(filtered, 12, `${filters.status}|${search}`)
+
   const load = useCallback(async () => {
     setStatus('loading')
     try {
@@ -294,7 +300,7 @@ export default function NewsPage() {
       />
 
       {status === 'ready' && items.length > 0 && (
-        <FilterBar count={filtered.length} total={items.length} active={filtersActive} onReset={resetFilters}>
+        <FilterBar total={pg.total} from={pg.from} to={pg.to} active={filtersActive} onReset={resetFilters}>
           <SegmentedControl
             ariaLabel="Статус публикации"
             value={filters.status}
@@ -336,6 +342,7 @@ export default function NewsPage() {
             action={<Button variant="secondary" onClick={resetFilters}>Сбросить фильтры</Button>}
           />
         ) : (
+          <>
           <div className="overflow-x-auto">
             <table className="w-full min-w-[760px] text-left text-sm">
               <thead>
@@ -354,9 +361,9 @@ export default function NewsPage() {
                   modifiers={[restrictToVerticalAxis, restrictToParentElement]}
                   onDragEnd={onDragEnd}
                 >
-                  <SortableContext items={items.map((n) => n.slug)} strategy={verticalListSortingStrategy}>
+                  <SortableContext items={pg.pageItems.map((n) => n.slug)} strategy={verticalListSortingStrategy}>
                     <tbody className="divide-y divide-neutral-100 dark:divide-neutral-800">
-                      {filtered.map((n) => (
+                      {pg.pageItems.map((n) => (
                         <SortableNewsRow key={n.slug} n={n} {...rowHandlers} />
                       ))}
                     </tbody>
@@ -364,13 +371,15 @@ export default function NewsPage() {
                 </DndContext>
               ) : (
                 <tbody className="divide-y divide-neutral-100 dark:divide-neutral-800">
-                  {filtered.map((n) => (
+                  {pg.pageItems.map((n) => (
                     <StaticNewsRow key={n.slug} n={n} {...rowHandlers} />
                   ))}
                 </tbody>
               )}
             </table>
           </div>
+          <Pagination page={pg.page} totalPages={pg.totalPages} onChange={pg.setPage} />
+          </>
         )}
       </Card>
 

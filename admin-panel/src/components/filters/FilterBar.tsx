@@ -2,41 +2,56 @@ import { RotateCcw } from 'lucide-react'
 import type { ReactNode } from 'react'
 
 /**
- * Slim filter bar above a table: filter controls on the left, a live result
- * count + Reset on the right. Wraps gracefully on tablet.
+ * Slim filter bar above a table: filter controls on the left. The thin muted
+ * caption below the bar shows the current page window «Показано X–Y из Z» (Z is
+ * the filtered total); page controls themselves live below the table.
  */
 export function FilterBar({
   children,
-  count,
   total,
+  from,
+  to,
   active,
   onReset,
 }: {
   children: ReactNode
-  count: number
-  total: number
+  total: number // size of the filtered result set (Z)
+  from: number // 1-based index of the first row on the current page (X)
+  to: number // 1-based index of the last row on the current page (Y)
   active: boolean
   onReset: () => void
 }) {
+  // Show a range only when the page actually slices the result set; otherwise the
+  // whole set is visible, so a bare count reads cleaner.
+  const paged = total > 0 && (from > 1 || to < total)
   return (
-    <div className="mb-4 flex flex-wrap items-center gap-x-3 gap-y-2.5 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 px-3.5 py-3 shadow-card">
-      <div className="flex flex-1 flex-wrap items-center gap-2.5">{children}</div>
+    <>
+      {/* Filter controls only — the result count no longer floats in the card corner. */}
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-2.5 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 px-3.5 py-3 shadow-card">
+        <div className="flex flex-1 flex-wrap items-center gap-2.5">{children}</div>
+      </div>
 
-      <div className="ml-auto flex items-center gap-3 pl-1">
-        <span className="whitespace-nowrap text-sm text-neutral-500 dark:text-neutral-400" aria-live="polite">
-          Показано <span className="font-semibold text-neutral-800 dark:text-neutral-200">{count}</span> из {total}
+      {/* Thin, muted caption between the filter bar and the table — in normal flow,
+          right-aligned, consistent across every list. */}
+      <div className="mb-4 mt-2 flex items-center justify-end gap-2.5 px-1">
+        <span className="text-xs text-neutral-400 dark:text-neutral-500" aria-live="polite">
+          Показано{' '}
+          <span className="font-semibold text-neutral-600 dark:text-neutral-300">
+            {paged ? `${from}–${to}` : total}
+          </span>
+          {paged ? ` из ${total}` : ''}
         </span>
         {active && (
           <button
             type="button"
             onClick={onReset}
-            className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm font-semibold text-neutral-500 dark:text-neutral-400 transition-colors hover:bg-neutral-100 hover:text-neutral-800 dark:hover:bg-neutral-800 dark:hover:text-neutral-100"
+            className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-xs font-semibold text-neutral-500 dark:text-neutral-400 transition-colors hover:bg-neutral-100 hover:text-neutral-800 dark:hover:bg-neutral-800 dark:hover:text-neutral-100"
           >
             <RotateCcw className="h-3.5 w-3.5" />
             Сбросить
           </button>
         )}
       </div>
-    </div>
+    </>
   )
 }

@@ -25,11 +25,13 @@ import { TableSkeleton } from '../components/ui/Skeleton'
 import { EmptyState } from '../components/ui/EmptyState'
 import { ConfirmDialog } from '../components/ui/ConfirmDialog'
 import { Toggle } from '../components/ui/Toggle'
+import { Pagination } from '../components/ui/Pagination'
 import { FilterBar } from '../components/filters/FilterBar'
 import { SegmentedControl, type Segment } from '../components/filters/SegmentedControl'
 import { SearchInput } from '../components/filters/SearchInput'
 import { ICON_MAP } from '../lib/options'
 import { useDebounce } from '../lib/useDebounce'
+import { usePagination } from '../lib/usePagination'
 import type { Vacancy } from '../lib/types'
 import { deleteVacancy, listVacancies, patchVacancy } from '../api/resources'
 import { useToast } from '../context/ToastContext'
@@ -185,6 +187,11 @@ export default function VacanciesPage() {
     })
   }, [items, filters.status, search])
 
+  // Client-side pagination (12/page) over the filtered list. When reorderable
+  // (unfiltered), drag-reorder operates within the visible page; the page resets
+  // to 1 whenever the filters/search change.
+  const pg = usePagination(filtered, 12, `${filters.status}|${search}`)
+
   const load = useCallback(async () => {
     setStatus('loading')
     try {
@@ -278,7 +285,7 @@ export default function VacanciesPage() {
       />
 
       {status === 'ready' && items.length > 0 && (
-        <FilterBar count={filtered.length} total={items.length} active={filtersActive} onReset={resetFilters}>
+        <FilterBar total={pg.total} from={pg.from} to={pg.to} active={filtersActive} onReset={resetFilters}>
           <SegmentedControl
             ariaLabel="Статус публикации"
             value={filters.status}
@@ -320,6 +327,7 @@ export default function VacanciesPage() {
             action={<Button variant="secondary" onClick={resetFilters}>Сбросить фильтры</Button>}
           />
         ) : (
+          <>
           <div className="overflow-x-auto">
             <table className="w-full min-w-[720px] text-left text-sm">
               <thead>
@@ -338,9 +346,9 @@ export default function VacanciesPage() {
                   modifiers={[restrictToVerticalAxis, restrictToParentElement]}
                   onDragEnd={onDragEnd}
                 >
-                  <SortableContext items={items.map((v) => v.slug)} strategy={verticalListSortingStrategy}>
+                  <SortableContext items={pg.pageItems.map((v) => v.slug)} strategy={verticalListSortingStrategy}>
                     <tbody className="divide-y divide-neutral-100 dark:divide-neutral-800">
-                      {filtered.map((v) => (
+                      {pg.pageItems.map((v) => (
                         <SortableVacancyRow key={v.slug} v={v} {...rowHandlers} />
                       ))}
                     </tbody>
@@ -348,13 +356,15 @@ export default function VacanciesPage() {
                 </DndContext>
               ) : (
                 <tbody className="divide-y divide-neutral-100 dark:divide-neutral-800">
-                  {filtered.map((v) => (
+                  {pg.pageItems.map((v) => (
                     <StaticVacancyRow key={v.slug} v={v} {...rowHandlers} />
                   ))}
                 </tbody>
               )}
             </table>
           </div>
+          <Pagination page={pg.page} totalPages={pg.totalPages} onChange={pg.setPage} />
+          </>
         )}
       </Card>
 
