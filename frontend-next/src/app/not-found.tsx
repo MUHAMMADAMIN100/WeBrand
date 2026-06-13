@@ -17,11 +17,11 @@ export default function NotFound() {
       />
 
       <div className="relative">
-        <p className="text-8xl font-extrabold tracking-tight text-brand-600 sm:text-9xl">404</p>
+        <p className="text-7xl font-extrabold tracking-tight text-brand-600 sm:text-8xl">404</p>
         <h1 className="mt-4 text-3xl font-extrabold tracking-tight text-neutral-900 sm:text-4xl">
           Страница не найдена
         </h1>
-        <p className="mx-auto mt-4 max-w-md text-lg leading-relaxed text-neutral-600">
+        <p className="mx-auto mt-4 max-w-md text-base leading-relaxed text-neutral-600">
           Возможно, ссылка устарела или была введена с ошибкой. Вернитесь на главную — там всё на месте.
         </p>
 

@@ -31,10 +31,10 @@ export default function Partners() {
           <span className="text-sm font-bold text-brand-600 uppercase tracking-[0.2em]">
             — Партнёры
           </span>
-          <h2 className="mt-5 text-5xl lg:text-7xl font-extrabold tracking-tight text-neutral-900 leading-[1.05]">
+          <h2 className="mt-5 text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-neutral-900 leading-[1.05]">
             Нам доверяют
           </h2>
-          <p className="mt-6 max-w-2xl mx-auto text-lg text-neutral-600 leading-relaxed">
+          <p className="mt-5 max-w-2xl mx-auto text-base text-neutral-600 leading-relaxed">
             Компании из разных отраслей выбирают Webrand для роста своего бизнеса.
           </p>
         </motion.div>

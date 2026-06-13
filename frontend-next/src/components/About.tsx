@@ -30,7 +30,7 @@ const values = [
 export default function About() {
   const { open: openModal } = useModal()
   return (
-    <section id="about" className="relative scroll-mt-24 py-14 md:py-24 lg:py-32 bg-white">
+    <section id="about" className="relative anchor-target py-14 md:py-24 lg:py-32 bg-white">
       <div className="max-w-7xl mx-auto px-5 md:px-6 lg:px-10">
         <div className="grid lg:grid-cols-2 gap-10 md:gap-16 lg:gap-20 items-start">
           <motion.div
@@ -42,13 +42,13 @@ export default function About() {
             <span className="text-sm font-bold text-brand-600 uppercase tracking-[0.2em]">
               — О компании
             </span>
-            <h2 className="mt-5 text-5xl lg:text-6xl xl:text-7xl font-extrabold tracking-tight text-neutral-900 leading-[1.05]">
+            <h2 className="mt-4 text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-neutral-900 leading-[1.1]">
               Делаем <span className="text-brand-600">сильные</span> бренды для бизнеса
             </h2>
-            <p className="mt-8 text-lg text-neutral-600 leading-relaxed">
+            <p className="mt-8 text-base text-neutral-600 leading-relaxed">
               Webrand — digital-агентство полного цикла. Мы помогаем бизнесу расти через современные сайты, сильный бренд и эффективный маркетинг.
             </p>
-            <p className="mt-4 text-lg text-neutral-600 leading-relaxed">
+            <p className="mt-4 text-base text-neutral-600 leading-relaxed">
               Среди наших клиентов — компании из самых разных ниш: медицина, e-commerce, рестораны, мебель и услуги. Каждому подбираем индивидуальный подход и стратегию роста.
             </p>
 

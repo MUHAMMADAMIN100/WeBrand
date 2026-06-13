@@ -162,7 +162,7 @@ const CSS = `
    can never grow past the top of its container. */
 .cqf .dircard {
   position:relative; display:flex; align-items:center; gap:13px;
-  min-height:56px; padding:10px 15px; border-radius:14px; border:1.5px solid #E6E9F0;
+  min-height:48px; padding:8px 13px; border-radius:12px; border:1.5px solid #E6E9F0;
   background:#fff; cursor:pointer; text-align:left; width:100%;
   transition: border-color .2s ease, background .2s ease, box-shadow .2s ease;
 }
@@ -170,12 +170,12 @@ const CSS = `
 .cqf .dircard:hover { border-color:#BFD0F0; box-shadow:0 6px 18px rgba(43,94,211,.12); }
 .cqf .dircard.active { border-color:var(--brand); background:var(--brand-soft); box-shadow:0 6px 18px rgba(43,94,211,.14); }
 .cqf .iconwrap {
-  width:40px;height:40px;border-radius:11px;flex-shrink:0;
+  width:36px;height:36px;border-radius:10px;flex-shrink:0;
   background:#EFF3FB; color:var(--brand); display:flex;align-items:center;justify-content:center;
   transition: background .2s ease, color .2s ease;
 }
 .cqf .dircard.active .iconwrap { background:var(--brand); color:#fff; }
-.cqf .dirlabel { display:block; font-size:15.5px; font-weight:600; color:#1F2937; }
+.cqf .dirlabel { display:block; font-size:14.5px; font-weight:600; color:#1F2937; }
 .cqf .dircard.active .dirlabel { color:var(--brand-dark); }
 .cqf .dirsub { display:block; font-size:12.5px; color:#9AA0AA; margin-top:1px; }
 .cqf .badge {
@@ -187,14 +187,14 @@ const CSS = `
 
 .cqf .opt {
   display:flex; align-items:center; gap:12px; width:100%;
-  min-height:54px; padding:9px 14px; border-radius:13px; border:1.5px solid #E6E9F0; background:#fff;
-  color:#1F2937; font-size:15px; font-weight:500; cursor:pointer; text-align:left;
+  min-height:46px; padding:8px 12px; border-radius:12px; border:1.5px solid #E6E9F0; background:#fff;
+  color:#1F2937; font-size:14px; font-weight:500; cursor:pointer; text-align:left;
   transition: border-color .2s ease, background .2s ease, box-shadow .2s ease;
 }
 .cqf .opt:hover { border-color:#BFD0F0; box-shadow:0 6px 18px rgba(43,94,211,.12); }
 .cqf .opt.active { border-color:var(--brand); background:var(--brand-soft); box-shadow:0 6px 18px rgba(43,94,211,.14); }
 .cqf .opticon {
-  width:38px;height:38px;border-radius:10px;flex-shrink:0;
+  width:34px;height:34px;border-radius:9px;flex-shrink:0;
   background:#EFF3FB; color:var(--brand); display:flex;align-items:center;justify-content:center;
   transition: background .2s ease, color .2s ease;
 }
@@ -213,8 +213,8 @@ const CSS = `
 .cqf .opt.active .ind > svg { opacity:1; transform:scale(1); }
 
 .cqf .btn-primary {
-  flex:1; padding:15px; border-radius:14px; border:none; background:var(--brand); color:#fff;
-  font-size:16px; font-weight:600; cursor:pointer; display:flex; align-items:center;
+  flex:1; padding:13px; border-radius:13px; border:none; background:var(--brand); color:#fff;
+  font-size:15px; font-weight:600; cursor:pointer; display:flex; align-items:center;
   justify-content:center; gap:8px; transition: transform .15s var(--spring), background .2s ease, box-shadow .2s ease;
 }
 .cqf .btn-primary:hover:not(:disabled) { box-shadow:0 10px 24px rgba(43,94,211,.3); transform:translateY(-1px); }
@@ -222,18 +222,18 @@ const CSS = `
 .cqf .btn-primary:disabled { background:#BFD0F0; cursor:not-allowed; }
 .cqf .btn-primary.ready { animation: cqf-ready 1.8s ease-in-out infinite; }
 .cqf .btn-ghost {
-  padding:15px 22px; border-radius:14px; border:1.5px solid #E6E9F0; background:#fff;
-  color:#6B7280; font-size:15px; font-weight:500; cursor:pointer; display:flex;
+  padding:12px 18px; border-radius:13px; border:1.5px solid #E6E9F0; background:#fff;
+  color:#6B7280; font-size:14px; font-weight:500; cursor:pointer; display:flex;
   align-items:center; gap:6px; transition: border-color .2s ease, transform .15s var(--spring);
 }
 .cqf .btn-ghost:hover { border-color:#CBD2DE; }
 .cqf .btn-ghost:active { transform:scale(.97); }
 
 .cqf .field { position:relative; border:1.5px solid #E6E9F0; border-radius:12px;
-  padding:7px 14px 7px 42px; background:#fff; transition: border-color .2s ease, box-shadow .2s ease; }
+  padding:6px 14px 6px 40px; background:#fff; transition: border-color .2s ease, box-shadow .2s ease; }
 .cqf .field.focus { border-color:var(--brand); box-shadow:0 0 0 4px rgba(43,94,211,.1); }
 .cqf .field.done { border-color:#BFD0F0; }
-.cqf .field input { border:none; outline:none; width:100%; font-size:15px; color:#1F2937;
+.cqf .field input { border:none; outline:none; width:100%; font-size:14.5px; color:#1F2937;
   background:transparent; padding:1px 0 0; }
 .cqf .field input::placeholder { color:#B6BCC6; }
 .cqf .tick { position:absolute; right:14px; top:13px; width:21px;height:21px;border-radius:50%;
@@ -253,7 +253,7 @@ const CSS = `
 /* Compact 2-column grid for the application step (collapses to 1 col on mobile) */
 /* Paired fields stay 2-up even on mobile so the whole form fits one screen by height.
    Name + Resume span both columns; submit is full width below. */
-.cqf .appgrid { display:grid; grid-template-columns:1fr 1fr; gap:10px 12px; }
+.cqf .appgrid { display:grid; grid-template-columns:1fr 1fr; gap:8px 10px; }
 .cqf .appgrid .span2 { grid-column:1 / -1; }
 
 /* === Quiz one-screen flex layout: fixed head + progress on top, options area
@@ -267,10 +267,10 @@ const CSS = `
 .cqf-scroll { flex:1 1 auto; min-height:0; overflow-y:auto; overscroll-behavior:contain; }
 .cqf-scroll::-webkit-scrollbar { width:7px; }
 .cqf-scroll::-webkit-scrollbar-thumb { background:#D9DEE8; border-radius:9px; }
-.cqf-foot { flex-shrink:0; padding-top:16px; }
+.cqf-foot { flex-shrink:0; padding-top:12px; }
 
 /* Single column, full-width cards on every step. */
-.cqf .optgrid { display:flex; flex-direction:column; gap:8px; }
+.cqf .optgrid { display:flex; flex-direction:column; gap:6px; }
 
 /* Brief "fixating" highlight on the chosen option before an auto-advance —
    colour only, no scale (card size never changes). */
@@ -502,7 +502,7 @@ export default function ContactForm({
               letterSpacing: 1, textTransform: "uppercase", opacity: 0.85 }}>
               <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#fff" }} /> {side.badge}
             </div>
-            <h2 style={{ fontSize: 29, lineHeight: 1.12, fontWeight: 700, margin: "16px 0 12px" }}>
+            <h2 style={{ fontSize: 24, lineHeight: 1.14, fontWeight: 700, margin: "14px 0 10px" }}>
               {side.title}
             </h2>
             <p style={{ fontSize: 14, lineHeight: 1.5, opacity: 0.9 }}>
@@ -565,10 +565,10 @@ export default function ContactForm({
                   className="cqf-step"
                 >
                   <div className="cqf-stephead">
-                    <h3 style={{ fontSize: 21, fontWeight: 700, margin: 0 }}>{heading}</h3>
+                    <h3 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>{heading}</h3>
                     <p style={{ fontSize: 13.5, color: "#6B7280", margin: "5px 0 0" }}>{subtitle}</p>
                   </div>
-                  <div style={{ height: 16, flexShrink: 0 }} />
+                  <div style={{ height: 12, flexShrink: 0 }} />
 
                   {onSelection && (
                     <StepSelection selected={selected} toggle={toggleDirection} onNext={goNext} />
@@ -623,7 +623,7 @@ function StepSelection({ selected, toggle, onNext }: {
   return (
     <div className="cqf-stepbody">
       <div className="cqf-scroll">
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
           {DIRECTIONS.map(({ id, label, sub, icon: Icon, wide }) => {
             const active = selected.includes(id);
             return (

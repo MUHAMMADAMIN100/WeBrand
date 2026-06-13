@@ -55,7 +55,7 @@ export default function CTA() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: 0.2 }}
-                className="text-5xl lg:text-7xl xl:text-8xl font-extrabold text-white tracking-tight leading-[1] text-balance"
+                className="text-4xl lg:text-5xl xl:text-6xl font-extrabold text-white tracking-tight leading-[1.05] text-balance"
               >
                 Готовы вырасти?
               </motion.h2>
@@ -64,7 +64,7 @@ export default function CTA() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: 0.3 }}
-                className="mt-6 text-xl text-white/80 max-w-lg leading-relaxed"
+                className="mt-5 text-lg text-white/80 max-w-lg leading-relaxed"
               >
                 Расскажите о вашем проекте — обсудим стратегию, цели и план запуска. Первая консультация бесплатно.
               </motion.p>

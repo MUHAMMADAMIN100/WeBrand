@@ -4,7 +4,19 @@
 
 @layer base {
   html {
+    /* Single source of truth for the sticky-header anchor offset. The header is
+       h-20 (80px) at the top of the page and shrinks to h-16 (64px) once
+       scrolled — same on mobile and desktop (no responsive height variants), so
+       a fixed value is correct. Using the full 80px guarantees anchored sections
+       clear the header in every state. */
+    --header-h: 80px;
     scroll-behavior: smooth;
+    /* Gentle scroll-snap: only the sections marked `snap-start` (Услуги,
+       Портфолио) snap into place — one section = one screen. `proximity` (not
+       mandatory) keeps the rest of the page scrolling freely and never traps the
+       user inside a tall section. The snap position honours the sections'
+       scroll-margin-top (--header-h + buffer), so they land below the header. */
+    scroll-snap-type: y proximity;
   }
   body {
     @apply bg-white text-neutral-900 font-sans antialiased;
@@ -16,6 +28,14 @@
 }
 
 @layer utilities {
+  /* Anchor targets (sections the header nav links to) stop below the sticky
+     header with a small buffer of air, so their heading is fully visible — not
+     tucked under the header. One source of truth: --header-h + buffer, no
+     scattered magic numbers. Applies to native anchor scroll and scrollIntoView
+     (both honour scroll-margin-top). */
+  .anchor-target {
+    scroll-margin-top: calc(var(--header-h) + 20px);
+  }
   .text-balance {
     text-wrap: balance;
   }

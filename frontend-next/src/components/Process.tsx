@@ -44,10 +44,10 @@ export default function Process() {
           <span className="text-sm font-bold text-brand-400 uppercase tracking-[0.2em]">
             — Процесс
           </span>
-          <h2 className="mt-5 text-5xl lg:text-7xl font-extrabold tracking-tight">
+          <h2 className="mt-5 text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight">
             Как мы работаем
           </h2>
-          <p className="mt-6 max-w-2xl mx-auto text-lg text-neutral-400 leading-relaxed">
+          <p className="mt-5 max-w-2xl mx-auto text-base text-neutral-400 leading-relaxed">
             Прозрачный процесс — от первой встречи до запуска и масштабирования. Без сюрпризов и срывов сроков.
           </p>
         </motion.div>

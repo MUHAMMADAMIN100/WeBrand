@@ -1,6 +1,7 @@
 import './globals.css'
 import type { Metadata, Viewport } from 'next'
 import { Manrope } from 'next/font/google'
+import { GoogleAnalytics } from '@next/third-parties/google'
 import { Providers } from './providers'
 import { SITE_URL } from '../lib/api'
 
@@ -35,6 +36,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="ru" className={manrope.variable}>
       <body>
         <Providers>{children}</Providers>
+        {/* GA4 via the official @next/third-parties — loads only when
+            NEXT_PUBLIC_GA_ID is set; it handles App Router pageview tracking
+            itself, so no manual gtag/route wiring is needed. */}
+        {process.env.NEXT_PUBLIC_GA_ID && (
+          <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} />
+        )}
       </body>
     </html>
   )

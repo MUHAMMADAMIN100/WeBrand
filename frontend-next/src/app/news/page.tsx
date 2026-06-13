@@ -50,10 +50,10 @@ export default async function Page({ searchParams }: { searchParams: Promise<Sea
         {/* Header */}
         <header className="mb-10 md:mb-14">
           <span className="text-sm font-bold uppercase tracking-[0.2em] text-brand-600">— Блог</span>
-          <h1 className="mt-4 text-4xl font-extrabold leading-[1.05] tracking-tight text-neutral-900 md:text-6xl">
+          <h1 className="mt-3 text-3xl font-extrabold leading-[1.1] tracking-tight text-neutral-900 md:text-5xl">
             Новости и статьи
           </h1>
-          <p className="mt-5 max-w-2xl text-lg leading-relaxed text-neutral-600">
+          <p className="mt-4 max-w-2xl text-base leading-relaxed text-neutral-600">
             Экспертные материалы о веб-разработке, дизайне, SMM, рекламе и digital-продвижении бизнеса
             в&nbsp;Душанбе и&nbsp;Таджикистане.
           </p>

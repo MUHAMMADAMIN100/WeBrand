@@ -38,7 +38,7 @@ export type Paginated<T> = {
   results: T[]
 }
 
-export const NEWS_PAGE_SIZE = 9
+export const NEWS_PAGE_SIZE = 12
 
 // The API returns vacancies keyed by `slug`; the frontend Vacancy type uses `id`.
 type ApiVacancy = Omit<Vacancy, 'id'> & { slug: string }
@@ -69,7 +69,7 @@ export async function getNewsPage(
   page: number,
 ): Promise<{ data: Paginated<NewsListItem> | null; error: boolean }> {
   try {
-    const res = await fetch(`${API_BASE}/api/news/?page=${page}`, { cache: 'no-store' })
+    const res = await fetch(`${API_BASE}/api/news/?page=${page}&page_size=${NEWS_PAGE_SIZE}`, { cache: 'no-store' })
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
     return { data: (await res.json()) as Paginated<NewsListItem>, error: false }
   } catch {

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
-import { ExternalLink } from 'lucide-react'
+import { ChevronLeft, ChevronRight, ExternalLink } from 'lucide-react'
 import { usePathname, useRouter } from 'next/navigation'
 import { contacts, type PortfolioItem } from '../data/content'
 
@@ -71,8 +71,25 @@ export default function Portfolio({
   const list =
     active === 'Все' ? portfolio : portfolio.filter((p) => p.category === active)
 
+  // Client-side pagination, 12 per page. Category routing already lives in the
+  // URL; the page index is local UI state (projects link out, so separate
+  // crawlable page URLs add no SEO value here — unlike /news). Reset to page 1
+  // whenever the active category changes.
+  const PER_PAGE = 12
+  const [page, setPage] = useState(1)
+  useEffect(() => {
+    setPage(1)
+  }, [active])
+  const totalPages = Math.max(1, Math.ceil(list.length / PER_PAGE))
+  const current = Math.min(page, totalPages)
+  const pageList = list.slice((current - 1) * PER_PAGE, current * PER_PAGE)
+  const goToPage = (p: number) => {
+    setPage(p)
+    document.getElementById('portfolio')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
   return (
-    <section id="portfolio" className="relative py-14 md:py-24 lg:py-32 bg-white scroll-mt-24">
+    <section id="portfolio" className="relative snap-start min-h-dvh py-14 md:py-24 lg:py-32 bg-white anchor-target">
       <div className="max-w-7xl mx-auto px-5 md:px-6 lg:px-10">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
@@ -85,11 +102,11 @@ export default function Portfolio({
             <span className="text-sm font-bold text-brand-600 uppercase tracking-[0.2em]">
               — Портфолио
             </span>
-            <h2 className="mt-5 text-5xl lg:text-7xl font-extrabold tracking-tight text-neutral-900 leading-[1.05]">
+            <h2 className="mt-5 text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-neutral-900 leading-[1.05]">
               Наши работы
             </h2>
           </div>
-          <p className="max-w-md text-lg text-neutral-600 leading-relaxed">
+          <p className="max-w-md text-base text-neutral-600 leading-relaxed">
             Реальные кейсы — реальные результаты для бизнеса наших клиентов.
           </p>
         </motion.div>
@@ -139,16 +156,60 @@ export default function Portfolio({
             <p className="text-base font-semibold text-neutral-800">В этой категории пока нет проектов</p>
           </div>
         ) : (
-          <motion.div layout className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6">
-            <AnimatePresence mode="popLayout">
-              {list.map((item, i) => (
-                <ProjectCard key={item.id} item={item} index={i} />
-              ))}
-            </AnimatePresence>
-          </motion.div>
+          <>
+            <motion.div layout className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6">
+              <AnimatePresence mode="popLayout">
+                {pageList.map((item, i) => (
+                  <ProjectCard key={item.id} item={item} index={i} />
+                ))}
+              </AnimatePresence>
+            </motion.div>
+
+            {totalPages > 1 && (
+              <PortfolioPagination page={current} totalPages={totalPages} onChange={goToPage} />
+            )}
+          </>
         )}
       </div>
     </section>
+  )
+}
+
+function PortfolioPagination({
+  page,
+  totalPages,
+  onChange,
+}: {
+  page: number
+  totalPages: number
+  onChange: (p: number) => void
+}) {
+  const pages = Array.from({ length: totalPages }, (_, i) => i + 1)
+  const arrow =
+    'grid h-10 w-10 place-items-center rounded-full border border-neutral-200 text-neutral-600 transition-colors disabled:cursor-not-allowed disabled:opacity-40 [&:not(:disabled)]:hover:border-brand-600 [&:not(:disabled)]:hover:text-brand-600'
+  return (
+    <nav className="mt-10 flex items-center justify-center gap-2 md:mt-12" aria-label="Постраничная навигация">
+      <button onClick={() => onChange(page - 1)} disabled={page <= 1} className={arrow} aria-label="Предыдущая страница">
+        <ChevronLeft className="h-4 w-4" />
+      </button>
+      {pages.map((p) => (
+        <button
+          key={p}
+          onClick={() => onChange(p)}
+          aria-current={p === page ? 'page' : undefined}
+          className={`inline-flex h-10 min-w-10 items-center justify-center rounded-full px-3.5 text-sm font-semibold transition-colors ${
+            p === page
+              ? 'bg-brand-600 text-white shadow-lg shadow-brand-600/30'
+              : 'border border-neutral-200 text-neutral-600 hover:border-brand-600 hover:text-brand-600'
+          }`}
+        >
+          {p}
+        </button>
+      ))}
+      <button onClick={() => onChange(page + 1)} disabled={page >= totalPages} className={arrow} aria-label="Следующая страница">
+        <ChevronRight className="h-4 w-4" />
+      </button>
+    </nav>
   )
 }
 

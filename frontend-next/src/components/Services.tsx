@@ -13,7 +13,7 @@ export default function Services() {
   return (
     <section
       id="services"
-      className="relative scroll-mt-24 py-14 md:py-24 lg:py-32 bg-gradient-to-b from-white via-brand-50/30 to-white overflow-hidden"
+      className="relative anchor-target snap-start min-h-dvh py-14 md:py-24 lg:py-32 bg-gradient-to-b from-white via-brand-50/30 to-white overflow-hidden"
     >
       <div className="absolute top-20 -right-40 w-[30rem] h-[30rem] bg-brand-600/5 rounded-full blur-3xl pointer-events-none" />
 
@@ -29,11 +29,11 @@ export default function Services() {
             <span className="text-sm font-bold text-brand-600 uppercase tracking-[0.2em]">
               — Услуги
             </span>
-            <h2 className="mt-5 text-5xl lg:text-7xl font-extrabold tracking-tight text-neutral-900 leading-[1.05]">
+            <h2 className="mt-5 text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-neutral-900 leading-[1.05]">
               Что мы делаем
             </h2>
           </div>
-          <p className="max-w-md text-lg text-neutral-600 leading-relaxed">
+          <p className="max-w-md text-base text-neutral-600 leading-relaxed">
             Кликните на любую подуслугу — расскажем подробно.
           </p>
         </motion.div>
@@ -131,10 +131,10 @@ function ServiceCard({ service, index, onOrder, onSubClick }: CardProps) {
           </motion.button>
         </div>
 
-        <h3 className="text-3xl lg:text-4xl font-bold text-neutral-900 group-hover:text-white transition-colors mb-4 leading-tight">
+        <h3 className="text-2xl lg:text-3xl font-bold text-neutral-900 group-hover:text-white transition-colors mb-3 leading-tight">
           {service.title}
         </h3>
-        <p className="text-neutral-600 group-hover:text-white/90 transition-colors text-lg leading-relaxed mb-6">
+        <p className="text-neutral-600 group-hover:text-white/90 transition-colors text-base leading-relaxed mb-5">
           {service.description}
         </p>
 

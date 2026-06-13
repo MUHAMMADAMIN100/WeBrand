@@ -115,10 +115,10 @@ export default function ServiceDetailModal() {
                   <Sparkles className="w-3.5 h-3.5" />
                   {serviceDetail.parent}
                 </div>
-                <h2 id="sdm-title" className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight leading-[1.05]">
+                <h2 id="sdm-title" className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight leading-[1.1]">
                   {serviceDetail.sub.title}
                 </h2>
-                <p className="mt-3 text-white/85 text-base sm:text-lg leading-relaxed max-w-xl">
+                <p className="mt-2 text-white/85 text-sm sm:text-base leading-relaxed max-w-xl">
                   {serviceDetail.sub.short}
                 </p>
               </div>
@@ -126,7 +126,7 @@ export default function ServiceDetailModal() {
 
             {/* Body */}
             <div className="p-8 sm:p-10 space-y-8">
-              <p className="text-base sm:text-lg text-neutral-700 leading-relaxed">
+              <p className="text-sm sm:text-base text-neutral-700 leading-relaxed">
                 {serviceDetail.sub.description}
               </p>
 

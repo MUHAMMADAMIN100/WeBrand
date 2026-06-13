@@ -43,7 +43,7 @@ export default function Hero() {
           initial={reduce ? false : { opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.1 }}
-          className="text-center text-5xl sm:text-6xl lg:text-[7rem] font-extrabold tracking-tight text-neutral-900 leading-[1.02]"
+          className="text-center text-4xl sm:text-5xl lg:text-7xl font-extrabold tracking-tight text-neutral-900 leading-[1.05]"
         >
           Превращаем бизнес
           <br />
@@ -58,7 +58,7 @@ export default function Hero() {
           initial={reduce ? false : { opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.3 }}
-          className="mt-6 md:mt-10 text-center text-lg lg:text-xl text-neutral-600 max-w-2xl mx-auto text-balance leading-relaxed"
+          className="mt-5 md:mt-7 text-center text-base lg:text-lg text-neutral-600 max-w-2xl mx-auto text-balance leading-relaxed"
         >
           Разрабатываем сайты, выстраиваем бренд, привлекаем клиентов через SMM и контекстную рекламу. Комплексные решения, которые приносят прибыль.
         </motion.p>

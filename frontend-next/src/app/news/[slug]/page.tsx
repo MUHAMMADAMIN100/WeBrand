@@ -68,10 +68,10 @@ export default async function Page({ params }: { params: Promise<Params> }) {
             >
               {formatDate(article.published_at)}
             </time>
-            <h1 className="mt-3 text-3xl font-extrabold leading-tight tracking-tight text-neutral-900 md:text-5xl">
+            <h1 className="mt-3 text-3xl font-extrabold leading-tight tracking-tight text-neutral-900 md:text-4xl">
               {article.title}
             </h1>
-            <p className="mt-5 text-lg leading-relaxed text-neutral-600">{article.excerpt}</p>
+            <p className="mt-4 text-base leading-relaxed text-neutral-600">{article.excerpt}</p>
 
             {article.cover && (
               <img

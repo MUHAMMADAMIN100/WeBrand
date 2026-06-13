@@ -54,11 +54,11 @@ export default function Careers({
   const { openApply } = useModal()
 
   return (
-    // scroll-mt-28 keeps the heading clear of the fixed navbar when navigating to #careers.
+    // anchor-target keeps the heading clear of the fixed navbar (offset = --header-h + buffer).
     // Extra top padding on mobile so the heading is clearly separated from the fixed header.
     <section
       id="careers"
-      className="relative scroll-mt-28 bg-white pt-28 pb-14 md:pt-24 md:pb-24 lg:pt-32 lg:pb-32"
+      className="relative anchor-target bg-white pt-28 pb-14 md:pt-24 md:pb-24 lg:pt-32 lg:pb-32"
     >
       <div className="relative mx-auto max-w-7xl px-5 md:px-6 lg:px-10">
         {/* Header */}
@@ -72,10 +72,10 @@ export default function Careers({
           <span className="text-sm font-bold uppercase tracking-[0.2em] text-brand-600">
             — Вакансии
           </span>
-          <Heading className="mt-5 text-4xl font-extrabold leading-[1.05] tracking-tight text-neutral-900 sm:text-5xl lg:text-6xl">
+          <Heading className="mt-4 text-3xl font-extrabold leading-[1.1] tracking-tight text-neutral-900 sm:text-4xl lg:text-5xl">
             Присоединяйся <span className="text-brand-600">к команде</span>
           </Heading>
-          <p className="mt-5 text-lg leading-relaxed text-neutral-600">
+          <p className="mt-4 text-base leading-relaxed text-neutral-600">
             Мы растём и ищем людей, которым нравится делать сильные digital-продукты.
             Откликнись — расскажем подробнее и обсудим условия.
           </p>
