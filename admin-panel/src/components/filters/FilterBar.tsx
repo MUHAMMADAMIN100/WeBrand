@@ -26,9 +26,14 @@ export function FilterBar({
   const paged = total > 0 && (from > 1 || to < total)
   return (
     <>
-      {/* Filter controls only — the result count no longer floats in the card corner. */}
+      {/* Filter controls only — the result count no longer floats in the card corner.
+          Mobile: each control on its own comfortable row (flex-col, left-aligned),
+          so the search (w-full) gets a full row and chips never get squeezed next
+          to it. Desktop (sm+): the original inline-wrap layout — unchanged. */}
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2.5 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 px-3.5 py-3 shadow-card">
-        <div className="flex flex-1 flex-wrap items-center gap-2.5">{children}</div>
+        <div className="flex min-w-0 flex-1 flex-col items-start gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-2.5">
+          {children}
+        </div>
       </div>
 
       {/* Thin, muted caption between the filter bar and the table — in normal flow,

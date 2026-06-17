@@ -154,7 +154,7 @@ export default function ApplicationsPage() {
             options={RANGE_SEGMENTS}
           />
           <SearchInput
-            className="min-w-[170px] flex-1"
+            className="w-full sm:w-auto sm:min-w-[170px] sm:flex-1"
             ariaLabel="Поиск по имени, контакту, телефону, вакансии"
             placeholder="Имя, контакт, вакансия…"
             value={filters.search}
