@@ -308,7 +308,7 @@ export default function NewsPage() {
             options={STATUS_SEGMENTS}
           />
           <SearchInput
-            className="min-w-[200px] flex-1"
+            className="w-full sm:w-auto sm:min-w-[200px] sm:flex-1"
             ariaLabel="Поиск по заголовку"
             placeholder="Поиск по заголовку…"
             value={filters.search}

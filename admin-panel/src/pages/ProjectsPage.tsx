@@ -169,10 +169,11 @@ function ProjectCells({
   )
 }
 
-/** Draggable row (used only when the list is unfiltered, i.e. truly in order).
- * The whole row is the drag target — listeners/attributes live on the <tr>, so
- * it can be grabbed anywhere. Interactive controls inside (toggle, edit, delete)
- * stopPropagation on pointerdown so they stay clickable and never start a drag. */
+/** Draggable row — used for in-page drag (normal mode, unfiltered) and for the
+ * full-list drag in sort mode. The whole row is the drag target — listeners/
+ * attributes live on the <tr>, so it can be grabbed anywhere. Interactive
+ * controls inside (toggle, edit, delete) stopPropagation on pointerdown so they
+ * stay clickable and never start a drag. */
 function SortableProjectRow({ p, ...handlers }: { p: Project } & RowHandlers) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: p.id })
   const style = { transform: CSS.Transform.toString(transform), transition }
@@ -204,7 +205,7 @@ function StaticProjectRow({ p, ...handlers }: { p: Project } & RowHandlers) {
       <td className="py-3.5 pl-4 pr-1">
         <span
           className="inline-flex p-1.5 text-neutral-200 dark:text-neutral-600"
-          title="Включите «Сортировка», чтобы менять порядок"
+          title="Сбросьте фильтры, чтобы перетаскивать, или включите «Сортировка»"
         >
           <GripVertical className="h-4 w-4" />
         </span>
@@ -262,6 +263,11 @@ export default function ProjectsPage() {
     toast,
     onEnterSort: () => setFilters(DEFAULT_FILTERS),
   })
+
+  // Ordinary in-page drag works without sort mode — whenever the list is in its
+  // true order (no filters). Sort mode additionally drags across all pages.
+  const draggable = sortMode || !filtersActive
+  const dragRows = sortMode ? items : pg.pageItems
 
   const load = useCallback(async () => {
     setStatus('loading')
@@ -343,7 +349,7 @@ export default function ProjectsPage() {
     <>
       <PageHeader
         title="Проекты"
-        subtitle="Порядок в портфолио на сайте. Включите «Сортировка», чтобы менять его перетаскиванием по всему списку."
+        subtitle="Порядок в портфолио на сайте. Перетаскивайте строки прямо здесь, а «Сортировка» — чтобы переносить через все страницы."
         action={
           <Button icon={<Plus className="h-4 w-4" />} onClick={openCreate}>
             Новый проект
@@ -376,7 +382,7 @@ export default function ProjectsPage() {
             options={FEATURED_SEGMENTS}
           />
           <SearchInput
-            className="min-w-[200px] flex-1"
+            className="w-full sm:w-auto sm:min-w-[200px] sm:flex-1"
             ariaLabel="Поиск по названию"
             placeholder="Поиск по названию…"
             value={filters.search}
@@ -423,16 +429,16 @@ export default function ProjectsPage() {
                   <th className="px-5 py-3 text-right font-semibold">{sortMode ? 'Переместить' : 'Действия'}</th>
                 </tr>
               </thead>
-              {sortMode ? (
+              {draggable ? (
                 <DndContext
                   sensors={sensors}
                   collisionDetection={closestCenter}
                   modifiers={[restrictToVerticalAxis, restrictToParentElement]}
                   onDragEnd={onDragEnd}
                 >
-                  <SortableContext items={items.map((p) => p.id)} strategy={verticalListSortingStrategy}>
+                  <SortableContext items={dragRows.map((p) => p.id)} strategy={verticalListSortingStrategy}>
                     <tbody className="divide-y divide-neutral-100 dark:divide-neutral-800">
-                      {items.map((p) => (
+                      {dragRows.map((p) => (
                         <SortableProjectRow key={p.id} p={p} {...rowHandlers} />
                       ))}
                     </tbody>

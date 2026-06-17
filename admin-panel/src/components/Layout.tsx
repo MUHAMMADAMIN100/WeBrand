@@ -79,7 +79,11 @@ export function Layout() {
       {/* Content */}
       <div className="flex min-w-0 flex-1 flex-col lg:pl-64">
         <Topbar onMenu={() => setMobileOpen(true)} />
-        <main className="flex-1 px-4 py-6 lg:px-8 lg:py-8">
+        {/* overflow-x-clip is a backstop: the page can never scroll sideways
+            (so the title/filters are never cut off). `clip` keeps the Y axis
+            visible, so dropdowns/modals are unaffected. min-w-0 lets the flex
+            column shrink instead of being stretched by wide content. */}
+        <main className="min-w-0 flex-1 overflow-x-clip px-4 py-6 lg:px-8 lg:py-8">
           <Outlet />
         </main>
       </div>
@@ -97,12 +101,13 @@ export function PageHeader({
   action?: ReactNode
 }) {
   return (
-    <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
-      <div>
+    // Stack on mobile (title, then full-width action); side-by-side from sm up.
+    <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between sm:gap-4">
+      <div className="min-w-0">
         <h1 className="text-2xl font-extrabold tracking-tight text-neutral-900 dark:text-neutral-100">{title}</h1>
         {subtitle && <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">{subtitle}</p>}
       </div>
-      {action}
+      {action && <div className="w-full sm:w-auto [&>*]:w-full sm:[&>*]:w-auto">{action}</div>}
     </div>
   )
 }

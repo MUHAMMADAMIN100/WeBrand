@@ -80,7 +80,7 @@ export default function LeadsPage() {
             options={RANGE_SEGMENTS}
           />
           <SearchInput
-            className="min-w-[180px] flex-1"
+            className="w-full sm:w-auto sm:min-w-[180px] sm:flex-1"
             ariaLabel="Поиск по имени, контакту, телефону, сообщению"
             placeholder="Имя, контакт, сообщение…"
             value={filters.search}
