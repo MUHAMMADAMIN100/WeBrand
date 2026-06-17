@@ -1,6 +1,12 @@
 from django.urls import path
 
-from .views import LeadCreateView, LeadDetailView, LeadJournalView, LeadResumeView
+from .views import (
+    LeadAttachmentView,
+    LeadCreateView,
+    LeadDetailView,
+    LeadJournalView,
+    LeadResumeView,
+)
 
 urlpatterns = [
     path("leads/", LeadCreateView.as_view(), name="lead-create"),
@@ -10,5 +16,10 @@ urlpatterns = [
         "leads/journal/<int:pk>/resume/",
         LeadResumeView.as_view(),
         name="lead-resume",
+    ),
+    path(
+        "leads/journal/<int:pk>/attachment/",
+        LeadAttachmentView.as_view(),
+        name="lead-attachment",
     ),
 ]

@@ -232,6 +232,25 @@ PROJECTS = [
         "logo": "asan.webp",
         "url": "https://www.instagram.com/asan_dushanbe/",
     },
+    {
+        "legacy_id": 15,
+        "name": "iram.cinema",
+        "subtitle": "кинотеатр в Душанбе",
+        "description": "SMM-сопровождение кинотеатра: афиши премьер, анонсы сеансов и вовлечение аудитории в соцсетях.",
+        "case_description": (
+            "Ведение социальных сетей кинотеатра iram.cinema: афиши и анонсы "
+            "премьер, оформление профиля в едином стиле, контент о сеансах и "
+            "событиях, общение с аудиторией. Подробности — в профиле Instagram."
+        ),
+        "category": "SMM",
+        "tags": ["Instagram", "Cinema", "Контент"],
+        "accent": "#F97316",
+        "logo": None,
+        "initials": "IC",
+        "url": "https://www.instagram.com/iram.cinema/",
+        "site_url": "https://www.instagram.com/iram.cinema/",
+        "slug": "iram-cinema-smm",
+    },
 ]
 
 
@@ -275,10 +294,13 @@ class Command(BaseCommand):
                 defaults={
                     "subtitle": data["subtitle"],
                     "description": data["description"],
+                    "case_description": data.get("case_description", ""),
                     "tags": data["tags"],
                     "accent": data["accent"],
                     "url": data.get("url"),
+                    "site_url": data.get("site_url", ""),
                     "initials": data.get("initials"),
+                    "slug": data.get("slug", ""),  # "" → model.save() auto-generates
                     "sort_order": index,
                     "is_published": True,
                 },

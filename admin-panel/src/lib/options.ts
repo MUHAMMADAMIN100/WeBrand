@@ -36,7 +36,10 @@ export const TYPE_OPTIONS = ['Полная занятость', 'Частичн�
 // field is preserved (the public site may style from it) but there is no
 // admin control/option set for it.
 
-export const CATEGORY_OPTIONS = ['Разработка', 'SMM'] as const
+// Cross-app contract: mirror backend CATEGORY_CHOICES + the public
+// Portfolio.tsx filters. Adding a value here surfaces it in the project form +
+// the projects list category filter automatically.
+export const CATEGORY_OPTIONS = ['Разработка', 'SMM', 'Дизайн', 'Реклама'] as const
 
 // Applicant experience enum — cross-app contract. Keep in sync with
 // backend/apps/choices.py (EXPERIENCE_VALUES) and frontend/src/data/content.ts.

@@ -11,23 +11,26 @@ class LeadAdmin(admin.ModelAdmin):
         "created_at",
         "kind",
         "name",
+        "company_name",
         "contact",
         "phone",
         "role",
         "is_sent_to_telegram",
     )
     list_filter = ("kind", "is_sent_to_telegram", "created_at")
-    search_fields = ("name", "contact", "phone", "role")
+    search_fields = ("name", "company_name", "contact", "phone", "role")
     readonly_fields = (
         "kind",
         "role",
         "name",
+        "company_name",
         "contact",
         "phone",
         "message",
         "experience",
         "age",
         "resume",
+        "attachment",
         "selected",
         "answers",
         "is_sent_to_telegram",

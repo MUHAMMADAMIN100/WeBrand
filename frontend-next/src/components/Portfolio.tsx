@@ -1,26 +1,38 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
-import { ChevronLeft, ChevronRight, ExternalLink } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react'
+import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { contacts, type PortfolioItem } from '../data/content'
+import BrowserMockup from './BrowserMockup'
 
-type Filter = 'Все' | 'Разработка' | 'SMM'
+type Filter = 'Все' | 'Разработка' | 'SMM' | 'Дизайн' | 'Реклама'
 
-const filters: Filter[] = ['Все', 'Разработка', 'SMM']
+const filters: Filter[] = ['Все', 'Разработка', 'SMM', 'Дизайн', 'Реклама']
 
 const pathToFilter: Record<string, Filter> = {
   '/': 'Все',
   '/devprojects': 'Разработка',
   '/smmprojects': 'SMM',
+  '/designprojects': 'Дизайн',
+  '/adsprojects': 'Реклама',
 }
 
 const filterToPath: Record<Filter, string> = {
   Все: '/',
   Разработка: '/devprojects',
   SMM: '/smmprojects',
+  Дизайн: '/designprojects',
+  Реклама: '/adsprojects',
 }
+
+// Filter routes (everything except home) auto-scroll to the portfolio on a
+// direct landing — derived from filterToPath so new categories are covered.
+const FILTER_ROUTES = new Set(
+  (Object.values(filterToPath) as string[]).filter((p) => p !== '/'),
+)
 
 // Module-scoped so it survives the page-subtree remount that happens when the
 // filter routes (/ ↔ /devprojects ↔ /smmprojects) navigate client-side. This
@@ -50,7 +62,7 @@ export default function Portfolio({
   useEffect(() => {
     if (didInitialPortfolioScroll) return
     didInitialPortfolioScroll = true
-    if (pathname === '/devprojects' || pathname === '/smmprojects') {
+    if (FILTER_ROUTES.has(pathname)) {
       const id = window.setTimeout(() => {
         document
           .getElementById('portfolio')
@@ -106,9 +118,18 @@ export default function Portfolio({
               Наши работы
             </h2>
           </div>
-          <p className="max-w-md text-base text-neutral-600 leading-relaxed">
-            Реальные кейсы — реальные результаты для бизнеса наших клиентов.
-          </p>
+          <div className="flex max-w-md flex-col items-start gap-3 md:items-end md:text-right">
+            <p className="text-base text-neutral-600 leading-relaxed">
+              Реальные кейсы — реальные результаты для бизнеса наших клиентов.
+            </p>
+            <Link
+              href="/smm"
+              className="group inline-flex items-center gap-1.5 text-sm font-semibold text-brand-600 transition-colors hover:text-brand-700"
+            >
+              Все работы по SMM
+              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+            </Link>
+          </div>
         </motion.div>
 
         <motion.div
@@ -214,6 +235,7 @@ function PortfolioPagination({
 }
 
 function ProjectCard({ item, index }: { item: PortfolioItem; index: number }) {
+  const href = item.slug ? `/portfolio/${item.slug}` : null
   return (
     <motion.article
       layout
@@ -222,37 +244,34 @@ function ProjectCard({ item, index }: { item: PortfolioItem; index: number }) {
       exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
       transition={{ duration: 0.5, delay: (index % 6) * 0.06 }}
       whileHover={{ y: -8 }}
-      className="group relative h-full flex flex-col rounded-3xl overflow-hidden bg-white border border-neutral-200 hover:border-brand-600 hover:shadow-2xl hover:shadow-brand-600/10 transition-all"
+      className="group relative flex h-full flex-col overflow-hidden rounded-3xl border border-neutral-200 bg-white transition-all hover:border-brand-600 hover:shadow-2xl hover:shadow-brand-600/10"
     >
+      {/* Device mockup on a light, brand-tinted stage */}
       <div
-        className="relative aspect-[4/3] overflow-hidden"
-        style={{ background: `linear-gradient(135deg, ${item.accent}15, ${item.accent}05 50%, #ffffff)` }}
+        className="relative px-5 pb-3 pt-7 sm:px-6"
+        style={{ background: `linear-gradient(135deg, ${item.accent}12, ${item.accent}05 60%, #ffffff)` }}
       >
-        <ProjectVisual item={item} />
-
-        <div className="absolute top-3 left-3 z-10">
-          <span className="px-3 py-1.5 rounded-full bg-white/95 backdrop-blur text-xs font-bold text-neutral-900 shadow-sm">
+        <div className="absolute left-4 top-4 z-10">
+          <span className="rounded-full bg-white/95 px-3 py-1.5 text-xs font-bold text-neutral-900 shadow-sm backdrop-blur">
             {item.category}
           </span>
         </div>
+        <BrowserMockup item={item} tilt />
       </div>
 
-      <div className="p-6 lg:p-7 flex-1 flex flex-col">
-        <h3 className="text-xl font-bold text-neutral-900 leading-tight">
+      {/* Content */}
+      <div className="flex flex-1 flex-col p-6 lg:p-7">
+        <h3 className="text-xl font-bold leading-tight text-neutral-900">
           {item.name}{' '}
-          <span className="text-neutral-400 font-normal text-base">
-            — {item.subtitle}
-          </span>
+          <span className="text-base font-normal text-neutral-400">— {item.subtitle}</span>
         </h3>
-        <p className="mt-3 text-sm text-neutral-600 leading-relaxed line-clamp-2">
-          {item.description}
-        </p>
+        <p className="mt-3 line-clamp-2 text-sm leading-relaxed text-neutral-600">{item.description}</p>
 
         <div className="mt-5 flex flex-wrap gap-2">
           {item.tags.map((t) => (
             <span
               key={t}
-              className="px-3 py-1 rounded-full bg-neutral-100 text-xs font-medium text-neutral-700 group-hover:bg-brand-50 group-hover:text-brand-700 transition-colors"
+              className="rounded-full bg-neutral-100 px-3 py-1 text-xs font-medium text-neutral-700 transition-colors group-hover:bg-brand-50 group-hover:text-brand-700"
             >
               {t}
             </span>
@@ -260,80 +279,23 @@ function ProjectCard({ item, index }: { item: PortfolioItem; index: number }) {
         </div>
 
         <div className="mt-auto pt-6">
-          {item.url ? (
-            <a
-              href={item.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-full py-3.5 rounded-full bg-brand-600 text-white font-semibold flex items-center justify-center gap-2 group-hover:bg-brand-700 transition-colors shadow-lg shadow-brand-600/20 group-hover:shadow-xl group-hover:shadow-brand-600/30"
-            >
-              Смотреть кейс
-              <ExternalLink className="w-4 h-4 group-hover:translate-x-1 group-hover:-translate-y-0.5 transition-transform" />
-            </a>
-          ) : (
-            <div className="w-full py-3.5 rounded-full bg-neutral-100 text-neutral-500 font-semibold flex items-center justify-center gap-2 cursor-not-allowed">
-              Кейс скоро
-            </div>
-          )}
+          <span
+            className={`flex w-full items-center justify-center gap-2 rounded-full py-3.5 font-semibold transition-colors ${
+              href
+                ? 'bg-brand-600 text-white shadow-lg shadow-brand-600/20 group-hover:bg-brand-700 group-hover:shadow-xl group-hover:shadow-brand-600/30'
+                : 'cursor-not-allowed bg-neutral-100 text-neutral-500'
+            }`}
+          >
+            {href ? 'Смотреть кейс' : 'Кейс скоро'}
+            {href && <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />}
+          </span>
         </div>
       </div>
+
+      {/* Stretched link — the whole card opens the case page */}
+      {href && (
+        <Link href={href} aria-label={`Смотреть кейс: ${item.name}`} className="absolute inset-0 z-20" />
+      )}
     </motion.article>
-  )
-}
-
-function ProjectVisual({ item }: { item: PortfolioItem }) {
-  const initials = item.initials ?? item.name.slice(0, 4).toUpperCase()
-  const [imgError, setImgError] = useState(false)
-  const reduce = useReducedMotion()
-  const showLogo = item.logo && !imgError
-  return (
-    <div className="absolute inset-0 flex items-center justify-center p-6">
-      <motion.div
-        whileHover={{ scale: 1.05, rotate: -2 }}
-        transition={{ type: 'spring' }}
-        className="relative"
-      >
-        <div
-          className="absolute inset-0 blur-2xl rounded-full opacity-40"
-          style={{ background: item.accent }}
-        />
-        <div className="relative w-44 h-32 rounded-3xl bg-white shadow-xl border border-neutral-100 flex items-center justify-center overflow-hidden">
-          {showLogo ? (
-            <img
-              src={item.logo}
-              alt={item.name}
-              className="max-h-20 max-w-[140px] object-contain"
-              loading="lazy"
-              onError={() => setImgError(true)}
-            />
-          ) : (
-            <div className="text-center px-6">
-              <div
-                className="text-4xl font-extrabold mb-2 tracking-tight"
-                style={{ color: item.accent }}
-              >
-                {initials}
-              </div>
-              <div className="text-[10px] text-neutral-500 uppercase tracking-widest font-semibold">
-                {item.category}
-              </div>
-            </div>
-          )}
-        </div>
-
-        <motion.div
-          animate={reduce ? undefined : { y: [0, -8, 0] }}
-          transition={{ duration: 3, repeat: Infinity }}
-          className="absolute -top-3 -right-3 w-6 h-6 rounded-full shadow-md"
-          style={{ background: item.accent }}
-        />
-        <motion.div
-          animate={reduce ? undefined : { y: [0, 6, 0] }}
-          transition={{ duration: 4, repeat: Infinity, delay: 0.5 }}
-          className="absolute -bottom-2 -left-2 w-4 h-4 rounded-full bg-white border-2 shadow"
-          style={{ borderColor: item.accent }}
-        />
-      </motion.div>
-    </div>
   )
 }

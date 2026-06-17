@@ -193,8 +193,10 @@ export default function ApplicationsPage() {
                   <th className="hidden w-[12%] px-4 py-3 font-semibold md:table-cell">Опыт</th>
                   <th className="hidden w-[8%] px-4 py-3 font-semibold md:table-cell">Возраст</th>
                   <th className="hidden w-[14%] px-4 py-3 font-semibold lg:table-cell">Телефон</th>
-                  <th className="w-[10%] px-4 py-3 font-semibold sm:w-[9%]">Резюме</th>
-                  <th className="w-[28%] px-4 py-3 font-semibold sm:w-[16%]">Дата</th>
+                  {/* Резюме скрыто на мобайле (есть в детальном просмотре) — иначе
+                      колонка наезжает на «Дату». */}
+                  <th className="hidden w-[10%] px-4 py-3 font-semibold sm:table-cell sm:w-[9%]">Резюме</th>
+                  <th className="w-[40%] px-4 py-3 font-semibold sm:w-[16%]">Дата</th>
                   <th className="w-[14%] px-4 py-3 text-right font-semibold sm:w-[9%]">Действия</th>
                 </tr>
               </thead>
@@ -235,7 +237,7 @@ export default function ApplicationsPage() {
                     <td className="hidden px-4 py-3.5 lg:table-cell">
                       <div className="truncate tabular-nums text-neutral-600 dark:text-neutral-300">{l.phone}</div>
                     </td>
-                    <td className="px-4 py-3.5">
+                    <td className="hidden px-4 py-3.5 sm:table-cell">
                       {l.resume ? (
                         <a
                           href={l.resume}

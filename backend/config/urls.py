@@ -25,14 +25,22 @@ class ThrottledTokenObtainPairView(TokenObtainPairView):
     throttle_scope = "login"
 
 
-def protected_media_serve(request, path):
-    """Serve uploaded media, but never applicant resumes (PII).
+#: Private upload prefixes (PII / client files) never served at a public /media/
+#: path — released only through their signed-URL endpoints (LeadResumeView,
+#: LeadAttachmentView). Public site assets (logos, project covers, news covers)
+#: stay reachable.
+PRIVATE_MEDIA_PREFIXES = ("resumes/", "attachments/")
 
-    Logos are public site content and must stay reachable. Resumes are private:
-    they are released only through the signed-URL endpoint
-    (apps.leads.views.LeadResumeView), never at a guessable /media/ path.
+
+def protected_media_serve(request, path):
+    """Serve uploaded media, but never private files (resumes, brief ТЗ).
+
+    Logos / project covers / news covers are public site content and must stay
+    reachable. Private files are released only through their signed-URL
+    endpoints, never at a guessable /media/ path.
     """
-    if path.startswith("resumes/") or path.startswith("resumes\\"):
+    normalized = path.replace("\\", "/")
+    if normalized.startswith(PRIVATE_MEDIA_PREFIXES):
         raise Http404
     return static_serve(request, path, document_root=settings.MEDIA_ROOT)
 
@@ -42,6 +50,7 @@ urlpatterns = [
     path("api/", include("apps.catalog.urls")),
     path("api/", include("apps.leads.urls")),
     path("api/", include("apps.news.urls")),
+    path("api/", include("apps.showcase.urls")),
     # JWT auth (admin panel)
     path("api/auth/login/", ThrottledTokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("api/auth/refresh/", TokenRefreshView.as_view(), name="token_refresh"),

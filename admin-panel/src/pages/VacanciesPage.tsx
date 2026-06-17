@@ -7,12 +7,10 @@ import {
   PointerSensor,
   useSensor,
   useSensors,
-  type DragEndEvent,
 } from '@dnd-kit/core'
 import { restrictToVerticalAxis, restrictToParentElement } from '@dnd-kit/modifiers'
 import {
   SortableContext,
-  arrayMove,
   sortableKeyboardCoordinates,
   useSortable,
   verticalListSortingStrategy,
@@ -26,12 +24,14 @@ import { EmptyState } from '../components/ui/EmptyState'
 import { ConfirmDialog } from '../components/ui/ConfirmDialog'
 import { Toggle } from '../components/ui/Toggle'
 import { Pagination } from '../components/ui/Pagination'
+import { SortModeBar, RowMoveButtons } from '../components/Sortable'
 import { FilterBar } from '../components/filters/FilterBar'
 import { SegmentedControl, type Segment } from '../components/filters/SegmentedControl'
 import { SearchInput } from '../components/filters/SearchInput'
 import { ICON_MAP } from '../lib/options'
 import { useDebounce } from '../lib/useDebounce'
 import { usePagination } from '../lib/usePagination'
+import { useSortableList } from '../lib/useSortableList'
 import type { Vacancy } from '../lib/types'
 import { deleteVacancy, listVacancies, patchVacancy } from '../api/resources'
 import { useToast } from '../context/ToastContext'
@@ -51,10 +51,13 @@ type RowHandlers = {
   onEdit: (v: Vacancy) => void
   onDelete: (v: Vacancy) => void
   onToggle: (v: Vacancy) => void
+  sortMode: boolean
+  onMoveStart: (v: Vacancy) => void
+  onMoveEnd: (v: Vacancy) => void
 }
 
 /** The four content cells shared by the sortable and static rows. */
-function VacancyCells({ v, onEdit, onDelete, onToggle }: { v: Vacancy } & RowHandlers) {
+function VacancyCells({ v, onEdit, onDelete, onToggle, sortMode, onMoveStart, onMoveEnd }: { v: Vacancy } & RowHandlers) {
   const Icon = ICON_MAP[v.icon] ?? Briefcase
   return (
     <>
@@ -87,22 +90,26 @@ function VacancyCells({ v, onEdit, onDelete, onToggle }: { v: Vacancy } & RowHan
         </div>
       </td>
       <td className="px-5 py-3.5">
-        <div className="flex items-center justify-end gap-1" onPointerDown={(e) => e.stopPropagation()}>
-          <button
-            onClick={() => onEdit(v)}
-            className="cursor-pointer rounded-lg p-2 text-neutral-400 dark:text-neutral-500 transition-colors hover:bg-brand-50 dark:hover:bg-brand-500/15 hover:text-brand-600 dark:hover:text-brand-300"
-            aria-label="Редактировать"
-          >
-            <Pencil className="h-4 w-4" />
-          </button>
-          <button
-            onClick={() => onDelete(v)}
-            className="cursor-pointer rounded-lg p-2 text-neutral-400 dark:text-neutral-500 transition-colors hover:bg-red-50 dark:hover:bg-red-500/15 hover:text-red-600 dark:hover:text-red-400"
-            aria-label="Удалить"
-          >
-            <Trash2 className="h-4 w-4" />
-          </button>
-        </div>
+        {sortMode ? (
+          <RowMoveButtons onStart={() => onMoveStart(v)} onEnd={() => onMoveEnd(v)} />
+        ) : (
+          <div className="flex items-center justify-end gap-1" onPointerDown={(e) => e.stopPropagation()}>
+            <button
+              onClick={() => onEdit(v)}
+              className="cursor-pointer rounded-lg p-2 text-neutral-400 dark:text-neutral-500 transition-colors hover:bg-brand-50 dark:hover:bg-brand-500/15 hover:text-brand-600 dark:hover:text-brand-300"
+              aria-label="Редактировать"
+            >
+              <Pencil className="h-4 w-4" />
+            </button>
+            <button
+              onClick={() => onDelete(v)}
+              className="cursor-pointer rounded-lg p-2 text-neutral-400 dark:text-neutral-500 transition-colors hover:bg-red-50 dark:hover:bg-red-500/15 hover:text-red-600 dark:hover:text-red-400"
+              aria-label="Удалить"
+            >
+              <Trash2 className="h-4 w-4" />
+            </button>
+          </div>
+        )}
       </td>
     </>
   )
@@ -145,7 +152,7 @@ function StaticVacancyRow({ v, ...handlers }: { v: Vacancy } & RowHandlers) {
       <td className="py-3.5 pl-4 pr-1">
         <span
           className="inline-flex p-1.5 text-neutral-200 dark:text-neutral-600"
-          title="Сбросьте фильтры, чтобы менять порядок"
+          title="Включите «Сортировка», чтобы менять порядок"
         >
           <GripVertical className="h-4 w-4" />
         </span>
@@ -168,8 +175,6 @@ export default function VacanciesPage() {
   const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS)
   const search = useDebounce(filters.search, 250)
   const filtersActive = filters.status !== 'all' || filters.search !== ''
-  // Drag reordering only when the list shows every row in its true order.
-  const reorderable = !filtersActive
 
   const sensors = useSensors(
     // ~8px before a press becomes a drag, so a plain click on the row never reorders.
@@ -187,10 +192,18 @@ export default function VacanciesPage() {
     })
   }, [items, filters.status, search])
 
-  // Client-side pagination (12/page) over the filtered list. When reorderable
-  // (unfiltered), drag-reorder operates within the visible page; the page resets
-  // to 1 whenever the filters/search change.
+  // Pagination is shown in normal mode; sort mode hides it and lists everything.
   const pg = usePagination(filtered, 12, `${filters.status}|${search}`)
+
+  // Shared sort mode + drag / quick-move reordering (same across all lists).
+  const { sortMode, toggleSort, onDragEnd, moveToStart, moveToEnd } = useSortableList({
+    items,
+    setItems,
+    getId: (v) => v.slug,
+    patch: patchVacancy,
+    toast,
+    onEnterSort: () => setFilters(DEFAULT_FILTERS),
+  })
 
   const load = useCallback(async () => {
     setStatus('loading')
@@ -232,29 +245,6 @@ export default function VacanciesPage() {
     }
   }
 
-  const onDragEnd = async (event: DragEndEvent) => {
-    const { active, over } = event
-    if (!over || active.id === over.id) return
-    const oldList = items
-    const oldIndex = items.findIndex((v) => v.slug === active.id)
-    const newIndex = items.findIndex((v) => v.slug === over.id)
-    if (oldIndex < 0 || newIndex < 0) return
-
-    // Reassign sequential sort_order; optimistic update; PATCH only changed rows.
-    const reordered = arrayMove(items, oldIndex, newIndex).map((v, i) => ({ ...v, sort_order: i }))
-    setItems(reordered)
-    const changed = reordered.filter(
-      (v) => oldList.find((o) => o.slug === v.slug)?.sort_order !== v.sort_order,
-    )
-    try {
-      await Promise.all(changed.map((v) => patchVacancy(v.slug, { sort_order: v.sort_order })))
-      toast.success('Порядок обновлён')
-    } catch (err) {
-      setItems(oldList) // rollback
-      toast.error(err instanceof Error ? err.message : 'Не удалось сохранить порядок')
-    }
-  }
-
   const confirmDelete = async () => {
     if (!toDelete) return
     setDeleting(true)
@@ -270,13 +260,20 @@ export default function VacanciesPage() {
     }
   }
 
-  const rowHandlers: RowHandlers = { onEdit: openEdit, onDelete: setToDelete, onToggle: togglePublish }
+  const rowHandlers: RowHandlers = {
+    onEdit: openEdit,
+    onDelete: setToDelete,
+    onToggle: togglePublish,
+    sortMode,
+    onMoveStart: moveToStart,
+    onMoveEnd: moveToEnd,
+  }
 
   return (
     <>
       <PageHeader
         title="Вакансии"
-        subtitle="Перетаскивайте строки, чтобы задать порядок на сайте /vacancies"
+        subtitle="Порядок на сайте /vacancies. Включите «Сортировка», чтобы менять его перетаскиванием по всему списку."
         action={
           <Button icon={<Plus className="h-4 w-4" />} onClick={openCreate}>
             Новая вакансия
@@ -285,6 +282,10 @@ export default function VacanciesPage() {
       />
 
       {status === 'ready' && items.length > 0 && (
+        <SortModeBar active={sortMode} onToggle={toggleSort} />
+      )}
+
+      {status === 'ready' && items.length > 0 && !sortMode && (
         <FilterBar total={pg.total} from={pg.from} to={pg.to} active={filtersActive} onReset={resetFilters}>
           <SegmentedControl
             ariaLabel="Статус публикации"
@@ -319,7 +320,7 @@ export default function VacanciesPage() {
             message="Создайте первую вакансию — она появится на публичном сайте."
             action={<Button icon={<Plus className="h-4 w-4" />} onClick={openCreate}>Новая вакансия</Button>}
           />
-        ) : filtered.length === 0 ? (
+        ) : !sortMode && filtered.length === 0 ? (
           <EmptyState
             icon={SearchX}
             title="Ничего не найдено"
@@ -336,19 +337,19 @@ export default function VacanciesPage() {
                   <th className="px-5 py-3 font-semibold">Вакансия</th>
                   <th className="px-5 py-3 font-semibold">Теги</th>
                   <th className="px-5 py-3 font-semibold">Статус</th>
-                  <th className="px-5 py-3 text-right font-semibold">Действия</th>
+                  <th className="px-5 py-3 text-right font-semibold">{sortMode ? 'Переместить' : 'Действия'}</th>
                 </tr>
               </thead>
-              {reorderable ? (
+              {sortMode ? (
                 <DndContext
                   sensors={sensors}
                   collisionDetection={closestCenter}
                   modifiers={[restrictToVerticalAxis, restrictToParentElement]}
                   onDragEnd={onDragEnd}
                 >
-                  <SortableContext items={pg.pageItems.map((v) => v.slug)} strategy={verticalListSortingStrategy}>
+                  <SortableContext items={items.map((v) => v.slug)} strategy={verticalListSortingStrategy}>
                     <tbody className="divide-y divide-neutral-100 dark:divide-neutral-800">
-                      {pg.pageItems.map((v) => (
+                      {items.map((v) => (
                         <SortableVacancyRow key={v.slug} v={v} {...rowHandlers} />
                       ))}
                     </tbody>
@@ -363,7 +364,7 @@ export default function VacanciesPage() {
               )}
             </table>
           </div>
-          <Pagination page={pg.page} totalPages={pg.totalPages} onChange={pg.setPage} />
+          {!sortMode && <Pagination page={pg.page} totalPages={pg.totalPages} onChange={pg.setPage} />}
           </>
         )}
       </Card>

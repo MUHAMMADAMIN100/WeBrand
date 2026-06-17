@@ -1,4 +1,6 @@
 import logging
+import mimetypes
+from pathlib import Path
 
 from django.core import signing
 from django.http import FileResponse, Http404
@@ -12,7 +14,11 @@ from rest_framework.throttling import AnonRateThrottle
 from rest_framework.views import APIView
 
 from .models import Lead
-from .resume_access import signed_resume_url, verify_resume_token
+from .resume_access import (
+    signed_resume_url,
+    verify_attachment_token,
+    verify_resume_token,
+)
 from .serializers import LeadListSerializer, LeadSerializer
 from .telegram import send_lead_to_telegram
 
@@ -49,6 +55,38 @@ class LeadResumeView(APIView):
             content_type="application/pdf",
             as_attachment=True,
             filename=f"resume-{lead.pk}.pdf",
+        )
+
+
+class LeadAttachmentView(APIView):
+    """GET /api/leads/journal/<pk>/attachment/?token=… — gated ТЗ download.
+
+    Same signed-token model as LeadResumeView, with its own salt so a resume
+    token can't be replayed here. Brief attachments are private (never served at
+    a public /media/ path); only the admin-only journal mints working links.
+    """
+
+    permission_classes = [AllowAny]
+    authentication_classes = []
+
+    def get(self, request, pk):
+        token = request.query_params.get("token", "")
+        try:
+            signed_pk = verify_attachment_token(token)
+        except signing.BadSignature:
+            raise Http404
+        if str(signed_pk) != str(pk):
+            raise Http404
+        lead = get_object_or_404(Lead, pk=pk)
+        if not lead.attachment:
+            raise Http404
+        ext = Path(lead.attachment.name).suffix or ".bin"
+        content_type = mimetypes.guess_type(lead.attachment.name)[0] or "application/octet-stream"
+        return FileResponse(
+            lead.attachment.open("rb"),
+            content_type=content_type,
+            as_attachment=True,
+            filename=f"attachment-{lead.pk}{ext}",
         )
 
 
@@ -119,12 +157,15 @@ class LeadDetailView(RetrieveDestroyAPIView):
     queryset = Lead.objects.all()
 
     def perform_destroy(self, instance):
-        # Best-effort: drop the resume file from storage, but never let a storage
-        # hiccup block the row deletion itself.
-        resume = instance.resume
-        if resume:
-            try:
-                resume.delete(save=False)
-            except Exception:
-                logger.warning("Failed to delete resume file for lead %s", instance.pk, exc_info=True)
+        # Best-effort: drop the private files from storage, but never let a
+        # storage hiccup block the row deletion itself.
+        for field in ("resume", "attachment"):
+            f = getattr(instance, field)
+            if f:
+                try:
+                    f.delete(save=False)
+                except Exception:
+                    logger.warning(
+                        "Failed to delete %s file for lead %s", field, instance.pk, exc_info=True
+                    )
         instance.delete()

@@ -26,6 +26,7 @@ type FormState = {
   initials: string
   sort_order: number
   is_published: boolean
+  is_featured: boolean
 }
 
 const empty: FormState = {
@@ -39,6 +40,7 @@ const empty: FormState = {
   initials: '',
   sort_order: 0,
   is_published: true,
+  is_featured: false,
 }
 
 function fromProject(p: Project): FormState {
@@ -53,6 +55,7 @@ function fromProject(p: Project): FormState {
     initials: p.initials ?? '',
     sort_order: p.sort_order,
     is_published: p.is_published,
+    is_featured: p.is_featured,
   }
 }
 
@@ -98,7 +101,12 @@ export function ProjectForm({
   const submit = async () => {
     if (!validate()) return
     setSaving(true)
-    const payload: ProjectInput = { ...form, logo: logoFile }
+    // Non-SMM projects can never be featured (the «топ» list lives on /smm).
+    const payload: ProjectInput = {
+      ...form,
+      is_featured: form.category === 'SMM' ? form.is_featured : false,
+      logo: logoFile,
+    }
     try {
       if (isEdit) {
         await updateProject(initial!.id, payload)
@@ -211,6 +219,22 @@ export function ProjectForm({
             description={form.is_published ? 'Видна в портфолио' : 'Черновик'}
           />
         </div>
+
+        {/* «В топе» — подборка на странице /smm, поэтому только для SMM-проектов. */}
+        {form.category === 'SMM' && (
+          <div className="rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 px-4 py-3">
+            <Toggle
+              checked={form.is_featured}
+              onChange={(v) => set('is_featured', v)}
+              label="Показывать в топе на странице SMM"
+              description={
+                form.is_featured
+                  ? 'В подборке «Топ-кейсы» на странице SMM'
+                  : 'Обычная карточка в общей сетке'
+              }
+            />
+          </div>
+        )}
       </div>
     </Drawer>
   )

@@ -1,4 +1,4 @@
-import { FolderKanban, GripVertical, Pencil, Plus, SearchX, Trash2 } from 'lucide-react'
+import { FolderKanban, GripVertical, Pencil, Plus, SearchX, Star, Trash2 } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   DndContext,
@@ -7,12 +7,10 @@ import {
   PointerSensor,
   useSensor,
   useSensors,
-  type DragEndEvent,
 } from '@dnd-kit/core'
 import { restrictToVerticalAxis, restrictToParentElement } from '@dnd-kit/modifiers'
 import {
   SortableContext,
-  arrayMove,
   sortableKeyboardCoordinates,
   useSortable,
   verticalListSortingStrategy,
@@ -26,12 +24,14 @@ import { EmptyState } from '../components/ui/EmptyState'
 import { ConfirmDialog } from '../components/ui/ConfirmDialog'
 import { Toggle } from '../components/ui/Toggle'
 import { Pagination } from '../components/ui/Pagination'
+import { SortModeBar, RowMoveButtons } from '../components/Sortable'
 import { FilterBar } from '../components/filters/FilterBar'
 import { SegmentedControl, type Segment } from '../components/filters/SegmentedControl'
 import { SearchInput } from '../components/filters/SearchInput'
 import { CATEGORY_OPTIONS } from '../lib/options'
 import { useDebounce } from '../lib/useDebounce'
 import { usePagination } from '../lib/usePagination'
+import { useSortableList } from '../lib/useSortableList'
 import type { Project } from '../lib/types'
 import { deleteProject, listProjects, patchProject } from '../api/resources'
 import { useToast } from '../context/ToastContext'
@@ -39,8 +39,9 @@ import { ProjectForm } from './ProjectForm'
 
 type StatusFilter = 'all' | 'published' | 'draft'
 type CategoryFilter = 'all' | (typeof CATEGORY_OPTIONS)[number]
-type Filters = { category: CategoryFilter; status: StatusFilter; search: string }
-const DEFAULT_FILTERS: Filters = { category: 'all', status: 'all', search: '' }
+type FeaturedFilter = 'all' | 'featured'
+type Filters = { category: CategoryFilter; status: StatusFilter; featured: FeaturedFilter; search: string }
+const DEFAULT_FILTERS: Filters = { category: 'all', status: 'all', featured: 'all', search: '' }
 
 // Category facet derives from the cross-app CATEGORY_CHOICES contract.
 const CATEGORY_SEGMENTS: Segment<CategoryFilter>[] = [
@@ -52,6 +53,18 @@ const STATUS_SEGMENTS: Segment<StatusFilter>[] = [
   { value: 'published', label: 'Опубликовано' },
   { value: 'draft', label: 'Черновик' },
 ]
+const FEATURED_SEGMENTS: Segment<FeaturedFilter>[] = [
+  { value: 'all', label: 'Все' },
+  { value: 'featured', label: 'Топ' },
+]
+
+// Distinct badge colour per category (cross-app vocab: Разработка/SMM/Дизайн/Реклама).
+const CATEGORY_TONE: Record<string, 'brand' | 'violet' | 'amber' | 'green'> = {
+  Разработка: 'brand',
+  SMM: 'violet',
+  Дизайн: 'amber',
+  Реклама: 'green',
+}
 
 function LogoCell({ project }: { project: Project }) {
   const initials = project.initials || project.name.slice(0, 2).toUpperCase()
@@ -70,10 +83,23 @@ type RowHandlers = {
   onEdit: (p: Project) => void
   onDelete: (p: Project) => void
   onToggle: (p: Project) => void
+  onToggleFeatured: (p: Project) => void
+  sortMode: boolean
+  onMoveStart: (p: Project) => void
+  onMoveEnd: (p: Project) => void
 }
 
 /** The content cells shared by the sortable and static rows. */
-function ProjectCells({ p, onEdit, onDelete, onToggle }: { p: Project } & RowHandlers) {
+function ProjectCells({
+  p,
+  onEdit,
+  onDelete,
+  onToggle,
+  onToggleFeatured,
+  sortMode,
+  onMoveStart,
+  onMoveEnd,
+}: { p: Project } & RowHandlers) {
   return (
     <>
       <td className="px-5 py-3.5">
@@ -86,7 +112,7 @@ function ProjectCells({ p, onEdit, onDelete, onToggle }: { p: Project } & RowHan
         </div>
       </td>
       <td className="px-5 py-3.5">
-        <Badge tone={p.category === 'SMM' ? 'violet' : 'brand'}>{p.category}</Badge>
+        <Badge tone={CATEGORY_TONE[p.category] ?? 'brand'}>{p.category}</Badge>
       </td>
       <td className="px-5 py-3.5">
         <div className="flex items-center gap-3">
@@ -98,22 +124,46 @@ function ProjectCells({ p, onEdit, onDelete, onToggle }: { p: Project } & RowHan
         </div>
       </td>
       <td className="px-5 py-3.5">
-        <div className="flex items-center justify-end gap-1" onPointerDown={(e) => e.stopPropagation()}>
-          <button
-            onClick={() => onEdit(p)}
-            className="cursor-pointer rounded-lg p-2 text-neutral-400 dark:text-neutral-500 transition-colors hover:bg-brand-50 dark:hover:bg-brand-500/15 hover:text-brand-600 dark:hover:text-brand-300"
-            aria-label="Редактировать"
-          >
-            <Pencil className="h-4 w-4" />
-          </button>
-          <button
-            onClick={() => onDelete(p)}
-            className="cursor-pointer rounded-lg p-2 text-neutral-400 dark:text-neutral-500 transition-colors hover:bg-red-50 dark:hover:bg-red-500/15 hover:text-red-600 dark:hover:text-red-400"
-            aria-label="Удалить"
-          >
-            <Trash2 className="h-4 w-4" />
-          </button>
-        </div>
+        {/* «В топе» — это подборка на странице /smm, поэтому доступно только
+            проектам категории SMM. Для остальных тумблера нет. */}
+        {p.category === 'SMM' ? (
+          <div className="flex items-center gap-3">
+            {p.is_featured ? (
+              <Badge tone="amber">
+                <Star className="h-3 w-3 fill-amber-500 text-amber-500" />В топе
+              </Badge>
+            ) : (
+              <span className="text-xs text-neutral-400 dark:text-neutral-500">—</span>
+            )}
+            <span className="cursor-pointer" onPointerDown={(e) => e.stopPropagation()}>
+              <Toggle checked={p.is_featured} onChange={() => onToggleFeatured(p)} />
+            </span>
+          </div>
+        ) : (
+          <span className="text-xs text-neutral-300 dark:text-neutral-600">—</span>
+        )}
+      </td>
+      <td className="px-5 py-3.5">
+        {sortMode ? (
+          <RowMoveButtons onStart={() => onMoveStart(p)} onEnd={() => onMoveEnd(p)} />
+        ) : (
+          <div className="flex items-center justify-end gap-1" onPointerDown={(e) => e.stopPropagation()}>
+            <button
+              onClick={() => onEdit(p)}
+              className="cursor-pointer rounded-lg p-2 text-neutral-400 dark:text-neutral-500 transition-colors hover:bg-brand-50 dark:hover:bg-brand-500/15 hover:text-brand-600 dark:hover:text-brand-300"
+              aria-label="Редактировать"
+            >
+              <Pencil className="h-4 w-4" />
+            </button>
+            <button
+              onClick={() => onDelete(p)}
+              className="cursor-pointer rounded-lg p-2 text-neutral-400 dark:text-neutral-500 transition-colors hover:bg-red-50 dark:hover:bg-red-500/15 hover:text-red-600 dark:hover:text-red-400"
+              aria-label="Удалить"
+            >
+              <Trash2 className="h-4 w-4" />
+            </button>
+          </div>
+        )}
       </td>
     </>
   )
@@ -154,7 +204,7 @@ function StaticProjectRow({ p, ...handlers }: { p: Project } & RowHandlers) {
       <td className="py-3.5 pl-4 pr-1">
         <span
           className="inline-flex p-1.5 text-neutral-200 dark:text-neutral-600"
-          title="Сбросьте фильтры, чтобы менять порядок"
+          title="Включите «Сортировка», чтобы менять порядок"
         >
           <GripVertical className="h-4 w-4" />
         </span>
@@ -176,9 +226,11 @@ export default function ProjectsPage() {
 
   const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS)
   const search = useDebounce(filters.search, 250)
-  const filtersActive = filters.category !== 'all' || filters.status !== 'all' || filters.search !== ''
-  // Drag reordering only when the list shows every row in its true order.
-  const reorderable = !filtersActive
+  const filtersActive =
+    filters.category !== 'all' ||
+    filters.status !== 'all' ||
+    filters.featured !== 'all' ||
+    filters.search !== ''
 
   const sensors = useSensors(
     // ~8px before a press becomes a drag, so a plain click on the row never reorders.
@@ -192,14 +244,24 @@ export default function ProjectsPage() {
       if (filters.category !== 'all' && p.category !== filters.category) return false
       if (filters.status === 'published' && !p.is_published) return false
       if (filters.status === 'draft' && p.is_published) return false
+      if (filters.featured === 'featured' && !p.is_featured) return false
       if (q && !p.name.toLowerCase().includes(q)) return false
       return true
     })
-  }, [items, filters.category, filters.status, search])
+  }, [items, filters.category, filters.status, filters.featured, search])
 
-  // Client-side pagination (12/page) over the filtered list. Drag-reorder (when
-  // unfiltered) operates within the visible page; resets to page 1 on filter change.
-  const pg = usePagination(filtered, 12, `${filters.category}|${filters.status}|${search}`)
+  // Pagination is shown in normal mode; sort mode hides it and lists everything.
+  const pg = usePagination(filtered, 12, `${filters.category}|${filters.status}|${filters.featured}|${search}`)
+
+  // Shared sort mode + drag / quick-move reordering (same across all lists).
+  const { sortMode, toggleSort, onDragEnd, moveToStart, moveToEnd } = useSortableList({
+    items,
+    setItems,
+    getId: (p) => p.id,
+    patch: patchProject,
+    toast,
+    onEnterSort: () => setFilters(DEFAULT_FILTERS),
+  })
 
   const load = useCallback(async () => {
     setStatus('loading')
@@ -241,26 +303,14 @@ export default function ProjectsPage() {
     }
   }
 
-  const onDragEnd = async (event: DragEndEvent) => {
-    const { active, over } = event
-    if (!over || active.id === over.id) return
-    const oldList = items
-    const oldIndex = items.findIndex((p) => p.id === active.id)
-    const newIndex = items.findIndex((p) => p.id === over.id)
-    if (oldIndex < 0 || newIndex < 0) return
-
-    // Reassign sequential sort_order; optimistic update; PATCH only changed rows.
-    const reordered = arrayMove(items, oldIndex, newIndex).map((p, i) => ({ ...p, sort_order: i }))
-    setItems(reordered)
-    const changed = reordered.filter(
-      (p) => oldList.find((o) => o.id === p.id)?.sort_order !== p.sort_order,
-    )
+  const toggleFeatured = async (p: Project) => {
+    setItems((arr) => arr.map((x) => (x.id === p.id ? { ...x, is_featured: !x.is_featured } : x)))
     try {
-      await Promise.all(changed.map((p) => patchProject(p.id, { sort_order: p.sort_order })))
-      toast.success('Порядок обновлён')
+      await patchProject(p.id, { is_featured: !p.is_featured })
+      toast.success(!p.is_featured ? 'Добавлено в топ SMM' : 'Убрано из топа')
     } catch (err) {
-      setItems(oldList) // rollback
-      toast.error(err instanceof Error ? err.message : 'Не удалось сохранить порядок')
+      setItems((arr) => arr.map((x) => (x.id === p.id ? { ...x, is_featured: p.is_featured } : x)))
+      toast.error(err instanceof Error ? err.message : 'Не удалось изменить')
     }
   }
 
@@ -279,13 +329,21 @@ export default function ProjectsPage() {
     }
   }
 
-  const rowHandlers: RowHandlers = { onEdit: openEdit, onDelete: setToDelete, onToggle: togglePublish }
+  const rowHandlers: RowHandlers = {
+    onEdit: openEdit,
+    onDelete: setToDelete,
+    onToggle: togglePublish,
+    onToggleFeatured: toggleFeatured,
+    sortMode,
+    onMoveStart: moveToStart,
+    onMoveEnd: moveToEnd,
+  }
 
   return (
     <>
       <PageHeader
         title="Проекты"
-        subtitle="Перетаскивайте строки, чтобы задать порядок в портфолио на сайте"
+        subtitle="Порядок в портфолио на сайте. Включите «Сортировка», чтобы менять его перетаскиванием по всему списку."
         action={
           <Button icon={<Plus className="h-4 w-4" />} onClick={openCreate}>
             Новый проект
@@ -294,6 +352,10 @@ export default function ProjectsPage() {
       />
 
       {status === 'ready' && items.length > 0 && (
+        <SortModeBar active={sortMode} onToggle={toggleSort} />
+      )}
+
+      {status === 'ready' && items.length > 0 && !sortMode && (
         <FilterBar total={pg.total} from={pg.from} to={pg.to} active={filtersActive} onReset={resetFilters}>
           <SegmentedControl
             ariaLabel="Категория"
@@ -307,6 +369,12 @@ export default function ProjectsPage() {
             onChange={(status) => setFilters((f) => ({ ...f, status }))}
             options={STATUS_SEGMENTS}
           />
+          <SegmentedControl
+            ariaLabel="Топ-кейсы SMM"
+            value={filters.featured}
+            onChange={(featured) => setFilters((f) => ({ ...f, featured }))}
+            options={FEATURED_SEGMENTS}
+          />
           <SearchInput
             className="min-w-[200px] flex-1"
             ariaLabel="Поиск по названию"
@@ -319,7 +387,7 @@ export default function ProjectsPage() {
 
       <Card>
         {status === 'loading' ? (
-          <TableSkeleton rows={6} cols={5} />
+          <TableSkeleton rows={6} cols={6} />
         ) : status === 'error' ? (
           <EmptyState
             icon={FolderKanban}
@@ -334,7 +402,7 @@ export default function ProjectsPage() {
             message="Добавьте первый проект — он появится в портфолио на сайте."
             action={<Button icon={<Plus className="h-4 w-4" />} onClick={openCreate}>Новый проект</Button>}
           />
-        ) : filtered.length === 0 ? (
+        ) : !sortMode && filtered.length === 0 ? (
           <EmptyState
             icon={SearchX}
             title="Ничего не найдено"
@@ -344,26 +412,27 @@ export default function ProjectsPage() {
         ) : (
           <>
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[760px] text-left text-sm">
+            <table className="w-full min-w-[900px] text-left text-sm">
               <thead>
                 <tr className="border-b border-neutral-200 dark:border-neutral-800 text-xs font-semibold uppercase tracking-wide text-neutral-400 dark:text-neutral-500">
                   <th className="w-10" aria-label="Перетащить" />
                   <th className="px-5 py-3 font-semibold">Проект</th>
                   <th className="px-5 py-3 font-semibold">Категория</th>
                   <th className="px-5 py-3 font-semibold">Статус</th>
-                  <th className="px-5 py-3 text-right font-semibold">Действия</th>
+                  <th className="px-5 py-3 font-semibold">В топе SMM</th>
+                  <th className="px-5 py-3 text-right font-semibold">{sortMode ? 'Переместить' : 'Действия'}</th>
                 </tr>
               </thead>
-              {reorderable ? (
+              {sortMode ? (
                 <DndContext
                   sensors={sensors}
                   collisionDetection={closestCenter}
                   modifiers={[restrictToVerticalAxis, restrictToParentElement]}
                   onDragEnd={onDragEnd}
                 >
-                  <SortableContext items={pg.pageItems.map((p) => p.id)} strategy={verticalListSortingStrategy}>
+                  <SortableContext items={items.map((p) => p.id)} strategy={verticalListSortingStrategy}>
                     <tbody className="divide-y divide-neutral-100 dark:divide-neutral-800">
-                      {pg.pageItems.map((p) => (
+                      {items.map((p) => (
                         <SortableProjectRow key={p.id} p={p} {...rowHandlers} />
                       ))}
                     </tbody>
@@ -378,7 +447,7 @@ export default function ProjectsPage() {
               )}
             </table>
           </div>
-          <Pagination page={pg.page} totalPages={pg.totalPages} onChange={pg.setPage} />
+          {!sortMode && <Pagination page={pg.page} totalPages={pg.totalPages} onChange={pg.setPage} />}
           </>
         )}
       </Card>

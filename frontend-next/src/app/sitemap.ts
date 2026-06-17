@@ -7,7 +7,7 @@ import { API_BASE, SITE_URL } from '../lib/api'
 // pages, so the sitemap never errors and the build never depends on the backend.
 export const dynamic = 'force-dynamic'
 
-const STATIC_PATHS = ['/', '/vacancies', '/news']
+const STATIC_PATHS = ['/', '/smm', '/brief', '/vacancies', '/news']
 
 async function fetchAllNews(): Promise<Array<Record<string, unknown>>> {
   const items: Array<Record<string, unknown>> = []
@@ -43,6 +43,21 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }
   } catch {
     // Degrade gracefully: keep the static pages, skip the news block.
+  }
+
+  // Project case pages (/portfolio/<slug>). The endpoint returns a plain array
+  // of published projects; degrade gracefully if the API is unreachable.
+  try {
+    const res = await fetch(`${API_BASE}/api/projects/`, { cache: 'no-store' })
+    if (res.ok) {
+      const projects = (await res.json()) as Array<{ slug?: string; is_published?: boolean }>
+      for (const p of projects) {
+        if (!p.slug || p.is_published === false) continue
+        entries.push({ url: `${SITE_URL}/portfolio/${p.slug}`, lastModified: now })
+      }
+    }
+  } catch {
+    // Skip the portfolio block on failure.
   }
 
   return entries

@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     "apps.catalog",
     "apps.leads",
     "apps.news",
+    "apps.showcase",
 ]
 
 MIDDLEWARE = [
@@ -168,7 +169,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # Only the deployed frontend + local dev. Never CORS_ALLOW_ALL_ORIGINS.
 CORS_ALLOWED_ORIGINS = config(
     "CORS_ALLOWED_ORIGINS",
-    default="https://webrand-flame.vercel.app,http://localhost:5173,http://localhost:5174",
+    default="https://webrand-flame.vercel.app,http://localhost:5173,http://localhost:5174,http://localhost:3000",
     cast=Csv(),
 )
 

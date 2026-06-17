@@ -1,4 +1,5 @@
 import re
+from pathlib import Path
 
 from rest_framework import serializers
 
@@ -21,12 +22,22 @@ MAX_ANSWER_LEN = 500
 PDF_CONTENT_TYPES = ("application/pdf", "application/x-pdf")
 MAX_RESUME_BYTES = 10 * 1024 * 1024  # ~10 MB
 
+# Brief attachment (ТЗ) — broader than resumes (docs/sheets/archives/images).
+ATTACHMENT_EXTS = {
+    ".pdf", ".doc", ".docx", ".txt", ".rtf", ".odt", ".md",
+    ".xls", ".xlsx", ".csv", ".ppt", ".pptx",
+    ".png", ".jpg", ".jpeg", ".webp", ".gif", ".heic",
+    ".zip", ".rar", ".7z",
+}
+MAX_ATTACHMENT_BYTES = 20 * 1024 * 1024  # ~20 MB
+
 
 class LeadListSerializer(serializers.ModelSerializer):
     """Read-only projection for the admin journal (GET /api/leads/journal/)."""
 
     kind_display = serializers.CharField(source="get_kind_display", read_only=True)
     resume = serializers.SerializerMethodField()
+    attachment = serializers.SerializerMethodField()
 
     class Meta:
         model = Lead
@@ -38,10 +49,12 @@ class LeadListSerializer(serializers.ModelSerializer):
             "name",
             "contact",
             "phone",
+            "company_name",
             "message",
             "experience",
             "age",
             "resume",
+            "attachment",
             "selected",
             "answers",
             "is_sent_to_telegram",
@@ -56,11 +69,21 @@ class LeadListSerializer(serializers.ModelSerializer):
 
         return signed_resume_url(self.context.get("request"), obj)
 
+    def get_attachment(self, obj):
+        """Signature-protected brief-attachment URL (not the public /media/ path)."""
+        if not obj.attachment:
+            return None
+        from .resume_access import signed_attachment_url
+
+        return signed_attachment_url(self.context.get("request"), obj)
+
 
 class LeadSerializer(serializers.ModelSerializer):
-    # Honeypot: not a model field. Bots fill it; humans never see it.
+    # Honeypot: not a model field. Bots fill it; humans never see it. This is the
+    # ONLY `company`; the visible brief field is the separate `company_name`.
     company = serializers.CharField(required=False, allow_blank=True, write_only=True)
     resume = serializers.FileField(required=False, allow_null=True)
+    attachment = serializers.FileField(required=False, allow_null=True)
 
     class Meta:
         model = Lead
@@ -70,15 +93,18 @@ class LeadSerializer(serializers.ModelSerializer):
             "name",
             "contact",
             "phone",
+            "company_name",
             "message",
             "experience",
             "age",
             "resume",
+            "attachment",
             "selected",
             "answers",
             "company",
         ]
         extra_kwargs = {
+            "company_name": {"required": False, "allow_blank": True},
             "message": {"required": False, "allow_blank": True},
             "experience": {"required": False, "allow_blank": True},
             "age": {"required": False, "allow_null": True},
@@ -117,10 +143,23 @@ class LeadSerializer(serializers.ModelSerializer):
             )
         return f"+992{digits}"
 
+    def validate_company_name(self, value):
+        return (value or "").strip()
+
     def validate_message(self, value):
         value = (value or "").strip()
         if len(value) > 2000:
             raise serializers.ValidationError("Сообщение слишком длинное (макс. 2000).")
+        return value
+
+    def validate_attachment(self, value):
+        if not value:
+            return value
+        ext = Path((getattr(value, "name", "") or "").lower()).suffix
+        if ext not in ATTACHMENT_EXTS:
+            raise serializers.ValidationError("Недопустимый тип файла ТЗ.")
+        if value.size > MAX_ATTACHMENT_BYTES:
+            raise serializers.ValidationError("Файл ТЗ слишком большой (макс. 20 МБ).")
         return value
 
     def validate_experience(self, value):

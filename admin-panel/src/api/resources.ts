@@ -1,4 +1,4 @@
-import type { Lead, News, NewsListItem, Project, Vacancy } from '../lib/types'
+import type { Lead, News, NewsListItem, Partner, Project, Reel, Vacancy } from '../lib/types'
 import { apiJson } from './client'
 
 type Paginated<T> = { count: number; next: string | null; previous: string | null; results: T[] }
@@ -39,6 +39,7 @@ export type ProjectInput = {
   initials: string
   sort_order: number
   is_published: boolean
+  is_featured: boolean
   logo?: File | null
 }
 
@@ -53,6 +54,7 @@ function projectFormData(data: ProjectInput): FormData {
   fd.append('initials', data.initials)
   fd.append('sort_order', String(data.sort_order))
   fd.append('is_published', String(data.is_published))
+  fd.append('is_featured', String(data.is_featured))
   fd.append('tags', JSON.stringify(data.tags)) // JSONField accepts a JSON string
   if (data.logo) fd.append('logo', data.logo)
   return fd
@@ -76,6 +78,60 @@ export const patchProject = (id: number, data: Record<string, unknown>) =>
 
 export const deleteProject = (id: number) =>
   apiJson<void>(`/api/projects/${id}/`, { method: 'DELETE' })
+
+// ---- Reels (JSON — no file) ------------------------------------------------
+export type ReelInput = { youtube_url: string; title: string; sort_order: number }
+
+export const listReels = () => apiJson<Reel[]>('/api/reels/', { auth: true })
+
+export const createReel = (data: ReelInput) =>
+  apiJson<Reel>('/api/reels/', jsonInit('POST', data))
+
+// Edit / inline reorder both via PATCH (partial).
+export const patchReel = (id: number, data: Partial<ReelInput>) =>
+  apiJson<Reel>(`/api/reels/${id}/`, jsonInit('PATCH', data))
+
+export const deleteReel = (id: number) =>
+  apiJson<void>(`/api/reels/${id}/`, { method: 'DELETE' })
+
+// ---- Partners (multipart for logo upload, same as projects) ----------------
+export type PartnerInput = {
+  name: string
+  niche: string
+  description: string
+  result: string
+  link: string
+  sort_order: number
+  logo?: File | null
+}
+
+function partnerFormData(data: PartnerInput): FormData {
+  const fd = new FormData()
+  fd.append('name', data.name)
+  fd.append('niche', data.niche)
+  fd.append('description', data.description)
+  fd.append('result', data.result)
+  fd.append('link', data.link)
+  fd.append('sort_order', String(data.sort_order))
+  if (data.logo) fd.append('logo', data.logo)
+  return fd
+}
+
+export const listPartners = () => apiJson<Partner[]>('/api/partners/', { auth: true })
+
+export const createPartner = (data: PartnerInput) =>
+  apiJson<Partner>('/api/partners/', { method: 'POST', body: partnerFormData(data) })
+
+// PATCH so an unchanged logo is preserved when no new file is attached.
+export const updatePartner = (id: number, data: PartnerInput) =>
+  apiJson<Partner>(`/api/partners/${id}/`, { method: 'PATCH', body: partnerFormData(data) })
+
+// Lightweight inline change (e.g. drag reorder) via JSON PATCH.
+export const patchPartner = (id: number, data: Record<string, unknown>) =>
+  apiJson<Partner>(`/api/partners/${id}/`, jsonInit('PATCH', data))
+
+export const deletePartner = (id: number) =>
+  apiJson<void>(`/api/partners/${id}/`, { method: 'DELETE' })
 
 // ---- News (multipart for cover upload) -------------------------------------
 export type NewsInput = {

@@ -17,12 +17,12 @@ import type { ApplyTarget } from "../context/ModalContext";
 // Default in code so local dev works without a .env (mirrors the Vite app).
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
-type Direction = { id: string; label: string; sub: string; icon: LucideIcon; wide?: boolean };
+export type Direction = { id: string; label: string; sub: string; icon: LucideIcon; wide?: boolean };
 type QOption = { l: string; icon: LucideIcon };
-type Question = { q: string; multi: boolean; options: QOption[] };
-type Answers = Record<string, string | string[]>;
+export type Question = { q: string; multi: boolean; options: QOption[] };
+export type Answers = Record<string, string | string[]>;
 
-const DIRECTIONS: Direction[] = [
+export const DIRECTIONS: Direction[] = [
   { id: "smm", label: "SMM", sub: "соцсети и контент", icon: Megaphone },
   { id: "design", label: "Дизайн", sub: "лого, баннеры, UI", icon: Palette },
   { id: "dev", label: "Разработка", sub: "сайты и приложения", icon: Code2 },
@@ -45,7 +45,7 @@ export function directionsForService(title: string): string[] {
 }
 
 // One main question per direction.
-const QUESTIONS: Record<string, Question> = {
+export const QUESTIONS: Record<string, Question> = {
   dev: { q: "Что хотите сделать?", multi: false, options: [
     { l: "Landing page", icon: FileText },
     { l: "Корпоративный сайт", icon: Building2 },
@@ -80,19 +80,19 @@ const QUESTIONS: Record<string, Question> = {
 // пересылает его в Telegram серверно. Токен бота больше не живёт в браузере.
 
 // === Валидация контактов ===
-const PHONE_PREFIX = "+992 ";
+export const PHONE_PREFIX = "+992 ";
 const NAME_RE = /^[\p{L}][\p{L}\s'’-]*$/u; // буквы (любой алфавит), пробел, апостроф, дефис
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const TG_RE = /^@?[A-Za-z0-9_]{5,32}$/;
 
 // 9 национальных цифр после фиксированного префикса "+992 "
-const nationalDigits = (v: string): string => {
+export const nationalDigits = (v: string): string => {
   let d = v.replace(/\D/g, "");
   if (d.startsWith("992")) d = d.slice(3);
   return d.slice(0, 9);
 };
 // Группировка 9 цифр: "98 864 55 43"
-const formatPhone = (d: string): string => {
+export const formatPhone = (d: string): string => {
   let out = d.slice(0, 2);
   if (d.length > 2) out += " " + d.slice(2, 5);
   if (d.length > 5) out += " " + d.slice(5, 7);
@@ -100,7 +100,7 @@ const formatPhone = (d: string): string => {
   return out;
 };
 
-function validateName(v: string): string | undefined {
+export function validateName(v: string): string | undefined {
   const t = v.trim();
   if (!t) return "Введите имя";
   if (t.length < 2) return "Минимум 2 символа";
@@ -108,13 +108,13 @@ function validateName(v: string): string | undefined {
   if (!NAME_RE.test(t)) return "Только буквы, пробел и дефис";
   return undefined;
 }
-function validateContact(v: string): string | undefined {
+export function validateContact(v: string): string | undefined {
   const t = v.trim();
   if (!t) return "Укажите email или Telegram";
   if (!EMAIL_RE.test(t) && !TG_RE.test(t)) return "Введите email или Telegram (@username)";
   return undefined;
 }
-function validatePhone(v: string): string | undefined {
+export function validatePhone(v: string): string | undefined {
   if (nationalDigits(v).length !== 9) return "Введите 9 цифр номера";
   return undefined;
 }

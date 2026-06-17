@@ -2,6 +2,7 @@ export const nav = [
   { label: "О компании", href: "#about" },
   { label: "Услуги", href: "#services" },
   { label: "Портфолио", href: "#portfolio" },
+  { label: "Работы по SMM", href: "/smm" },
   { label: "Вакансии", href: "/vacancies" },
 ]
 
@@ -324,14 +325,24 @@ export const services: Service[] = [
 
 export type PortfolioItem = {
   id: number
+  // Stable case-route id (API always provides it; optional for the legacy
+  // static fallback array below).
+  slug?: string
   name: string
   subtitle: string
   description: string
-  category: "Разработка" | "SMM"
+  // Long-form copy for the case page; falls back to `description` when empty.
+  case_description?: string
+  // Cross-app contract: mirror backend CATEGORY_CHOICES + admin CATEGORY_OPTIONS.
+  category: "Разработка" | "SMM" | "Дизайн" | "Реклама"
   tags: string[]
   accent: string
   logo?: string
+  // Project screenshot shown inside the device mockup; falls back to `logo`.
+  cover?: string | null
   url?: string
+  // Link to the live site (shown on the case page only).
+  site_url?: string
   initials?: string
 }
 

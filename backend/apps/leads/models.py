@@ -1,3 +1,4 @@
+import re
 import uuid
 from pathlib import Path
 
@@ -10,6 +11,21 @@ KIND_CHOICES = [
     ("lead", "Заявка с формы"),
     ("application", "Отклик на вакансию"),
 ]
+
+
+def brief_upload_path(instance, filename):
+    """Store brief attachments (ТЗ) under an unguessable random name.
+
+    Same posture as resumes: a random stem in the private ``attachments/``
+    prefix (direct /media/attachments/ is 404'd in config/urls.py; with S3 the
+    'resumes' storage is querystring-signed). The only sanctioned download is the
+    signed-token endpoint (LeadAttachmentView). The (sanitised) extension is kept
+    so the file opens with the right app.
+    """
+    suffix = Path(filename or "").suffix.lower()
+    if not re.fullmatch(r"\.[a-z0-9]{1,8}", suffix or ""):
+        suffix = ""
+    return f"attachments/{uuid.uuid4().hex}{suffix}"
 
 
 def resume_upload_path(instance, filename):
@@ -48,8 +64,17 @@ class Lead(models.Model):
     name = models.CharField(max_length=50)
     contact = models.CharField(max_length=60, help_text="email или @telegram")
     phone = models.CharField(max_length=20)
+    # VISIBLE company name from the «Обсудить проект» brief — NOT the honeypot.
+    # The honeypot stays the (non-model, write-only) `company` field on the
+    # serializer; this is a real, saved value.
+    company_name = models.CharField(
+        max_length=120,
+        blank=True,
+        default="",
+        help_text="Видимое название компании из формы брифа (не honeypot)",
+    )
     message = models.TextField(
-        blank=True, default="", help_text="Необязательное сообщение (отклик на вакансию)"
+        blank=True, default="", help_text="Необязательное сообщение / текст брифа"
     )
     # --- Applicant fields (only kind=application uses them) ---
     experience = models.CharField(
@@ -61,6 +86,14 @@ class Lead(models.Model):
         storage=select_resume_storage,
         null=True,
         blank=True,
+    )
+    # Brief attachment (ТЗ) — private storage, same as resumes.
+    attachment = models.FileField(
+        upload_to=brief_upload_path,
+        storage=select_resume_storage,
+        null=True,
+        blank=True,
+        help_text="Файл ТЗ из формы брифа (приватное хранилище, как у резюме)",
     )
     selected = models.JSONField(default=list, blank=True)
     answers = models.JSONField(default=dict, blank=True)

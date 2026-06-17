@@ -31,6 +31,26 @@ export type Project = {
   initials: string | null
   sort_order: number
   is_published: boolean
+  is_featured: boolean
+}
+
+// Showcase entities for the public /smm page. Mirror the Django showcase serializers.
+export type Reel = {
+  id: number
+  youtube_url: string
+  title: string
+  sort_order: number
+}
+
+export type Partner = {
+  id: number
+  name: string
+  logo: string | null // absolute URL or null
+  niche: string
+  description: string
+  result: string
+  link: string | null
+  sort_order: number
 }
 
 // News list item (feed shape — no heavy body). Mirrors NewsListSerializer.

@@ -43,10 +43,13 @@ class VacancyViewSet(viewsets.ModelViewSet):
 
 
 class ProjectViewSet(viewsets.ModelViewSet):
-    """Public read; admin-only write. Filterable by ?category=.
+    """Public read; admin-only write. Filterable by ?category= and ?featured=.
 
     Accepts multipart uploads so the logo can be sent as a file on
     create/update; JSON bodies (no file) still work too.
+
+    ``?featured=true`` narrows to the top-cases set (``is_featured``); combine
+    with ``?category=SMM`` for the /smm page's «Топ-кейсы» block.
     """
 
     serializer_class = ProjectSerializer
@@ -61,4 +64,16 @@ class ProjectViewSet(viewsets.ModelViewSet):
         category = self.request.query_params.get("category")
         if category:
             qs = qs.filter(category=category)
+        # Lets the public case page fetch a single project by its stable slug
+        # (e.g. /api/projects/?slug=shakl) without changing the id-based lookup
+        # the admin panel uses for CRUD.
+        slug = self.request.query_params.get("slug")
+        if slug:
+            qs = qs.filter(slug=slug)
+        featured = self.request.query_params.get("featured")
+        if featured is not None:
+            if featured.lower() in ("1", "true", "yes"):
+                qs = qs.filter(is_featured=True)
+            elif featured.lower() in ("0", "false", "no"):
+                qs = qs.filter(is_featured=False)
         return qs

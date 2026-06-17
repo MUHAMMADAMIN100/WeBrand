@@ -1,7 +1,9 @@
 import {
   Briefcase,
   ChevronDown,
+  Clapperboard,
   FolderKanban,
+  Handshake,
   Inbox,
   Newspaper,
   LogOut,
@@ -29,6 +31,8 @@ const NAV: Item[] = [
     ],
   },
   { kind: 'link', to: '/projects', label: 'Проекты', Icon: FolderKanban },
+  { kind: 'link', to: '/reels', label: 'Рилсы', Icon: Clapperboard },
+  { kind: 'link', to: '/partners', label: 'Партнёры', Icon: Handshake },
   { kind: 'link', to: '/news', label: 'Новости', Icon: Newspaper },
   { kind: 'link', to: '/leads', label: 'Заявки', Icon: Inbox },
 ]

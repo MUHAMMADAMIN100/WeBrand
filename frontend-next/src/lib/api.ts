@@ -40,6 +40,32 @@ export type Paginated<T> = {
 
 export const NEWS_PAGE_SIZE = 12
 
+// Project as returned by the API, plus the SMM-page extras (`is_featured`,
+// `sort_order`) the home PortfolioItem type doesn't carry.
+export type ProjectItem = PortfolioItem & {
+  is_featured?: boolean
+  is_published?: boolean
+  sort_order?: number
+}
+
+export type Reel = {
+  id: number
+  youtube_url: string
+  title: string
+  sort_order: number
+}
+
+export type Partner = {
+  id: number
+  name: string
+  logo: string | null
+  niche: string
+  description: string
+  result: string
+  link: string | null
+  sort_order: number
+}
+
 // The API returns vacancies keyed by `slug`; the frontend Vacancy type uses `id`.
 type ApiVacancy = Omit<Vacancy, 'id'> & { slug: string }
 
@@ -48,6 +74,57 @@ export async function getProjects(): Promise<{ data: PortfolioItem[]; error: boo
     const res = await fetch(`${API_BASE}/api/projects/`, { cache: 'no-store' })
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
     return { data: (await res.json()) as PortfolioItem[], error: false }
+  } catch {
+    return { data: [], error: true }
+  }
+}
+
+// SMM-only projects for the /smm page. The backend already orders by
+// `sort_order` and only anonymous-visible (published) rows come back.
+export async function getSmmProjects(): Promise<{ data: ProjectItem[]; error: boolean }> {
+  try {
+    const res = await fetch(`${API_BASE}/api/projects/?category=SMM`, { cache: 'no-store' })
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    return { data: (await res.json()) as ProjectItem[], error: false }
+  } catch {
+    return { data: [], error: true }
+  }
+}
+
+// Single project for the case page, looked up by its stable slug via the
+// backend `?slug=` filter. Returns 'notfound' when no project matches, 'error'
+// on any other failure — same shape as getNewsArticle.
+export async function getProjectBySlug(
+  slug: string,
+): Promise<{ data: PortfolioItem | null; status: 'ready' | 'notfound' | 'error' }> {
+  try {
+    const res = await fetch(`${API_BASE}/api/projects/?slug=${encodeURIComponent(slug)}`, {
+      cache: 'no-store',
+    })
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    const arr = (await res.json()) as PortfolioItem[]
+    if (!Array.isArray(arr) || arr.length === 0) return { data: null, status: 'notfound' }
+    return { data: arr[0], status: 'ready' }
+  } catch {
+    return { data: null, status: 'error' }
+  }
+}
+
+export async function getReels(): Promise<{ data: Reel[]; error: boolean }> {
+  try {
+    const res = await fetch(`${API_BASE}/api/reels/`, { cache: 'no-store' })
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    return { data: (await res.json()) as Reel[], error: false }
+  } catch {
+    return { data: [], error: true }
+  }
+}
+
+export async function getPartners(): Promise<{ data: Partner[]; error: boolean }> {
+  try {
+    const res = await fetch(`${API_BASE}/api/partners/`, { cache: 'no-store' })
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    return { data: (await res.json()) as Partner[], error: false }
   } catch {
     return { data: [], error: true }
   }
