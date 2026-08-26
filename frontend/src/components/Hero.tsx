@@ -4,6 +4,7 @@ import { motion, useScroll, useTransform, useReducedMotion } from 'framer-motion
 import { useRef } from 'react'
 import { ArrowRight, Rocket, Zap } from 'lucide-react'
 import { heroTags } from '../data/content'
+import { requestServiceHighlight } from '../lib/serviceAnchors'
 import { useModal } from '../context/ModalContext'
 
 export default function Hero() {
@@ -67,8 +68,10 @@ export default function Hero() {
         <div className="relative mt-8 md:mt-14">
           <div className="flex flex-wrap justify-center gap-3">
             {heroTags.map((tag, i) => (
-              <motion.div
-                key={tag}
+              <motion.a
+                key={tag.label}
+                href={tag.href}
+                onClick={() => requestServiceHighlight(tag.href)}
                 initial={reduce ? false : { opacity: 0, scale: 0, y: 40 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 transition={{
@@ -78,10 +81,11 @@ export default function Hero() {
                   stiffness: 120,
                 }}
                 whileHover={reduce ? undefined : { scale: 1.08, y: -4, rotate: [-1, 1, 0] }}
-                className="px-6 py-3 rounded-full bg-white border border-neutral-200 shadow-sm font-semibold text-neutral-800 hover:border-brand-600 hover:text-brand-600 hover:shadow-xl hover:shadow-brand-600/10 transition-all cursor-default select-none"
+                whileTap={{ scale: 0.97 }}
+                className="px-6 py-3 rounded-full bg-white border border-neutral-200 shadow-sm font-semibold text-neutral-800 hover:border-brand-600 hover:text-brand-600 hover:shadow-xl hover:shadow-brand-600/10 transition-all cursor-pointer select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 focus-visible:ring-offset-2"
               >
-                {tag}
-              </motion.div>
+                {tag.label}
+              </motion.a>
             ))}
           </div>
         </div>

@@ -6,12 +6,21 @@ export const nav = [
   { label: "Вакансии", href: "/vacancies" },
 ]
 
-export const heroTags = [
-  "Разработка сайтов",
-  "Дизайн / Брендинг",
-  "SMM",
-  "SEO / Контекстная реклама",
-  "Анимация",
+export type HeroTag = {
+  label: string
+  /** In-page anchor the chip scrolls to — a `service-<id>` card in <Services>,
+   *  or the section itself when no single card covers the tag. */
+  href: string
+}
+
+export const heroTags: HeroTag[] = [
+  { label: "Разработка сайтов", href: "#service-1" },
+  { label: "Дизайн / Брендинг", href: "#service-3" },
+  { label: "SMM", href: "#service-4" },
+  // Своей карточки нет — ближайшее совпадение это подуслуга «Таргет» в SMM.
+  { label: "SEO / Контекстная реклама", href: "#service-4" },
+  // Своей карточки нет и категории в портфолио тоже — ведём в блок целиком.
+  { label: "Анимация", href: "#services" },
 ]
 
 export type SubService = {

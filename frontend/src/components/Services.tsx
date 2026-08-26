@@ -1,14 +1,50 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import { ArrowUpRight, ChevronRight } from 'lucide-react'
 import { services, contacts, type Service, type SubService } from '../data/content'
 import { useModal } from '../context/ModalContext'
 import { directionsForService } from './ContactForm'
+import { SERVICE_HIGHLIGHT_EVENT, serviceAnchorId } from '../lib/serviceAnchors'
+
+/** Briefly flag the card a hero chip just sent the user to. Listens to the hash
+ *  (deep links and the first click) and to the chip's own event, which covers
+ *  the cases the hash cannot: clicking one chip twice, and the second chip that
+ *  points at the same card. Neither changes the hash, so `hashchange` is mute. */
+function useHighlightedService() {
+  const [id, setId] = useState<string | null>(null)
+
+  useEffect(() => {
+    let timer: ReturnType<typeof setTimeout> | undefined
+
+    const highlight = (next: string) => {
+      if (!next.startsWith('service-')) return
+      setId(next)
+      clearTimeout(timer)
+      timer = setTimeout(() => setId(null), 1500)
+    }
+
+    const fromHash = () => highlight(window.location.hash.slice(1))
+    const fromChip = (e: Event) => highlight((e as CustomEvent<string>).detail)
+
+    fromHash()
+    window.addEventListener('hashchange', fromHash)
+    window.addEventListener(SERVICE_HIGHLIGHT_EVENT, fromChip)
+    return () => {
+      clearTimeout(timer)
+      window.removeEventListener('hashchange', fromHash)
+      window.removeEventListener(SERVICE_HIGHLIGHT_EVENT, fromChip)
+    }
+  }, [])
+
+  return id
+}
 
 export default function Services() {
   const { open: openModal, openServiceDetail } = useModal()
   const reduce = useReducedMotion()
+  const highlighted = useHighlightedService()
 
   return (
     <section
@@ -44,6 +80,7 @@ export default function Services() {
               key={service.id}
               service={service}
               index={i}
+              highlighted={highlighted === serviceAnchorId(service.id)}
               onOrder={() => openModal(directionsForService(service.title))}
               onSubClick={(sub) =>
                 openServiceDetail({ parent: service.title, sub })
@@ -85,19 +122,25 @@ export default function Services() {
 type CardProps = {
   service: Service
   index: number
+  highlighted: boolean
   onOrder: () => void
   onSubClick: (sub: SubService) => void
 }
 
-function ServiceCard({ service, index, onOrder, onSubClick }: CardProps) {
+function ServiceCard({ service, index, highlighted, onOrder, onSubClick }: CardProps) {
   return (
     <motion.article
+      id={serviceAnchorId(service.id)}
       initial={{ opacity: 0, y: 40 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: '-50px' }}
       transition={{ duration: 0.6, delay: index * 0.1, ease: [0.16, 1, 0.3, 1] }}
       whileHover="hover"
-      className="group relative p-8 lg:p-10 rounded-3xl bg-white border border-neutral-200 hover:border-brand-600 transition-all duration-500 overflow-hidden"
+      className={`group anchor-target relative p-8 lg:p-10 rounded-3xl bg-white border transition-all duration-500 overflow-hidden ${
+        highlighted
+          ? 'border-brand-600 ring-4 ring-brand-600/30'
+          : 'border-neutral-200 hover:border-brand-600'
+      }`}
     >
       <motion.div
         variants={{ hover: { opacity: 1 } }}
