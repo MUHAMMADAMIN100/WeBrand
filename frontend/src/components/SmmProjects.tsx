@@ -5,6 +5,7 @@ import { motion, useReducedMotion } from 'framer-motion'
 import { ExternalLink, Sparkles } from 'lucide-react'
 import { contacts } from '../data/content'
 import type { ProjectItem } from '../lib/api'
+import { openTelegram } from '../lib/telegram'
 
 // Section 2 of /smm: a curated «Топ-кейсы» showcase (is_featured, max 3) followed
 // by the rest of the SMM projects in the standard portfolio-card grid. The card
@@ -35,6 +36,7 @@ export default function SmmProjects({
                 href={contacts.telegram}
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={openTelegram}
                 className="font-semibold text-brand-600 hover:underline"
               >
                 Telegram

@@ -29,6 +29,7 @@ import {
   type Answers,
 } from './ContactForm'
 import { contacts } from '../data/content'
+import { openTelegram } from '../lib/telegram'
 
 // Same intake the quiz modal uses — no hardcoded origin.
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
@@ -463,7 +464,7 @@ export default function BriefForm({ initialDirection = '' }: { initialDirection?
       {error && (
         <p className="mt-6 text-sm leading-relaxed text-red-600">
           Не получилось отправить. Попробуйте ещё раз или напишите нам в{' '}
-          <a href={contacts.telegram} target="_blank" rel="noopener noreferrer" className="font-semibold text-brand-600 hover:underline">
+          <a href={contacts.telegram} target="_blank" rel="noopener noreferrer" onClick={openTelegram} className="font-semibold text-brand-600 hover:underline">
             Telegram
           </a>
           .

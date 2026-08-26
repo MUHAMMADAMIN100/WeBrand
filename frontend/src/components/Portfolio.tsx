@@ -7,6 +7,7 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { contacts, type PortfolioItem } from '../data/content'
 import BrowserMockup from './BrowserMockup'
+import { openTelegram } from '../lib/telegram'
 
 type Filter = 'Все' | 'Разработка' | 'SMM' | 'Дизайн' | 'Реклама'
 
@@ -166,7 +167,7 @@ export default function Portfolio({
             <p className="text-base font-semibold text-neutral-800">Не удалось загрузить проекты</p>
             <p className="mt-2 text-sm text-neutral-600">
               Попробуйте обновить страницу или напишите нам в{' '}
-              <a href={contacts.telegram} target="_blank" rel="noopener noreferrer" className="font-semibold text-brand-600 hover:underline">
+              <a href={contacts.telegram} target="_blank" rel="noopener noreferrer" onClick={openTelegram} className="font-semibold text-brand-600 hover:underline">
                 Telegram
               </a>
               .

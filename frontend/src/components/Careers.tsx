@@ -16,6 +16,7 @@ import {
 } from 'lucide-react'
 import { contacts, type Vacancy } from '../data/content'
 import { useModal } from '../context/ModalContext'
+import { openTelegram } from '../lib/telegram'
 
 // Map the icon name stored in the API to a real lucide component
 const ICONS: Record<string, LucideIcon> = {
@@ -87,7 +88,7 @@ export default function Careers({
             <p className="text-base font-semibold text-neutral-800">Не удалось загрузить вакансии</p>
             <p className="mt-2 text-sm text-neutral-600">
               Попробуйте обновить страницу или напишите нам в{' '}
-              <a href={contacts.telegram} target="_blank" rel="noopener noreferrer" className="font-semibold text-brand-600 hover:underline">
+              <a href={contacts.telegram} target="_blank" rel="noopener noreferrer" onClick={openTelegram} className="font-semibold text-brand-600 hover:underline">
                 Telegram
               </a>
               .
@@ -98,7 +99,7 @@ export default function Careers({
             <p className="text-base font-semibold text-neutral-800">Сейчас открытых вакансий нет</p>
             <p className="mt-2 text-sm text-neutral-600">
               Но мы всегда рады талантам — напишите нам в{' '}
-              <a href={contacts.telegram} target="_blank" rel="noopener noreferrer" className="font-semibold text-brand-600 hover:underline">
+              <a href={contacts.telegram} target="_blank" rel="noopener noreferrer" onClick={openTelegram} className="font-semibold text-brand-600 hover:underline">
                 Telegram
               </a>
               .

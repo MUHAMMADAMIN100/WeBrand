@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { contacts, nav } from '../data/content'
 import { useModal } from '../context/ModalContext'
+import { openTelegram } from '../lib/telegram'
 
 export default function Footer() {
   const { open: openModal } = useModal()
@@ -97,6 +98,7 @@ export default function Footer() {
                   href={href}
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={openTelegram}
                   aria-label={label}
                   className="w-11 h-11 rounded-full bg-white border border-neutral-200 hover:border-brand-600 hover:text-brand-600 flex items-center justify-center text-neutral-700 transition-colors"
                 >

@@ -7,6 +7,7 @@ import { services, contacts, type Service, type SubService } from '../data/conte
 import { useModal } from '../context/ModalContext'
 import { directionsForService } from './ContactForm'
 import { SERVICE_HIGHLIGHT_EVENT, serviceAnchorId } from '../lib/serviceAnchors'
+import { openTelegram } from '../lib/telegram'
 
 /** Briefly flag the card a hero chip just sent the user to. Listens to the hash
  *  (deep links and the first click) and to the chip's own event, which covers
@@ -100,6 +101,7 @@ export default function Services() {
             href={contacts.telegram}
             target="_blank"
             rel="noopener noreferrer"
+            onClick={openTelegram}
             whileHover={{ scale: 1.05, y: -2 }}
             whileTap={{ scale: 0.97 }}
             className="group px-10 py-5 rounded-full bg-neutral-900 text-white font-semibold text-lg shadow-xl hover:shadow-2xl transition-shadow inline-flex items-center gap-3"

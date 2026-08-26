@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { contacts, EXPERIENCE_OPTIONS } from "../data/content";
 import type { ApplyTarget } from "../context/ModalContext";
+import { openTelegram } from '../lib/telegram'
 
 // Default in code so local dev works without a .env (mirrors the Vite app).
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
@@ -513,7 +514,7 @@ export default function ContactForm({
             {side.trust.map((t) => <Trust key={t.title} icon={t.icon} title={t.title} sub={t.sub} />)}
           </div>
           <div style={{ fontSize: 14, lineHeight: 2 }}>
-            <a href={contacts.telegram} target="_blank" rel="noopener noreferrer" className="cqf-tglink"
+            <a href={contacts.telegram} target="_blank" rel="noopener noreferrer" onClick={openTelegram} className="cqf-tglink"
               style={{ display: "flex", alignItems: "center", gap: 8, color: "#fff", textDecoration: "none" }}>
               <Send size={15} /> Написать в Telegram
             </a>
@@ -732,7 +733,7 @@ function StepContacts({ name, setName, contact, setContact, phone, setPhone, can
         {error && (
           <p style={{ fontSize: 13, color: "#D14545", margin: "0 2px 8px", lineHeight: 1.4 }}>
             Не получилось отправить. Напишите нам в{" "}
-            <a href="https://t.me/bobodushanbe" style={{ color: "#2B5ED3", fontWeight: 600 }}>Telegram</a>.
+            <a href="https://t.me/bobodushanbe" onClick={openTelegram} style={{ color: "#2B5ED3", fontWeight: 600 }}>Telegram</a>.
           </p>
         )}
         <NavButtons onBack={onBack} onNext={onSubmit}
@@ -830,7 +831,7 @@ function ApplicationStep({
         {error && (
           <p style={{ fontSize: 13, color: "#D14545", margin: "0 2px 8px", lineHeight: 1.4 }}>
             Не получилось отправить. Напишите нам в{" "}
-            <a href={contacts.telegram} target="_blank" rel="noopener noreferrer" style={{ color: "#2B5ED3", fontWeight: 600 }}>Telegram</a>.
+            <a href={contacts.telegram} target="_blank" rel="noopener noreferrer" onClick={openTelegram} style={{ color: "#2B5ED3", fontWeight: 600 }}>Telegram</a>.
           </p>
         )}
 
