@@ -1,4 +1,4 @@
-import { Lock, User, LogIn, ShieldCheck } from 'lucide-react'
+import { Lock, User, LogIn, ShieldCheck, Eye, EyeOff } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
 import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
@@ -14,6 +14,7 @@ export default function Login() {
 
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -80,14 +81,29 @@ export default function Login() {
               <div className="group relative rounded-xl transition-shadow duration-200 focus-within:shadow-[0_0_0_4px_rgba(43,94,211,0.10)] dark:focus-within:shadow-[0_0_0_4px_rgba(64,111,219,0.16)]">
                 <Lock className="pointer-events-none absolute left-3.5 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-neutral-400 transition-colors duration-150 group-focus-within:text-brand-500 dark:text-neutral-500 dark:group-focus-within:text-brand-400" />
                 <Input
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
                   autoComplete="current-password"
                   required
-                  className="pl-11"
+                  className="pl-11 pr-11"
                 />
+                {/* type="button": a bare button inside a form submits it. */}
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  aria-label={showPassword ? 'Скрыть пароль' : 'Показать пароль'}
+                  aria-pressed={showPassword}
+                  title={showPassword ? 'Скрыть пароль' : 'Показать пароль'}
+                  className="absolute right-1.5 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-lg text-neutral-400 transition-colors hover:text-neutral-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 dark:text-neutral-500 dark:hover:text-neutral-200"
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-[18px] w-[18px]" />
+                  ) : (
+                    <Eye className="h-[18px] w-[18px]" />
+                  )}
+                </button>
               </div>
             </Field>
 
