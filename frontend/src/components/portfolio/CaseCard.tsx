@@ -62,6 +62,7 @@ export default function CaseCard({ item }: { item: PortfolioItem }) {
         <Link
           href={href}
           aria-label={`Смотреть кейс: ${item.name}`}
+          data-cursor="Смотреть"
           className="absolute inset-0 z-10 rounded-[1.75rem] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 focus-visible:ring-offset-4 focus-visible:ring-offset-paper"
         />
       )}

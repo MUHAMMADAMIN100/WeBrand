@@ -213,6 +213,67 @@
   }
 }
 
+/* Intro curtain: <= ~1.3s, once per session (flag set pre-paint in layout.tsx).
+   The page renders underneath from the first frame — the curtain only covers
+   it — and the hero's own entrance is pushed back so it plays as the curtain
+   lifts rather than behind it. */
+.intro {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: none;
+  place-items: center;
+  background: #0b0d12;
+}
+.intro-logo {
+  width: min(52vw, 17rem);
+  height: auto;
+}
+html[data-intro='play'] .intro {
+  display: grid;
+  animation: intro-lift 0.75s cubic-bezier(0.76, 0, 0.24, 1) 0.6s both;
+}
+html[data-intro='play'] .intro-logo {
+  animation: intro-logo 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+html[data-intro='play'] .hero-line > span {
+  animation-delay: 0.85s;
+}
+html[data-intro='play'] .hero-line + .hero-line > span {
+  animation-delay: 0.97s;
+}
+html[data-intro='play'] .hero-line > .hero-heavy {
+  animation-delay: 0.97s, 1.45s;
+}
+html[data-intro='play'] .hero-fade {
+  animation-delay: 1.3s;
+}
+html[data-intro='play'] .hero-fade-late {
+  animation-delay: 1.55s;
+}
+@keyframes intro-lift {
+  to {
+    transform: translateY(-100%);
+    visibility: hidden;
+  }
+}
+@keyframes intro-logo {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.96);
+  }
+}
+
+/* Route transition (app/template.tsx): an ink curtain lifting off the new page. */
+.route-curtain {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  background: #0b0d12;
+  pointer-events: none;
+  animation: intro-lift 0.7s cubic-bezier(0.76, 0, 0.24, 1) 0.05s both;
+}
+
 /* Honour reduced-motion: silence the looping/auto-playing animations */
 @media (prefers-reduced-motion: reduce) {
   .animate-marquee,
@@ -226,6 +287,10 @@
   .hero-line > .hero-heavy,
   .hero-fade {
     animation: none !important;
+  }
+  .intro,
+  .route-curtain {
+    display: none !important;
   }
 }
 

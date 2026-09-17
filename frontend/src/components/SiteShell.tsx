@@ -3,6 +3,7 @@ import Navbar from './Navbar'
 import Footer from './Footer'
 import ContactModal from './ContactModal'
 import ServiceDetailModal from './ServiceDetailModal'
+import Cursor from './motion/Cursor'
 
 // Shared page chrome: the Navbar + Footer + the two always-mounted modals that
 // every real page in the Vite app rendered around its content. Kept out of the
@@ -17,6 +18,7 @@ export default function SiteShell({ children }: { children: ReactNode }) {
       <Footer />
       <ContactModal />
       <ServiceDetailModal />
+      <Cursor />
     </div>
   )
 }
