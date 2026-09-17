@@ -3,6 +3,31 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    /* shadcn/ui semantic tokens as HSL triplets — what 21st.dev registry
+       components expect. One curated light look for the public site; the admin
+       panel is the app that owns a light/dark switch. */
+    --background: 48 22% 95.5%; /* paper   #F6F5F1 */
+    --foreground: 223 24% 5.7%; /* ink-950 #0B0D12 */
+    --card: 0 0% 100%;
+    --card-foreground: 223 24% 5.7%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 223 24% 5.7%;
+    --primary: 222 66% 50%; /* brand-600 #2B5ED3 */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 47 19% 91%; /* paper-2 #ECEAE3 */
+    --secondary-foreground: 223 24% 5.7%;
+    --muted: 47 19% 91%;
+    --muted-foreground: 223 11% 38%; /* ink-600 — 6.1:1 on paper */
+    --accent: 73 87% 58%; /* lime #C8F135 */
+    --accent-foreground: 223 24% 5.7%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 220 15% 88%; /* ink-200 */
+    --input: 220 15% 88%;
+    --ring: 222 66% 50%;
+    --radius: 1rem;
+  }
   html {
     /* Single source of truth for the sticky-header anchor offset. The header is
        h-20 (80px) at the top of the page and shrinks to h-16 (64px) once
@@ -10,20 +35,18 @@
        a fixed value is correct. Using the full 80px guarantees anchored sections
        clear the header in every state. */
     --header-h: 80px;
-    scroll-behavior: smooth;
-    /* Gentle scroll-snap: only the sections marked `snap-start` (Услуги,
-       Портфолио) snap into place — one section = one screen. `proximity` (not
-       mandatory) keeps the rest of the page scrolling freely and never traps the
-       user inside a tall section. The snap position honours the sections'
-       scroll-margin-top (--header-h + buffer), so they land below the header. */
-    scroll-snap-type: y proximity;
+    /* No CSS `scroll-behavior: smooth` and no scroll-snap: Lenis
+       (components/motion/SmoothScroll.tsx) owns scrolling. Leaving either on
+       makes anchor jumps ease twice and fights pinned scroll scenes. Under
+       prefers-reduced-motion Lenis stays off and anchors jump instantly — which
+       is exactly what that setting asks for. */
   }
   body {
-    @apply bg-white text-neutral-900 font-sans antialiased;
+    @apply bg-paper text-ink-950 font-sans antialiased;
     overflow-x: hidden;
   }
   ::selection {
-    @apply bg-brand-600 text-white;
+    @apply bg-lime text-ink-950;
   }
 }
 
@@ -42,6 +65,26 @@
   .mask-fade-edges {
     mask-image: linear-gradient(to right, transparent, black 9%, black 91%, transparent);
     -webkit-mask-image: linear-gradient(to right, transparent, black 9%, black 91%, transparent);
+  }
+  /* Outlined display type (ticker, oversized numerals). */
+  .text-stroke {
+    color: transparent;
+    -webkit-text-stroke: 1.5px currentColor;
+  }
+  /* Faint engineering grid behind kinetic type; fades out toward the edges. */
+  .bg-grid {
+    background-image:
+      linear-gradient(to right, rgb(11 13 18 / 0.055) 1px, transparent 1px),
+      linear-gradient(to bottom, rgb(11 13 18 / 0.055) 1px, transparent 1px);
+    background-size: 72px 72px;
+    mask-image: radial-gradient(ellipse 90% 80% at 50% 40%, black 30%, transparent 78%);
+    -webkit-mask-image: radial-gradient(ellipse 90% 80% at 50% 40%, black 30%, transparent 78%);
+  }
+  .bg-grid-dark {
+    background-image:
+      linear-gradient(to right, rgb(246 245 241 / 0.06) 1px, transparent 1px),
+      linear-gradient(to bottom, rgb(246 245 241 / 0.06) 1px, transparent 1px);
+    background-size: 72px 72px;
   }
 }
 
@@ -91,15 +134,13 @@
 
 /* Honour reduced-motion: silence the looping/auto-playing animations */
 @media (prefers-reduced-motion: reduce) {
-  html {
-    scroll-behavior: auto;
-  }
   .animate-marquee,
   .animate-marquee-reverse,
   .animate-float,
   .animate-float-slow,
   .animate-float-delay,
-  .animate-gradient {
+  .animate-gradient,
+  .animate-spin-slow {
     animation: none !important;
   }
 }
@@ -110,12 +151,12 @@
   height: 10px;
 }
 ::-webkit-scrollbar-track {
-  background: #f5f5f5;
+  background: #ECEAE3;
 }
 ::-webkit-scrollbar-thumb {
-  background: #2B5ED3;
+  background: #0B0D12;
   border-radius: 5px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #224EB4;
+  background: #2B5ED3;
 }
