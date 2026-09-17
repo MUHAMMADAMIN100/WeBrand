@@ -46,33 +46,32 @@ export default async function Page({ searchParams }: { searchParams: Promise<Sea
 
   return (
     <SiteShell>
-      <main className="mx-auto max-w-7xl px-5 pb-20 pt-28 md:px-6 md:pb-28 md:pt-36 lg:px-10">
+      <main className="mx-auto max-w-[88rem] px-5 pb-20 pt-28 md:pb-28 md:pt-36 lg:px-10">
         {/* Header */}
         <header className="mb-10 md:mb-14">
-          <span className="text-sm font-bold uppercase tracking-[0.2em] text-brand-600">— Блог</span>
-          <h1 className="mt-3 text-3xl font-extrabold leading-[1.1] tracking-tight text-neutral-900 md:text-5xl">
+          <h1 className="font-display text-display-xl font-black text-ink-950">
             Новости и статьи
           </h1>
-          <p className="mt-4 max-w-2xl text-base leading-relaxed text-neutral-600">
+          <p className="mt-6 max-w-2xl text-base leading-relaxed text-ink-600 lg:text-lg">
             Экспертные материалы о веб-разработке, дизайне, SMM, рекламе и digital-продвижении бизнеса
             в&nbsp;Душанбе и&nbsp;Таджикистане.
           </p>
         </header>
 
         {error ? (
-          <div className="rounded-3xl border border-neutral-200 bg-neutral-50 px-6 py-20 text-center">
-            <p className="text-base font-semibold text-neutral-800">Не удалось загрузить новости</p>
-            <p className="mt-2 text-sm text-neutral-600">Попробуйте обновить страницу позже.</p>
+          <div className="rounded-[1.75rem] border border-ink-200 bg-white px-6 py-20 text-center">
+            <p className="font-display text-lg font-bold text-ink-950">Не удалось загрузить новости</p>
+            <p className="mt-2 text-sm text-ink-600">Попробуйте обновить страницу позже.</p>
           </div>
         ) : items.length === 0 ? (
-          <div className="rounded-3xl border border-neutral-200 bg-neutral-50 px-6 py-20 text-center">
-            <Newspaper className="mx-auto h-10 w-10 text-neutral-300" />
-            <p className="mt-4 text-base font-semibold text-neutral-800">Статей пока нет</p>
-            <p className="mt-2 text-sm text-neutral-600">Загляните чуть позже — мы готовим материалы.</p>
+          <div className="rounded-[1.75rem] border border-ink-200 bg-white px-6 py-20 text-center">
+            <Newspaper className="mx-auto h-10 w-10 text-ink-300" />
+            <p className="mt-4 font-display text-lg font-bold text-ink-950">Статей пока нет</p>
+            <p className="mt-2 text-sm text-ink-600">Загляните чуть позже — мы готовим материалы.</p>
           </div>
         ) : (
           <>
-            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 lg:gap-6">
+            <div className="grid gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-3 lg:gap-x-8 lg:gap-y-14">
               {items.map((item, i) => (
                 <ArticleCard key={item.slug} item={item} index={i} />
               ))}
@@ -92,8 +91,8 @@ function Pagination({ page, totalPages }: { page: number; totalPages: number }) 
   const nextDisabled = page >= totalPages
 
   const arrowBase =
-    'grid h-10 w-10 place-items-center rounded-full border border-neutral-200 text-neutral-600 transition-colors'
-  const arrowActive = 'hover:border-brand-600 hover:text-brand-600'
+    'grid h-11 w-11 place-items-center rounded-full border border-ink-200 bg-white text-ink-600 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 focus-visible:ring-offset-2'
+  const arrowActive = 'hover:border-ink-950 hover:text-ink-950'
   const arrowOff = 'cursor-not-allowed opacity-40'
 
   return (
@@ -113,7 +112,7 @@ function Pagination({ page, totalPages }: { page: number; totalPages: number }) 
           <span
             key={p}
             aria-current="page"
-            className="inline-flex h-10 min-w-10 items-center justify-center rounded-full bg-brand-600 px-3.5 text-sm font-semibold text-white shadow-lg shadow-brand-600/30"
+            className="inline-flex h-11 min-w-11 items-center justify-center rounded-full bg-ink-950 px-3.5 text-sm font-semibold text-white"
           >
             {p}
           </span>
@@ -121,7 +120,7 @@ function Pagination({ page, totalPages }: { page: number; totalPages: number }) 
           <Link
             key={p}
             href={pageHref(p)}
-            className="inline-flex h-10 min-w-10 items-center justify-center rounded-full border border-neutral-200 px-3.5 text-sm font-semibold text-neutral-600 transition-colors hover:border-brand-600 hover:text-brand-600"
+            className="inline-flex h-11 min-w-11 items-center justify-center rounded-full border border-ink-200 bg-white px-3.5 text-sm font-semibold text-ink-600 transition-colors hover:border-ink-950 hover:text-ink-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 focus-visible:ring-offset-2"
           >
             {p}
           </Link>

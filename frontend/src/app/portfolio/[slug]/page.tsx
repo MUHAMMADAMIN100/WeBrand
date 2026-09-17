@@ -2,9 +2,9 @@ import type { Metadata } from 'next'
 import { cache } from 'react'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ArrowLeft, ArrowRight, ArrowUpRight, ExternalLink } from 'lucide-react'
+import { ArrowLeft, ArrowRight, ArrowUpRight } from 'lucide-react'
 import SiteShell from '../../../components/SiteShell'
-import BrowserMockup from '../../../components/BrowserMockup'
+import CasePoster from '../../../components/portfolio/CasePoster'
 import { SITE_URL, getProjectBySlug } from '../../../lib/api'
 import { pageMetadata } from '../../../lib/seo'
 import type { PortfolioItem } from '../../../data/content'
@@ -51,19 +51,19 @@ export default async function Page({ params }: { params: Promise<Params> }) {
     <SiteShell>
       {status === 'ready' && project && <CaseJsonLd project={project} slug={project.slug ?? slug} />}
 
-      <main className="mx-auto max-w-5xl px-5 pb-20 pt-28 md:px-6 md:pb-28 md:pt-36 lg:px-8">
+      <main className="mx-auto max-w-[88rem] px-5 pb-20 pt-28 md:pb-28 md:pt-36 lg:px-10">
         <Link
           href="/#portfolio"
-          className="inline-flex items-center gap-1.5 text-sm font-semibold text-neutral-500 transition-colors hover:text-brand-600"
+          className="inline-flex items-center gap-1.5 rounded text-sm font-semibold text-ink-600 transition-colors hover:text-ink-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 focus-visible:ring-offset-2"
         >
-          <ArrowLeft className="h-4 w-4" />
+          <ArrowLeft className="h-4 w-4" aria-hidden="true" />
           Все работы
         </Link>
 
         {status === 'error' || !project ? (
-          <div className="mt-8 rounded-3xl border border-neutral-200 bg-neutral-50 px-6 py-20 text-center">
-            <p className="text-base font-semibold text-neutral-800">Не удалось загрузить кейс</p>
-            <p className="mt-2 text-sm text-neutral-600">Попробуйте обновить страницу позже.</p>
+          <div className="mt-8 rounded-[1.75rem] border border-ink-200 bg-white px-6 py-20 text-center">
+            <p className="font-display text-lg font-bold text-ink-950">Не удалось загрузить кейс</p>
+            <p className="mt-2 text-sm text-ink-600">Обновите страницу чуть позже.</p>
           </div>
         ) : (
           <CaseBody project={project} />
@@ -80,84 +80,76 @@ function CaseBody({ project }: { project: PortfolioItem }) {
 
   return (
     <>
-      {/* Heading */}
-      <div className="mt-6">
-        <span className="inline-flex items-center rounded-full bg-brand-50 px-3 py-1 text-xs font-bold uppercase tracking-wider text-brand-700">
+      <header className="mt-7">
+        <span className="inline-flex rounded-full border border-ink-200 bg-white px-3.5 py-1.5 text-xs font-bold text-ink-950">
           {project.category}
         </span>
-        <h1 className="mt-4 text-3xl font-extrabold leading-[1.08] tracking-tight text-neutral-900 sm:text-4xl lg:text-5xl">
-          {project.name}
-        </h1>
+        <h1 className="mt-5 font-display text-display-xl font-black text-ink-950">{project.name}</h1>
         {project.subtitle && (
-          <p className="mt-3 max-w-2xl text-lg text-neutral-500">{project.subtitle}</p>
+          <p className="mt-4 max-w-2xl text-lg leading-relaxed text-ink-600 lg:text-xl">{project.subtitle}</p>
         )}
+      </header>
+
+      {/* The cover when the project has one; otherwise the same accent poster
+          the portfolio grid shows, at hero scale. */}
+      <CasePoster item={project} size="hero" className="mt-9 aspect-[16/10] rounded-[2rem] md:mt-12 md:aspect-[16/8]" />
+
+      <div className="mt-12 grid gap-10 md:mt-16 lg:grid-cols-12 lg:gap-10">
+        {body && (
+          <section className="lg:col-span-8">
+            <h2 className="font-display text-display-md font-black text-ink-950">О проекте</h2>
+            <p className="mt-5 max-w-3xl whitespace-pre-line text-base leading-relaxed text-ink-700 lg:text-lg">{body}</p>
+          </section>
+        )}
+
+        <aside className="flex flex-col gap-6 lg:col-span-4">
+          {project.tags?.length > 0 && (
+            <ul className="flex flex-wrap gap-1.5" aria-label="Теги проекта">
+              {project.tags.map((t) => (
+                <li key={t} className="rounded-full border border-ink-200 bg-white px-3.5 py-1.5 text-sm font-medium text-ink-700">
+                  {t}
+                </li>
+              ))}
+            </ul>
+          )}
+
+          {/* Live-site link — only when a site_url is set */}
+          {siteUrl && (
+            <a
+              href={siteUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group flex items-center justify-between gap-4 rounded-2xl border border-ink-200 bg-white px-5 py-4 transition-colors duration-300 ease-expo hover:border-ink-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 focus-visible:ring-offset-2"
+            >
+              <span className="min-w-0">
+                <span className="block text-sm font-semibold text-ink-950">Перейти на сайт</span>
+                <span className="block truncate text-sm text-ink-600">{siteUrl}</span>
+              </span>
+              <ArrowUpRight className="h-5 w-5 shrink-0 text-ink-950 transition-transform duration-300 ease-expo group-hover:rotate-45" aria-hidden="true" />
+            </a>
+          )}
+        </aside>
       </div>
 
-      {/* Big mockup */}
-      <BrowserMockup item={project} aspect="aspect-[16/9]" className="mt-8 md:mt-10" />
-
-      {/* Description */}
-      {body && (
-        <div className="mt-10 max-w-3xl md:mt-12">
-          <h2 className="text-sm font-bold uppercase tracking-[0.15em] text-brand-600">О проекте</h2>
-          <p className="mt-3 whitespace-pre-line text-base leading-relaxed text-neutral-700 md:text-lg">
-            {body}
-          </p>
-        </div>
-      )}
-
-      {/* Tags */}
-      {project.tags?.length > 0 && (
-        <div className="mt-8 flex flex-wrap gap-2">
-          {project.tags.map((t) => (
-            <span key={t} className="rounded-full bg-neutral-100 px-3.5 py-1.5 text-sm font-medium text-neutral-700">
-              {t}
-            </span>
-          ))}
-        </div>
-      )}
-
       {/* CTA — calculate a similar project, direction pre-selected on the brief */}
-      <div className="mt-12 overflow-hidden rounded-3xl bg-gradient-to-br from-brand-700 via-brand-600 to-brand-800 p-7 text-white sm:p-10 md:mt-16">
-        <div className="relative flex flex-col items-start justify-between gap-6 md:flex-row md:items-center">
+      <section className="relative mt-14 overflow-hidden rounded-[2rem] bg-brand-600 p-7 text-white sm:p-10 md:mt-20 lg:p-14">
+        <div className="bg-grid-dark pointer-events-none absolute inset-0 opacity-70" aria-hidden="true" />
+        <div className="relative flex flex-col items-start justify-between gap-8 lg:flex-row lg:items-end">
           <div>
-            <h2 className="text-2xl font-extrabold leading-tight tracking-tight sm:text-3xl">
-              Хотите похожий проект?
-            </h2>
-            <p className="mt-2 max-w-md text-white/80">
+            <h2 className="font-display text-display-lg font-black">Хотите похожий проект?</h2>
+            <p className="mt-4 max-w-md text-base leading-relaxed text-white/90 lg:text-lg">
               Рассчитаем стоимость и сроки под вашу задачу — бесплатно.
             </p>
           </div>
           <Link
             href={`/brief?direction=${direction}`}
-            className="group inline-flex shrink-0 items-center gap-2 rounded-full bg-white px-6 py-3.5 font-semibold text-brand-700 shadow-lg transition-transform hover:-translate-y-0.5"
+            className="group inline-flex h-14 shrink-0 items-center gap-2.5 rounded-full bg-lime px-8 text-base font-semibold text-ink-950 transition-colors duration-300 ease-expo hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime focus-visible:ring-offset-2 focus-visible:ring-offset-brand-600"
           >
             Рассчитать похожий проект
-            <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+            <ArrowRight className="h-5 w-5 transition-transform duration-300 ease-expo group-hover:translate-x-1" aria-hidden="true" />
           </Link>
         </div>
-      </div>
-
-      {/* Live-site link — only when a site_url is set */}
-      {siteUrl && (
-        <a
-          href={siteUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="group mt-5 flex items-center justify-between gap-4 rounded-3xl border border-neutral-200 bg-white px-6 py-5 transition-all hover:border-brand-600 hover:shadow-lg hover:shadow-brand-600/10"
-        >
-          <span className="flex items-center gap-3 min-w-0">
-            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-brand-50 text-brand-600">
-              <ExternalLink className="h-5 w-5" />
-            </span>
-            <span className="min-w-0">
-              <span className="block text-sm font-semibold text-neutral-900">Перейти на сайт</span>
-              <span className="block truncate text-sm text-neutral-500">{siteUrl}</span>
-            </span>
-          </span>
-          <ArrowUpRight className="h-5 w-5 shrink-0 text-neutral-400 transition-all group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-brand-600" />
-        </a>
-      )}
+      </section>
     </>
   )
 }

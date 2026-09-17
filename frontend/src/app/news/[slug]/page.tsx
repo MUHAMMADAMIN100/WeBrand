@@ -49,35 +49,35 @@ export default async function Page({ params }: { params: Promise<Params> }) {
       <main className="mx-auto max-w-3xl px-5 pb-20 pt-28 md:px-6 md:pb-28 md:pt-36 lg:px-8">
         <Link
           href="/news"
-          className="inline-flex items-center gap-1.5 text-sm font-semibold text-neutral-500 transition-colors hover:text-brand-600"
+          className="inline-flex items-center gap-1.5 text-sm font-semibold text-ink-600 transition-colors hover:text-ink-950"
         >
           <ArrowLeft className="h-4 w-4" />
           Все статьи
         </Link>
 
         {status === 'error' ? (
-          <div className="mt-8 rounded-3xl border border-neutral-200 bg-neutral-50 px-6 py-20 text-center">
-            <p className="text-base font-semibold text-neutral-800">Не удалось загрузить статью</p>
-            <p className="mt-2 text-sm text-neutral-600">Попробуйте обновить страницу позже.</p>
+          <div className="mt-8 rounded-[1.75rem] border border-ink-200 bg-white px-6 py-20 text-center">
+            <p className="font-display text-lg font-bold text-ink-950">Не удалось загрузить статью</p>
+            <p className="mt-2 text-sm text-ink-600">Попробуйте обновить страницу позже.</p>
           </div>
         ) : article ? (
           <article className="mt-6">
             <time
-              className="text-sm font-semibold uppercase tracking-wider text-brand-600"
+              className="text-sm font-semibold text-ink-600"
               dateTime={article.published_at}
             >
               {formatDate(article.published_at)}
             </time>
-            <h1 className="mt-3 text-3xl font-extrabold leading-tight tracking-tight text-neutral-900 md:text-4xl">
+            <h1 className="mt-3 text-balance text-3xl font-extrabold leading-[1.15] tracking-tight text-ink-950 md:text-[2.75rem]">
               {article.title}
             </h1>
-            <p className="mt-4 text-base leading-relaxed text-neutral-600">{article.excerpt}</p>
+            <p className="mt-5 text-lg leading-relaxed text-ink-600">{article.excerpt}</p>
 
             {article.cover && (
               <img
                 src={article.cover}
                 alt={article.title}
-                className="mt-8 aspect-[16/9] w-full rounded-3xl border border-neutral-200 object-cover"
+                className="mt-9 aspect-[16/9] w-full rounded-[1.75rem] object-cover ring-1 ring-inset ring-ink-950/10"
               />
             )}
 
@@ -87,10 +87,10 @@ export default async function Page({ params }: { params: Promise<Params> }) {
               dangerouslySetInnerHTML={{ __html: article.body }}
             />
 
-            <div className="mt-14 border-t border-neutral-200 pt-8">
+            <div className="mt-14 border-t border-ink-200 pt-8">
               <Link
                 href="/news"
-                className="inline-flex items-center gap-2 rounded-full bg-brand-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-brand-600/20 transition-shadow hover:shadow-xl hover:shadow-brand-600/30"
+                className="group inline-flex h-12 items-center gap-2 rounded-full bg-ink-950 px-6 text-sm font-semibold text-white transition-colors duration-300 ease-expo hover:bg-brand-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 focus-visible:ring-offset-2"
               >
                 <ArrowLeft className="h-4 w-4" />
                 Читать другие статьи

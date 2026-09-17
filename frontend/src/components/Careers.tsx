@@ -1,7 +1,5 @@
 'use client'
 
-import { motion } from 'framer-motion'
-import { useReducedMotionSafe as useReducedMotion } from '../lib/capabilities'
 import {
   Palette,
   Megaphone,
@@ -9,7 +7,7 @@ import {
   Code2,
   Target,
   Clapperboard,
-  ArrowRight,
+  ArrowUpRight,
   Briefcase,
   Award,
   CalendarDays,
@@ -18,6 +16,7 @@ import {
 import { contacts, type Vacancy } from '../data/content'
 import { useModal } from '../context/ModalContext'
 import { openTelegram } from '../lib/telegram'
+import Button from './ui/Button'
 
 // Map the icon name stored in the API to a real lucide component
 const ICONS: Record<string, LucideIcon> = {
@@ -28,15 +27,6 @@ const ICONS: Record<string, LucideIcon> = {
   Target,
   Clapperboard,
 }
-
-// Literal class strings so Tailwind's JIT can detect them (no dynamic `text-${...}`)
-const ACCENT_TEXT: Record<string, string> = {
-  'brand-500': 'text-brand-500',
-  'brand-600': 'text-brand-600',
-  'brand-700': 'text-brand-700',
-}
-
-const EASE = [0.16, 1, 0.3, 1] as const
 
 // На главной Careers — секция (h2); на странице /vacancies это главный
 // заголовок страницы, поэтому роут передаёт headingLevel="h1".
@@ -52,68 +42,50 @@ export default function Careers({
   error?: boolean
 }) {
   const Heading = headingLevel
-  const reduce = useReducedMotion()
   const { openApply } = useModal()
+
+  const telegramLink = (
+    <a
+      href={contacts.telegram}
+      target="_blank"
+      rel="noopener noreferrer"
+      onClick={openTelegram}
+      className="font-semibold text-brand-600 underline decoration-brand-300 underline-offset-2 hover:text-brand-700"
+    >
+      Telegram
+    </a>
+  )
 
   return (
     // anchor-target keeps the heading clear of the fixed navbar (offset = --header-h + buffer).
-    // Extra top padding on mobile so the heading is clearly separated from the fixed header.
-    <section
-      id="careers"
-      className="relative anchor-target bg-white pt-28 pb-14 md:pt-24 md:pb-24 lg:pt-32 lg:pb-32"
-    >
-      <div className="relative mx-auto max-w-7xl px-5 md:px-6 lg:px-10">
-        {/* Header */}
-        <motion.div
-          initial={reduce ? false : { opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '-100px' }}
-          transition={{ duration: 0.6, ease: EASE }}
-          className="max-w-2xl"
-        >
-          <span className="text-sm font-bold uppercase tracking-[0.2em] text-brand-600">
-            — Вакансии
-          </span>
-          <Heading className="mt-4 text-3xl font-extrabold leading-[1.1] tracking-tight text-neutral-900 sm:text-4xl lg:text-5xl">
-            Присоединяйся <span className="text-brand-600">к команде</span>
-          </Heading>
-          <p className="mt-4 text-base leading-relaxed text-neutral-600">
-            Мы растём и ищем людей, которым нравится делать сильные digital-продукты.
-            Откликнись — расскажем подробнее и обсудим условия.
+    <section id="careers" className="anchor-target relative pb-16 pt-28 md:pb-24 md:pt-36 lg:pb-32">
+      <div className="mx-auto max-w-[88rem] px-5 lg:px-10">
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+          <Heading className="font-display text-display-xl font-black text-ink-950">Присоединяйся к команде</Heading>
+          <p className="max-w-sm text-base leading-relaxed text-ink-600 lg:pb-2 lg:text-right">
+            Мы растём и ищем людей, которым нравится делать сильные digital-продукты. Откликнись —
+            расскажем подробнее и обсудим условия.
           </p>
-        </motion.div>
+        </div>
 
-        {/* Grid */}
         {error ? (
-          <div className="mt-12 rounded-3xl border border-neutral-200 bg-neutral-50 px-6 py-12 text-center">
-            <p className="text-base font-semibold text-neutral-800">Не удалось загрузить вакансии</p>
-            <p className="mt-2 text-sm text-neutral-600">
-              Попробуйте обновить страницу или напишите нам в{' '}
-              <a href={contacts.telegram} target="_blank" rel="noopener noreferrer" onClick={openTelegram} className="font-semibold text-brand-600 hover:underline">
-                Telegram
-              </a>
-              .
-            </p>
+          <div className="mt-12 rounded-[1.75rem] border border-ink-200 bg-white px-6 py-14 text-center">
+            <p className="font-display text-lg font-bold text-ink-950">Не удалось загрузить вакансии</p>
+            <p className="mt-2 text-sm text-ink-600">Обновите страницу или напишите нам в {telegramLink}.</p>
           </div>
         ) : vacancies.length === 0 ? (
-          <div className="mt-12 rounded-3xl border border-neutral-200 bg-neutral-50 px-6 py-12 text-center">
-            <p className="text-base font-semibold text-neutral-800">Сейчас открытых вакансий нет</p>
-            <p className="mt-2 text-sm text-neutral-600">
-              Но мы всегда рады талантам — напишите нам в{' '}
-              <a href={contacts.telegram} target="_blank" rel="noopener noreferrer" onClick={openTelegram} className="font-semibold text-brand-600 hover:underline">
-                Telegram
-              </a>
-              .
-            </p>
+          <div className="mt-12 rounded-[1.75rem] border border-ink-200 bg-white px-6 py-14 text-center">
+            <p className="font-display text-lg font-bold text-ink-950">Сейчас открытых вакансий нет</p>
+            <p className="mt-2 text-sm text-ink-600">Но мы всегда рады талантам — напишите нам в {telegramLink}.</p>
           </div>
         ) : (
-          <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {vacancies.map((v, i) => (
-              <VacancyCard
+          // A ledger of roles rather than a wall of cards: one row per vacancy,
+          // the action always in the same place on the right.
+          <ul className="mt-12 border-t border-ink-200 md:mt-16">
+            {vacancies.map((v) => (
+              <VacancyRow
                 key={v.id}
                 vacancy={v}
-                index={i}
-                reduce={!!reduce}
                 onApply={() =>
                   openApply({
                     role: v.id,
@@ -125,24 +97,14 @@ export default function Careers({
                 }
               />
             ))}
-          </div>
+          </ul>
         )}
       </div>
     </section>
   )
 }
 
-function VacancyCard({
-  vacancy,
-  index,
-  reduce,
-  onApply,
-}: {
-  vacancy: Vacancy
-  index: number
-  reduce: boolean
-  onApply: () => void
-}) {
+function VacancyRow({ vacancy, onApply }: { vacancy: Vacancy; onApply: () => void }) {
   const Icon = ICONS[vacancy.icon] ?? Briefcase
 
   // Applicant requirements shown to the candidate (all optional).
@@ -155,75 +117,48 @@ function VacancyCard({
   }
 
   return (
-    <motion.div
-      initial={reduce ? false : { opacity: 0, y: 28 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: '-60px' }}
-      transition={{ duration: 0.55, ease: EASE, delay: reduce ? 0 : index * 0.07 }}
-      className="group flex flex-col overflow-hidden rounded-3xl border border-neutral-200/80 bg-white shadow-[0_1px_2px_rgba(16,24,40,0.04),0_12px_30px_-16px_rgba(16,24,40,0.18)] transition-[transform,box-shadow,border-color] duration-300 ease-out hover:-translate-y-1.5 hover:border-brand-200 hover:shadow-[0_18px_40px_-16px_rgba(16,24,40,0.20),0_28px_60px_-28px_rgba(43,94,211,0.40)]"
-    >
-      {/* Brand visual header — consistent across all cards, built in code (no photos).
-          NOTE: if a licensed role photo is ever wanted, swap this banner for an <img>. */}
-      <div className="relative flex h-28 items-center justify-center overflow-hidden bg-gradient-to-br from-brand-50 to-brand-100">
-        {/* soft brand blob */}
-        <div className="pointer-events-none absolute -right-8 -top-10 h-32 w-32 rounded-full bg-brand-200/50 blur-2xl" />
-        {/* faint grid texture */}
-        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,#2B5ED314_1px,transparent_1px),linear-gradient(to_bottom,#2B5ED314_1px,transparent_1px)] bg-[size:22px_22px] [mask-image:radial-gradient(ellipse_at_center,black,transparent_75%)]" />
-        {/* icon tile */}
-        <div className="relative grid h-16 w-16 place-items-center rounded-2xl bg-white shadow-lg shadow-brand-600/10 ring-1 ring-black/5 transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-3">
-          <Icon className={`h-8 w-8 ${ACCENT_TEXT[vacancy.accent] ?? 'text-brand-600'}`} />
+    <li className="group grid gap-6 border-b border-ink-200 py-7 lg:grid-cols-12 lg:items-center lg:gap-8 lg:py-9">
+      <div className="flex items-start gap-5 lg:col-span-5">
+        <span className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-ink-950 text-lime transition-colors duration-300 ease-expo group-hover:bg-brand-600 group-hover:text-white">
+          <Icon className="h-6 w-6" aria-hidden="true" />
+        </span>
+        <div className="min-w-0">
+          <h3 className="font-display text-xl font-bold leading-tight tracking-tight text-ink-950 lg:text-2xl">
+            {vacancy.title}
+          </h3>
+          <p className="mt-1.5 inline-flex items-center gap-1.5 text-sm font-semibold text-ink-600">
+            <Briefcase className="h-4 w-4" aria-hidden="true" />
+            {vacancy.type}
+          </p>
         </div>
       </div>
 
-      {/* Body */}
-      <div className="flex flex-1 flex-col p-6">
-        <div className="inline-flex w-fit items-center gap-1.5 text-xs font-semibold text-neutral-500">
-          <Briefcase className="h-3.5 w-3.5 text-brand-500" />
-          {vacancy.type}
-        </div>
-        <h3 className="mt-3 text-xl font-bold tracking-tight text-neutral-900">
-          {vacancy.title}
-        </h3>
-        <p className="mt-2 text-sm leading-relaxed text-neutral-600">{vacancy.tagline}</p>
-
-        {/* Tags */}
-        <div className="mt-4 flex flex-wrap gap-2">
+      <div className="lg:col-span-5">
+        <p className="text-base leading-relaxed text-ink-600">{vacancy.tagline}</p>
+        <ul className="mt-3 flex flex-wrap gap-1.5">
           {vacancy.tags.map((tag) => (
-            <span
-              key={tag}
-              className="rounded-full bg-neutral-100 px-3 py-1 text-xs font-medium text-neutral-700"
-            >
+            <li key={tag} className="rounded-full border border-ink-200 bg-white px-2.5 py-1 text-xs font-medium text-ink-700">
               {tag}
-            </span>
+            </li>
           ))}
-        </div>
-
-        {/* Requirements (опыт / возраст / резюме) — shown only when set in the admin */}
-        {reqs.length > 0 && (
-          <div className="mt-3 flex flex-wrap gap-2">
-            {reqs.map(({ Icon: ReqIcon, label }) => (
-              <span
-                key={label}
-                className="inline-flex items-center gap-1.5 rounded-full bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-700"
-              >
-                <ReqIcon className="h-3.5 w-3.5" />
-                {label}
-              </span>
-            ))}
-          </div>
-        )}
-
-        {/* CTA — opens the contact modal in application mode with this vacancy's
-            slug as `role` (see openApply in the parent). */}
-        <button
-          type="button"
-          onClick={onApply}
-          className="group/btn mt-6 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-brand-50 px-5 py-3 text-sm font-semibold text-brand-700 transition-colors duration-300 hover:bg-brand-600 hover:text-white"
-        >
-          Откликнуться
-          <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover/btn:translate-x-1" />
-        </button>
+          {/* Requirements (опыт / возраст) — shown only when set in the admin */}
+          {reqs.map(({ Icon: ReqIcon, label }) => (
+            <li key={label} className="inline-flex items-center gap-1.5 rounded-full bg-lime-soft px-2.5 py-1 text-xs font-semibold text-ink-950">
+              <ReqIcon className="h-3.5 w-3.5" aria-hidden="true" />
+              {label}
+            </li>
+          ))}
+        </ul>
       </div>
-    </motion.div>
+
+      {/* CTA — opens the contact modal in application mode with this vacancy's
+          slug as `role` (see openApply in the parent). */}
+      <div className="lg:col-span-2 lg:justify-self-end">
+        <Button onClick={onApply} variant="ink" size="lg" className="w-full lg:w-auto" aria-label={`Откликнуться на вакансию: ${vacancy.title}`}>
+          Откликнуться
+          <ArrowUpRight className="h-5 w-5 transition-transform duration-300 ease-expo group-hover/btn:rotate-45" aria-hidden="true" />
+        </Button>
+      </div>
+    </li>
   )
 }

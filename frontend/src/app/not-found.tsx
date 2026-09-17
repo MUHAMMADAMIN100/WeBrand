@@ -6,30 +6,27 @@ import { ArrowLeft } from 'lucide-react'
 // inline <meta robots="noindex"> (hoisted to <head> by Next) reinforces it.
 export default function NotFound() {
   return (
-    <main className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-white px-6 text-center">
+    <main className="relative isolate flex min-h-screen flex-col justify-center overflow-hidden px-5 py-16 lg:px-10">
       <title>Страница не найдена — Webrand</title>
       <meta name="robots" content="noindex" />
 
-      {/* Soft brand glow */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute left-1/2 top-1/2 h-[40rem] w-[40rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-brand-600/10 blur-3xl"
-      />
+      <div className="bg-grid pointer-events-none absolute inset-0 -z-10" aria-hidden="true" />
 
-      <div className="relative">
-        <p className="text-7xl font-extrabold tracking-tight text-brand-600 sm:text-8xl">404</p>
-        <h1 className="mt-4 text-3xl font-extrabold tracking-tight text-neutral-900 sm:text-4xl">
-          Страница не найдена
-        </h1>
-        <p className="mx-auto mt-4 max-w-md text-base leading-relaxed text-neutral-600">
+      <div className="mx-auto w-full max-w-[88rem]">
+        {/* The number is the picture: hollow, as wide as the screen allows. */}
+        <p aria-hidden="true" className="hollow font-display text-[clamp(7rem,30vw,26rem)] font-black leading-[0.85] tracking-[-0.06em] text-ink-950/25">
+          404
+        </p>
+        <h1 className="mt-6 font-display text-display-lg font-black text-ink-950">Страница не найдена</h1>
+        <p className="mt-5 max-w-md text-base leading-relaxed text-ink-600 lg:text-lg">
           Возможно, ссылка устарела или была введена с ошибкой. Вернитесь на главную — там всё на месте.
         </p>
 
         <Link
           href="/"
-          className="mt-8 inline-flex items-center gap-2 rounded-full bg-neutral-900 px-7 py-3.5 font-semibold text-white shadow-lg transition-shadow hover:shadow-xl"
+          className="group mt-9 inline-flex h-14 items-center gap-2.5 rounded-full bg-ink-950 px-8 text-base font-semibold text-white transition-colors duration-300 ease-expo hover:bg-brand-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 focus-visible:ring-offset-2"
         >
-          <ArrowLeft className="h-4 w-4" />
+          <ArrowLeft className="h-5 w-5 transition-transform duration-300 ease-expo group-hover:-translate-x-1" aria-hidden="true" />
           На главную
         </Link>
       </div>
