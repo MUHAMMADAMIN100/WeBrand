@@ -35,10 +35,13 @@ const config: Config = {
           900: '#11141B',
           950: '#0B0D12',
         },
-        // "Paper": the warm off-white page. Pure white is kept for raised cards.
+        // "Paper": a cool near-white page, tinted toward the brand hue so blue
+        // blocks sit on it cleanly. Pure white is kept for raised cards. (Cool
+        // on purpose — a warm cream page is the stock look of the moment, and
+        // this brand lives on white.)
         paper: {
-          DEFAULT: '#F6F5F1',
-          2: '#ECEAE3',
+          DEFAULT: '#F4F6FA',
+          2: '#E8ECF3',
         },
         // The single loud accent. A marker, never a text colour on light
         // surfaces (fails contrast) — always carries ink text on top.
@@ -63,17 +66,17 @@ const config: Config = {
         ring: 'hsl(var(--ring))',
       },
       fontFamily: {
-        // All three are loaded via next/font (see app/layout.tsx) with the
-        // `cyrillic` subset — the whole site is in Russian.
+        // Two families, clearly distinct, both loaded via next/font (see
+        // app/layout.tsx) with the `cyrillic` subset — the site is in Russian.
+        // Unbounded is variable (200–900): its weight axis is the redesign's
+        // motif, animated from hairline to black.
         sans: ['var(--font-manrope)', 'Inter', 'system-ui', 'sans-serif'],
         display: ['var(--font-unbounded)', 'var(--font-manrope)', 'system-ui', 'sans-serif'],
-        mono: ['var(--font-jbmono)', 'ui-monospace', 'SFMono-Regular', 'monospace'],
       },
       fontSize: {
-        // Fluid display sizes. Unbounded is a wide face and Russian words run
-        // long, so the floor is set by «digital-бренд» fitting a 320px column,
-        // not by taste.
-        'display-xl': ['clamp(2.15rem, 7.4vw, 8.25rem)', { lineHeight: '0.98', letterSpacing: '-0.04em' }],
+        // Fluid display sizes for section headings. (The hero sizes itself —
+        // see Hero.tsx — because its limits come from measured line widths.)
+        'display-xl': ['clamp(2rem, 6.4vw, 6rem)', { lineHeight: '1', letterSpacing: '-0.04em' }],
         'display-lg': ['clamp(1.9rem, 5.2vw, 5.25rem)', { lineHeight: '1.02', letterSpacing: '-0.035em' }],
         'display-md': ['clamp(1.5rem, 3.1vw, 2.85rem)', { lineHeight: '1.08', letterSpacing: '-0.025em' }],
       },

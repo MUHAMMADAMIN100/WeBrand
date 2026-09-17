@@ -30,6 +30,11 @@ let webglProbe: boolean | null = null
 function canWebGL(): boolean {
   if (webglProbe !== null) return webglProbe
   try {
+    // Debugging aid: headless browsers render WebGL in software, which the
+    // `failIfMajorPerformanceCaveat` probe below (rightly) rejects. Setting
+    // localStorage['webrand:webgl'] = 'force' lets automated checks see the
+    // live canvas anyway.
+    if (window.localStorage.getItem('webrand:webgl') === 'force') return (webglProbe = true)
     const canvas = document.createElement('canvas')
     const gl = canvas.getContext('webgl', { failIfMajorPerformanceCaveat: true })
     webglProbe = !!gl

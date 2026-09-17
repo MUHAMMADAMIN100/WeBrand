@@ -11,7 +11,7 @@ import ServiceDetailModal from './ServiceDetailModal'
 // server-rendered `children`.
 export default function SiteShell({ children }: { children: ReactNode }) {
   return (
-    <div className="relative min-h-screen bg-white">
+    <div className="relative min-h-screen">
       <Navbar />
       {children}
       <Footer />

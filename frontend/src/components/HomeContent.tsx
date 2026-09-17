@@ -1,5 +1,6 @@
 import SiteShell from './SiteShell'
 import Hero from './Hero'
+import ServicesTicker from './ServicesTicker'
 import About from './About'
 import Services from './Services'
 import Process from './Process'
@@ -43,6 +44,7 @@ export default async function HomeContent() {
       />
       <main>
         <Hero />
+        <ServicesTicker />
         <About />
         <Services />
         <Process />

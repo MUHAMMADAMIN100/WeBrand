@@ -7,7 +7,7 @@
     /* shadcn/ui semantic tokens as HSL triplets — what 21st.dev registry
        components expect. One curated light look for the public site; the admin
        panel is the app that owns a light/dark switch. */
-    --background: 48 22% 95.5%; /* paper   #F6F5F1 */
+    --background: 220 38% 96.9%; /* paper  #F4F6FA */
     --foreground: 223 24% 5.7%; /* ink-950 #0B0D12 */
     --card: 0 0% 100%;
     --card-foreground: 223 24% 5.7%;
@@ -15,10 +15,10 @@
     --popover-foreground: 223 24% 5.7%;
     --primary: 222 66% 50%; /* brand-600 #2B5ED3 */
     --primary-foreground: 0 0% 100%;
-    --secondary: 47 19% 91%; /* paper-2 #ECEAE3 */
+    --secondary: 218 31% 93%; /* paper-2 #E8ECF3 */
     --secondary-foreground: 223 24% 5.7%;
-    --muted: 47 19% 91%;
-    --muted-foreground: 223 11% 38%; /* ink-600 — 6.1:1 on paper */
+    --muted: 218 31% 93%;
+    --muted-foreground: 223 11% 38%; /* ink-600 — 6.2:1 on paper */
     --accent: 73 87% 58%; /* lime #C8F135 */
     --accent-foreground: 223 24% 5.7%;
     --destructive: 0 72% 51%;
@@ -67,8 +67,10 @@
     -webkit-mask-image: linear-gradient(to right, transparent, black 9%, black 91%, transparent);
   }
   /* Outlined display type (ticker, oversized numerals). */
+  /* Hollow the glyphs with text-fill-color, not `color`: the stroke takes its
+     colour from currentColor, so making `color` transparent erases it too. */
   .text-stroke {
-    color: transparent;
+    -webkit-text-fill-color: transparent;
     -webkit-text-stroke: 1.5px currentColor;
   }
   /* Faint engineering grid behind kinetic type; fades out toward the edges. */
@@ -82,8 +84,8 @@
   }
   .bg-grid-dark {
     background-image:
-      linear-gradient(to right, rgb(246 245 241 / 0.06) 1px, transparent 1px),
-      linear-gradient(to bottom, rgb(246 245 241 / 0.06) 1px, transparent 1px);
+      linear-gradient(to right, rgb(244 246 250 / 0.06) 1px, transparent 1px),
+      linear-gradient(to bottom, rgb(244 246 250 / 0.06) 1px, transparent 1px);
     background-size: 72px 72px;
   }
 }
@@ -132,6 +134,69 @@
   }
 }
 
+/* Hero entrance. Deliberately CSS-only: the headline is the page's LCP element,
+   so it must not wait for hydration or for GSAP to load. */
+@layer components {
+  /* A mask per line. Tight display leading would clip Cyrillic descenders
+     (р, у, д, щ) and the top of Й, so the mask gets padding that the negative
+     margin gives straight back — the layout never sees it. */
+  .hero-line {
+    display: block;
+    overflow: hidden;
+    padding: 0.1em 0 0.2em;
+    margin: -0.1em 0 -0.2em;
+  }
+  .hero-line > span {
+    display: block;
+    animation: hero-rise 1.05s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .hero-line + .hero-line > span {
+    animation-delay: 0.12s;
+  }
+  /* The brand "gaining weight": Unbounded is a variable font, so font-weight
+     interpolates smoothly. Sized for the 900 end state, so the line only ever
+     grows into room that is already reserved — no reflow around it. */
+  .hero-line > .hero-heavy {
+    font-weight: 900;
+    animation:
+      hero-rise 1.05s cubic-bezier(0.16, 1, 0.3, 1) 0.12s both,
+      hero-weigh 1.6s cubic-bezier(0.16, 1, 0.3, 1) 0.6s both;
+  }
+  .hero-fade {
+    animation: hero-fade 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.45s both;
+  }
+  .hero-fade-late {
+    animation-delay: 0.7s;
+  }
+}
+
+@keyframes hero-rise {
+  from {
+    transform: translateY(108%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+@keyframes hero-weigh {
+  from {
+    font-weight: 300;
+  }
+  to {
+    font-weight: 900;
+  }
+}
+@keyframes hero-fade {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 /* Honour reduced-motion: silence the looping/auto-playing animations */
 @media (prefers-reduced-motion: reduce) {
   .animate-marquee,
@@ -140,7 +205,10 @@
   .animate-float-slow,
   .animate-float-delay,
   .animate-gradient,
-  .animate-spin-slow {
+  .animate-spin-slow,
+  .hero-line > span,
+  .hero-line > .hero-heavy,
+  .hero-fade {
     animation: none !important;
   }
 }
@@ -151,7 +219,7 @@
   height: 10px;
 }
 ::-webkit-scrollbar-track {
-  background: #ECEAE3;
+  background: #E8ECF3;
 }
 ::-webkit-scrollbar-thumb {
   background: #0B0D12;

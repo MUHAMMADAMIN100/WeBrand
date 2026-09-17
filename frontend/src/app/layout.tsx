@@ -1,14 +1,14 @@
 import './globals.css'
 import type { Metadata, Viewport } from 'next'
-import { JetBrains_Mono, Manrope, Unbounded } from 'next/font/google'
+import { Manrope, Unbounded } from 'next/font/google'
 import { GoogleAnalytics } from '@next/third-parties/google'
 import { Providers } from './providers'
 import { SITE_URL } from '../lib/api'
 
-// All three are self-hosted by next/font. `cyrillic` is essential — the whole
-// site is in Russian, and it is the reason these faces were picked: most display
+// Both are self-hosted by next/font. `cyrillic` is essential — the whole site
+// is in Russian, and it is the reason these faces were picked: most display
 // fonts in fashion ship Latin only. Each is exposed as a CSS variable that
-// tailwind.config.ts maps to `font-sans` / `font-display` / `font-mono`.
+// tailwind.config.ts maps to `font-sans` / `font-display`.
 const manrope = Manrope({
   subsets: ['latin', 'cyrillic'],
   variable: '--font-manrope',
@@ -16,18 +16,12 @@ const manrope = Manrope({
 })
 
 // Headlines. A wide geometric grotesque that rhymes with the logo lockup.
+// Loaded as a variable font (no `weight` list) so the full 200–900 axis is
+// available — the hero animates it.
 const unbounded = Unbounded({
   subsets: ['latin', 'cyrillic'],
   variable: '--font-unbounded',
   display: 'swap',
-})
-
-// Section labels, indices, counters — not body copy, so it is not preloaded.
-const jbMono = JetBrains_Mono({
-  subsets: ['latin', 'cyrillic'],
-  variable: '--font-jbmono',
-  display: 'swap',
-  preload: false,
 })
 
 export const metadata: Metadata = {
@@ -49,7 +43,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ru" className={`${manrope.variable} ${unbounded.variable} ${jbMono.variable}`}>
+    <html lang="ru" className={`${manrope.variable} ${unbounded.variable}`}>
       <body>
         <Providers>{children}</Providers>
         {/* GA4 via the official @next/third-parties — loads only when

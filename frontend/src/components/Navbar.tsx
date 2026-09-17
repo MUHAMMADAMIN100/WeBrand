@@ -8,11 +8,14 @@ import {
   useMotionValueEvent,
   useReducedMotion,
 } from 'framer-motion'
-import { Phone, ArrowRight } from 'lucide-react'
+import { Phone } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { nav, contacts } from '../data/content'
 import { useModal } from '../context/ModalContext'
+import { cn } from '../lib/utils'
+import Button from './ui/Button'
+import Magnetic from './motion/Magnetic'
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false)
@@ -96,131 +99,134 @@ export default function Navbar() {
   const menuVariants = {
     hidden: {},
     show: {
-      transition: reduce ? {} : { staggerChildren: 0.07, delayChildren: 0.12 },
+      transition: reduce ? {} : { staggerChildren: 0.06, delayChildren: 0.1 },
     },
   }
   const itemVariants = {
-    hidden: reduce ? { opacity: 0 } : { opacity: 0, y: 24 },
+    hidden: reduce ? { opacity: 0 } : { opacity: 0, y: 28 },
     show: {
       opacity: 1,
       y: 0,
-      transition: { duration: 0.45, ease: [0.16, 1, 0.3, 1] as const },
+      transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] as const },
     },
   }
+
+  const isActive = (href: string) =>
+    href.startsWith('/') ? pathname === href : activeId === href.slice(1)
+
+  // Once the page scrolls the bar lifts off into a floating pill. While the
+  // mobile menu is open it goes transparent instead, so the ink overlay reads
+  // as one surface with the logo and the close button sitting on it.
+  const floating = scrolled && !open
 
   return (
     <>
       <motion.header
         initial={reduce ? false : { y: -100 }}
         animate={{ y: 0 }}
-        transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-      className={`fixed inset-x-0 top-0 z-50 transition-[background-color,box-shadow,border-color] duration-300 ease-out ${scrolled
-          ? 'border-b border-black/[0.06] bg-white/80 backdrop-blur-xl shadow-[0_8px_30px_-14px_rgba(16,24,40,0.18),inset_0_-1px_0_rgba(255,255,255,0.6)]'
-          : 'border-b border-transparent bg-transparent'
-        }`}
-    >
-      <div
-        className={`mx-auto flex max-w-7xl items-center justify-between px-6 transition-[height] duration-300 ease-out lg:px-10 ${scrolled ? 'h-16' : 'h-20'
-          }`}
+        transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+        className="fixed inset-x-0 top-0 z-50 px-3 lg:px-6"
       >
-        {/* Logo */}
-        <a href={resolveHash('#top')} className="relative z-50 flex select-none items-center" aria-label="Webrand — на главную">
-          <motion.img
-            whileHover={reduce ? undefined : { scale: 1.05 }}
-            transition={{ type: 'spring', stiffness: 400, damping: 17 }}
-            src="/logos/main-logo.png"
-            alt="Webrand"
-            width={388}
-            height={81}
-            className={`w-auto object-contain transition-[height] duration-300 ${scrolled ? 'h-8' : 'h-9 sm:h-10'
-              }`}
-          />
-        </a>
-
-        {/* Desktop nav */}
-        <nav className="hidden items-center gap-9 lg:flex">
-          {nav.map((item) => {
-            const isRoute = item.href.startsWith('/')
-            const active = isRoute
-              ? pathname === item.href
-              : activeId === item.href.slice(1)
-            const className = `group relative text-sm font-semibold transition-colors duration-200 ${active ? 'text-brand-600' : 'text-neutral-700 hover:text-brand-600'
-              }`
-            const underline = (
-              <span
-                className={`absolute -bottom-1.5 left-0 h-0.5 w-full origin-left rounded-full bg-brand-600 transition-transform duration-300 ease-out ${active ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'
-                  }`}
-              />
-            )
-            return isRoute ? (
-              <Link key={item.href} href={item.href} aria-current={active ? 'true' : undefined} className={className}>
-                {item.label}
-                {underline}
-              </Link>
-            ) : (
-              <a key={item.href} href={resolveHash(item.href)} aria-current={active ? 'true' : undefined} className={className}>
-                {item.label}
-                {underline}
-              </a>
-            )
-          })}
-        </nav>
-
-        {/* Desktop actions */}
-        <div className="hidden items-center gap-2 lg:flex">
-          <a
-            href={`tel:${contacts.phoneRaw}`}
-            className="group inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm font-semibold text-neutral-700 transition-colors duration-200 hover:text-brand-600"
-          >
-            <span className="grid h-7 w-7 place-items-center rounded-full bg-brand-50 text-brand-600 transition-colors duration-200 group-hover:bg-brand-100">
-              <Phone className="h-3.5 w-3.5" />
-            </span>
-            {contacts.phone}
-          </a>
-          <motion.button
-            whileHover={reduce ? undefined : { scale: 1.04, y: -2 }}
-            whileTap={{ scale: 0.97 }}
-            transition={{ type: 'spring', stiffness: 400, damping: 18 }}
-            onClick={() => openModal()}
-            className="group ml-1 inline-flex items-center gap-2 rounded-full bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-brand-600/25 transition-shadow duration-300 hover:shadow-xl hover:shadow-brand-600/40"
-          >
-            Напишите нам
-            <ArrowRight className="h-4 w-4 transition-transform duration-300 ease-out group-hover:translate-x-1" />
-          </motion.button>
-        </div>
-
-        {/* Mobile hamburger -> X */}
-        <button
-          onClick={() => setOpen((v) => !v)}
-          aria-label={open ? 'Закрыть меню' : 'Открыть меню'}
-          aria-expanded={open}
-          aria-controls="mobile-menu"
-          className="relative z-50 grid h-10 w-10 place-items-center lg:hidden"
+        <div
+          className={cn(
+            'mx-auto flex items-center justify-between border transition-all duration-500 ease-expo',
+            floating
+              ? 'mt-3 h-14 max-w-6xl rounded-full border-ink-200/80 bg-white/85 pl-5 pr-2 shadow-[0_10px_40px_-18px_rgba(11,13,18,0.35)] backdrop-blur-xl'
+              : 'mt-0 h-20 max-w-[88rem] rounded-none border-transparent bg-transparent px-2 lg:px-4',
+          )}
         >
-          <span className="relative block h-6 w-6">
-            {/* верхняя полоска */}
-            <motion.span
-              className="absolute left-0 block h-0.5 w-6 rounded-full bg-neutral-900"
-              style={{ top: 'calc(50% - 1px)', transformOrigin: 'center' }}
-              animate={open ? { rotate: 45, y: 0 } : { rotate: 0, y: -6 }}
-              transition={{ duration: reduce ? 0 : 0.3, ease: [0.16, 1, 0.3, 1] }}
+          {/* Logo */}
+          <a
+            href={resolveHash('#top')}
+            className="relative z-50 flex shrink-0 select-none items-center rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 focus-visible:ring-offset-4"
+            aria-label="Webrand — на главную"
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={open ? '/logos/main-logo-dark.png' : '/logos/main-logo.png'}
+              alt="Webrand"
+              width={388}
+              height={81}
+              className={cn(
+                'w-auto object-contain transition-[height] duration-500 ease-expo',
+                floating ? 'h-7' : 'h-8 sm:h-9',
+              )}
             />
-            {/* средняя полоска — исчезает при открытии */}
-            <motion.span
-              className="absolute left-0 block h-0.5 w-6 rounded-full bg-neutral-900"
-              style={{ top: 'calc(50% - 1px)', transformOrigin: 'center' }}
-              animate={open ? { opacity: 0, scaleX: 0 } : { opacity: 1, scaleX: 1 }}
-              transition={{ duration: reduce ? 0 : 0.2, ease: 'easeOut' }}
-            />
-            {/* нижняя полоска */}
-            <motion.span
-              className="absolute left-0 block h-0.5 w-6 rounded-full bg-neutral-900"
-              style={{ top: 'calc(50% - 1px)', transformOrigin: 'center' }}
-              animate={open ? { rotate: -45, y: 0 } : { rotate: 0, y: 6 }}
-              transition={{ duration: reduce ? 0 : 0.3, ease: [0.16, 1, 0.3, 1] }}
-            />
-          </span>
-        </button>
+          </a>
+
+          {/* Desktop nav */}
+          <nav className="hidden items-center gap-1 lg:flex" aria-label="Основная навигация">
+            {nav.map((item) => {
+              const isRoute = item.href.startsWith('/')
+              const active = isActive(item.href)
+              const className = cn(
+                'relative rounded-full px-3.5 py-2 text-[0.94rem] font-semibold transition-colors duration-200',
+                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600',
+                active ? 'text-ink-950' : 'text-ink-600 hover:text-ink-950',
+              )
+              const marker = active && (
+                <motion.span
+                  layoutId="nav-active"
+                  className="absolute inset-0 -z-10 rounded-full bg-lime"
+                  transition={{ type: 'spring', stiffness: 380, damping: 32 }}
+                />
+              )
+              return isRoute ? (
+                <Link key={item.href} href={item.href} aria-current={active ? 'page' : undefined} className={className}>
+                  {marker}
+                  {item.label}
+                </Link>
+              ) : (
+                <a key={item.href} href={resolveHash(item.href)} aria-current={active ? 'true' : undefined} className={className}>
+                  {marker}
+                  {item.label}
+                </a>
+              )
+            })}
+          </nav>
+
+          {/* Desktop actions */}
+          <div className="hidden items-center gap-1 lg:flex">
+            <a
+              href={`tel:${contacts.phoneRaw}`}
+              className="inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm font-semibold text-ink-700 transition-colors duration-200 hover:text-brand-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600"
+            >
+              <Phone className="h-4 w-4" aria-hidden="true" />
+              {contacts.phone}
+            </a>
+            <Magnetic strength={0.25}>
+              <Button onClick={() => openModal()} variant="ink" size="md" className={floating ? 'h-10' : undefined}>
+                Напишите нам
+              </Button>
+            </Magnetic>
+          </div>
+
+          {/* Mobile hamburger -> X */}
+          <button
+            onClick={() => setOpen((v) => !v)}
+            aria-label={open ? 'Закрыть меню' : 'Открыть меню'}
+            aria-expanded={open}
+            aria-controls="mobile-menu"
+            className="relative z-50 grid h-11 w-11 place-items-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 lg:hidden"
+          >
+            <span className="relative block h-6 w-6">
+              {[
+                open ? { rotate: 45, y: 0 } : { rotate: 0, y: -5 },
+                open ? { rotate: -45, y: 0 } : { rotate: 0, y: 5 },
+              ].map((animate, i) => (
+                <motion.span
+                  key={i}
+                  className={cn(
+                    'absolute left-0 block h-0.5 w-6 rounded-full transition-colors duration-300',
+                    open ? 'bg-white' : 'bg-ink-950',
+                  )}
+                  style={{ top: 'calc(50% - 1px)', transformOrigin: 'center' }}
+                  animate={animate}
+                  transition={{ duration: reduce ? 0 : 0.35, ease: [0.16, 1, 0.3, 1] }}
+                />
+              ))}
+            </span>
+          </button>
         </div>
       </motion.header>
 
@@ -234,23 +240,22 @@ export default function Navbar() {
           <motion.div
             ref={menuRef}
             id="mobile-menu"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.25 }}
-            className="fixed inset-0 z-40 bg-white/85 backdrop-blur-xl lg:hidden"
+            initial={reduce ? { opacity: 0 } : { clipPath: 'inset(0 0 100% 0)' }}
+            animate={reduce ? { opacity: 1 } : { clipPath: 'inset(0 0 0% 0)' }}
+            exit={reduce ? { opacity: 0 } : { clipPath: 'inset(0 0 100% 0)' }}
+            transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
+            className="fixed inset-0 z-40 overflow-y-auto bg-ink-950 text-white lg:hidden"
           >
             <motion.nav
               variants={menuVariants}
               initial="hidden"
               animate="show"
-              className="flex h-full flex-col justify-center gap-3 px-8"
+              aria-label="Мобильная навигация"
+              className="flex min-h-full flex-col justify-center gap-1 px-6 pb-10 pt-28"
             >
               {nav.map((item) => {
                 const isRoute = item.href.startsWith('/')
-                const active = isRoute
-                  ? pathname === item.href
-                  : activeId === item.href.slice(1)
+                const active = isActive(item.href)
                 return (
                   <motion.a
                     key={item.href}
@@ -263,8 +268,11 @@ export default function Navbar() {
                         router.push(item.href)
                       }
                     }}
-                    className={`text-4xl font-extrabold tracking-tight transition-colors ${active ? 'text-brand-600' : 'text-neutral-900'
-                      }`}
+                    className={cn(
+                      'rounded-lg py-2 font-display text-[clamp(1.6rem,8vw,2.4rem)] font-black leading-tight tracking-tight transition-colors',
+                      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime',
+                      active ? 'text-lime' : 'text-white',
+                    )}
                   >
                     {item.label}
                   </motion.a>
@@ -275,25 +283,24 @@ export default function Navbar() {
                 variants={itemVariants}
                 href={`tel:${contacts.phoneRaw}`}
                 onClick={() => setOpen(false)}
-                className="mt-6 inline-flex items-center gap-3 text-lg font-semibold text-neutral-700"
+                className="mt-8 inline-flex w-fit items-center gap-3 rounded-lg py-1 text-lg font-semibold text-white/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime"
               >
-                <span className="grid h-9 w-9 place-items-center rounded-full bg-brand-50 text-brand-600">
-                  <Phone className="h-4 w-4" />
-                </span>
+                <Phone className="h-5 w-5 text-lime" aria-hidden="true" />
                 {contacts.phone}
               </motion.a>
 
-              <motion.button
-                variants={itemVariants}
-                onClick={() => {
-                  setOpen(false)
-                  openModal()
-                }}
-                className="group mt-3 inline-flex w-fit items-center gap-2 rounded-full bg-brand-600 px-7 py-3.5 text-base font-semibold text-white shadow-lg shadow-brand-600/30"
-              >
-                Напишите нам
-                <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
-              </motion.button>
+              <motion.div variants={itemVariants} className="mt-4">
+                <Button
+                  variant="lime"
+                  size="lg"
+                  onClick={() => {
+                    setOpen(false)
+                    openModal()
+                  }}
+                >
+                  Напишите нам
+                </Button>
+              </motion.div>
             </motion.nav>
           </motion.div>
         )}

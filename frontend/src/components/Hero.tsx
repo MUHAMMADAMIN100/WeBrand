@@ -1,145 +1,123 @@
 'use client'
 
-import { motion, useScroll, useTransform, useReducedMotion } from 'framer-motion'
-import { useRef } from 'react'
-import { ArrowRight, Rocket, Zap } from 'lucide-react'
+import { ArrowDownRight } from 'lucide-react'
 import { heroTags } from '../data/content'
-import { requestServiceHighlight } from '../lib/serviceAnchors'
 import { useModal } from '../context/ModalContext'
+import { requestServiceHighlight } from '../lib/serviceAnchors'
+import Button from './ui/Button'
+import Magnetic from './motion/Magnetic'
+import HeroVisual from './webgl/HeroVisual'
+
+// Real clients, real logos (public/logos) — the faces behind «30+ компаний».
+const TRUSTED = [
+  { src: '/logos/sabt.png', alt: 'SABT' },
+  { src: '/logos/todo.webp', alt: 'Todo' },
+  { src: '/logos/asan.webp', alt: 'ASAN' },
+  { src: '/logos/aiva.webp', alt: 'Aiva' },
+  { src: '/logos/getup.jpg', alt: 'GetUp' },
+]
 
 export default function Hero() {
   const { open: openModal } = useModal()
-  const reduce = useReducedMotion()
-  const ref = useRef<HTMLDivElement>(null)
-  const { scrollYProgress } = useScroll({
-    target: ref,
-    offset: ['start start', 'end start'],
-  })
-  const y = useTransform(scrollYProgress, [0, 1], [0, 150])
 
   return (
     <section
       id="top"
-      ref={ref}
-      className="relative min-h-screen flex items-center pt-24 pb-14 md:pt-32 md:pb-20 overflow-hidden"
+      className="relative isolate flex flex-col overflow-x-clip pb-10 pt-28 lg:min-h-[100svh] lg:pb-10 lg:pt-36"
     >
-      {/* Background mesh */}
-      <div className="absolute inset-0 -z-10">
-        <motion.div
-          style={{ y }}
-          className="absolute top-32 left-[10%] w-[28rem] h-[28rem] bg-brand-600/25 rounded-full blur-3xl animate-float"
-        />
-        <motion.div
-          style={{ y }}
-          className="absolute bottom-20 right-[8%] w-[26rem] h-[26rem] bg-brand-400/25 rounded-full blur-3xl animate-float-slow"
-        />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60rem] h-[60rem] bg-gradient-to-r from-brand-600/10 to-brand-400/10 rounded-full blur-3xl" />
-        {/* Grid */}
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#00000008_1px,transparent_1px),linear-gradient(to_bottom,#00000008_1px,transparent_1px)] bg-[size:56px_56px] [mask-image:radial-gradient(ellipse_at_center,black,transparent_70%)]" />
-      </div>
+      <div className="bg-grid pointer-events-none absolute inset-0 -z-20" aria-hidden="true" />
 
-      <div className="max-w-7xl mx-auto px-6 lg:px-10 w-full">
-        {/* Headline */}
-        <motion.h1
-          initial={reduce ? false : { opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.1 }}
-          className="text-center text-4xl sm:text-5xl lg:text-7xl font-extrabold tracking-tight text-neutral-900 leading-[1.05]"
-        >
-          Превращаем бизнес
-          <br />
-          в{' '}
-          <span className="bg-gradient-to-r from-brand-700 via-brand-500 to-brand-600 bg-clip-text text-transparent bg-[length:200%_auto] animate-gradient">
-            digital-бренд
-          </span>
-        </motion.h1>
+      <div className="mx-auto flex w-full max-w-[88rem] flex-1 flex-col px-5 lg:px-10">
+        {/* The page's LCP element, so its entrance is pure CSS (globals.css):
+            nothing here waits for JS. Line two swells from hairline to black —
+            the brand "gaining weight" is the one orchestrated moment.
 
-        {/* Subtitle */}
-        <motion.p
-          initial={reduce ? false : { opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.3 }}
-          className="mt-5 md:mt-7 text-center text-base lg:text-lg text-neutral-600 max-w-2xl mx-auto text-balance leading-relaxed"
-        >
-          Разрабатываем сайты, выстраиваем бренд, привлекаем клиентов через SMM и контекстную рекламу. Комплексные решения, которые приносят прибыль.
-        </motion.p>
+            The size is set by measurement, not taste. At weight 300 «Превращаем
+            бизнес» runs 11.97em and at 900 «в digital-бренд» runs 9.18em
+            (Unbounded, -0.04em tracking). Line two never breaks — `nowrap` also
+            keeps the preposition «в» from hanging at a line end — so on phones
+            it sets the ceiling (9.4vw fits a 320px screen); from `lg` up line
+            one fits on a single row and sets it instead (7.6vw, capped where
+            the 88rem container stops growing). */}
+        <div className="relative flex flex-1 flex-col">
+          <h1 className="relative z-10 font-display text-[9.4vw] leading-none tracking-[-0.04em] text-ink-950 sm:text-[8vw] lg:text-[min(7.6vw,6.85rem)]">
+            <span className="hero-line">
+              <span className="font-light">Превращаем бизнес</span>
+            </span>{' '}
+            <span className="hero-line">
+              <span className="hero-heavy whitespace-nowrap">в digital-бренд</span>
+            </span>
+          </h1>
 
-        {/* Floating tags */}
-        <div className="relative mt-8 md:mt-14">
-          <div className="flex flex-wrap justify-center gap-3">
-            {heroTags.map((tag, i) => (
-              <motion.a
-                key={tag.label}
-                href={tag.href}
-                onClick={() => requestServiceHighlight(tag.href)}
-                initial={reduce ? false : { opacity: 0, scale: 0, y: 40 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                transition={{
-                  duration: 0.5,
-                  delay: 0.6 + i * 0.08,
-                  type: 'spring',
-                  stiffness: 120,
-                }}
-                whileHover={reduce ? undefined : { scale: 1.08, y: -4, rotate: [-1, 1, 0] }}
-                whileTap={{ scale: 0.97 }}
-                className="px-6 py-3 rounded-full bg-white border border-neutral-200 shadow-sm font-semibold text-neutral-800 hover:border-brand-600 hover:text-brand-600 hover:shadow-xl hover:shadow-brand-600/10 transition-all cursor-pointer select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 focus-visible:ring-offset-2"
-              >
-                {tag.label}
-              </motion.a>
-            ))}
+          <div className="hero-fade relative z-10 mt-8 flex max-w-xl flex-col gap-8 lg:mt-12">
+            <p className="max-w-lg text-pretty text-base leading-relaxed text-ink-600 lg:text-lg">
+              Разрабатываем сайты, выстраиваем бренд, привлекаем клиентов через SMM и контекстную
+              рекламу. Комплексные решения, которые приносят прибыль.
+            </p>
+
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+              <Magnetic>
+                <Button size="lg" variant="ink" onClick={() => openModal()} className="w-full sm:w-auto">
+                  Связаться с нами
+                </Button>
+              </Magnetic>
+              <Button size="lg" variant="outline" href="#portfolio" className="w-full sm:w-auto">
+                Смотреть работы
+              </Button>
+            </div>
+          </div>
+
+          {/* The mark is out of flow at every size, so it never sets the hero's
+              height, and it only ever sits behind display type — never behind
+              body copy, which it would make unreadable.
+              Phones: tucked into the gap right of «бизнес», behind the heavy line.
+              Desktop: rises behind the end of the headline's second line; its top
+              tracks the headline's height (2 lines × the 7.6vw / 6.85rem size). */}
+          <div className="pointer-events-none absolute -right-[9%] top-[7vw] -z-10 w-[54%] sm:-right-[4%] sm:top-[5vw] sm:w-[40%] lg:-right-[5%] lg:top-[calc(min(15.2vw,13.7rem)-4.5rem)] lg:w-[52%]">
+            <HeroVisual className="aspect-[4/3] w-full" />
+            {/* Contact shadow: grounds the balloon on the page. */}
+            <div className="absolute inset-x-[16%] -bottom-[3%] hidden h-[9%] rounded-[50%] bg-ink-950/25 blur-2xl lg:block" />
           </div>
         </div>
 
-        {/* CTAs */}
-        <motion.div
-          initial={reduce ? false : { opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 1.1 }}
-          className="mt-8 md:mt-12 flex flex-col sm:flex-row items-center justify-center gap-4"
-        >
-          <motion.button
-            whileHover={reduce ? undefined : { scale: 1.05, y: -2 }}
-            whileTap={{ scale: 0.97 }}
-            onClick={() => openModal()}
-            className="group px-8 py-4 rounded-full bg-brand-600 hover:bg-brand-700 active:bg-brand-700 text-white font-semibold shadow-lg shadow-brand-600/30 hover:shadow-xl hover:shadow-brand-600/40 transition-all flex items-center gap-3"
-          >
-            Связаться с нами
-            <span className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center group-hover:rotate-45 transition-transform">
-              <ArrowRight className="w-4 h-4 -rotate-45 group-hover:rotate-0 transition-transform" />
-            </span>
-          </motion.button>
-          <motion.a
-            whileHover={reduce ? undefined : { scale: 1.05 }}
-            whileTap={{ scale: 0.97 }}
-            href="#portfolio"
-            className="px-8 py-4 rounded-full bg-white border-2 border-neutral-200 hover:border-brand-600 hover:text-brand-600 font-semibold transition-colors"
-          >
-            Смотреть работы
-          </motion.a>
-        </motion.div>
+        <div className="hero-fade hero-fade-late relative z-10 mt-10 flex flex-col gap-6 border-t border-ink-200 pt-6 lg:mt-6 lg:flex-row lg:items-center lg:justify-between lg:pt-7">
+          <ul className="flex flex-wrap gap-2">
+            {heroTags.map((tag) => (
+              <li key={tag.label}>
+                <a
+                  href={tag.href}
+                  onClick={() => requestServiceHighlight(tag.href)}
+                  className="group inline-flex h-11 items-center gap-1.5 rounded-full border border-ink-200 bg-white pl-4 pr-3 text-sm font-semibold text-ink-800 transition-colors duration-300 ease-expo hover:border-ink-950 hover:bg-ink-950 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 focus-visible:ring-offset-2"
+                >
+                  {tag.label}
+                  <ArrowDownRight
+                    className="h-4 w-4 text-ink-400 transition-[color,transform] duration-300 ease-expo group-hover:translate-x-0.5 group-hover:translate-y-0.5 group-hover:text-lime"
+                    aria-hidden="true"
+                  />
+                </a>
+              </li>
+            ))}
+          </ul>
 
-        {/* Floating decorative icons */}
-        <motion.div
-          initial={reduce ? false : { opacity: 0, scale: 0 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.8, type: 'spring' }}
-          className="hidden lg:block absolute top-32 left-[6%] animate-float"
-        >
-          <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-brand-500 to-brand-700 shadow-2xl shadow-brand-600/40 rotate-12 flex items-center justify-center">
-            <Rocket className="w-9 h-9 text-white" />
+          <div className="flex shrink-0 items-center gap-3.5">
+            <ul className="flex -space-x-2.5" aria-hidden="true">
+              {TRUSTED.map((logo) => (
+                <li
+                  key={logo.src}
+                  className="grid h-10 w-10 place-items-center overflow-hidden rounded-full border-2 border-paper bg-white shadow-sm"
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={logo.src} alt="" width={40} height={40} loading="lazy" className="h-full w-full object-contain p-1.5" />
+                </li>
+              ))}
+            </ul>
+            <p className="text-sm leading-snug text-ink-600">
+              <span className="font-display text-base font-bold text-ink-950">30+</span> компаний
+              <br />
+              уже работают с нами
+            </p>
           </div>
-        </motion.div>
-
-        <motion.div
-          initial={reduce ? false : { opacity: 0, scale: 0 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 1.2, type: 'spring' }}
-          className="hidden lg:block absolute bottom-32 right-[6%] animate-float-slow"
-        >
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-brand-500 to-brand-700 shadow-2xl shadow-brand-600/40 rotate-12 flex items-center justify-center">
-            <Zap className="w-6 h-6 text-white" />
-          </div>
-        </motion.div>
+        </div>
       </div>
     </section>
   )
