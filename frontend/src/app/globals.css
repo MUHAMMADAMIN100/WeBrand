@@ -213,6 +213,24 @@
   }
 }
 
+.footer-wordmark {
+  pointer-events: none;
+  user-select: none;
+  overflow: hidden;
+  margin-bottom: -0.2em;
+  text-align: center;
+  white-space: nowrap;
+  font-family: var(--font-unbounded), var(--font-manrope), system-ui, sans-serif;
+  font-size: clamp(4rem, 19.5vw, 21rem);
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -0.06em;
+  color: rgb(255 255 255 / 0.05);
+}
+.footer-wordmark::before {
+  content: 'webrand';
+}
+
 /* Intro curtain: <= ~1.3s, once per session (flag set pre-paint in layout.tsx).
    The page renders underneath from the first frame — the curtain only covers
    it — and the hero's own entrance is pushed back so it plays as the curtain

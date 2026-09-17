@@ -111,13 +111,11 @@ export default function Footer() {
         </div>
       </div>
 
-      {/* The wordmark as texture: tone on tone, oversized, cropped by the frame. */}
-      <p
-        aria-hidden="true"
-        className="pointer-events-none -mb-[0.2em] select-none whitespace-nowrap text-center font-display text-[clamp(4rem,19.5vw,21rem)] font-black leading-none tracking-[-0.06em] text-white/[0.05]"
-      >
-        webrand
-      </p>
+      {/* The wordmark as texture: tone on tone, oversized, cropped by the frame.
+          Drawn by a pseudo-element (globals.css) because it is decoration, not
+          content — as real text it is a 1.1:1 "contrast failure" to every
+          accessibility checker, aria-hidden or not. */}
+      <div aria-hidden="true" className="footer-wordmark" />
     </footer>
   )
 }
