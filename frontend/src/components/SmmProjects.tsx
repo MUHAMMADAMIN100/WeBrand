@@ -57,7 +57,7 @@ export default function SmmProjects({
                 {/* Two top cases get the wider two-column grid; a full set of three lines up with the rest. */}
                 <div className={cn('grid gap-x-6 gap-y-12 sm:grid-cols-2 xl:gap-x-8', featured.length === 3 && 'xl:grid-cols-3')}>
                   {featured.map((item) => (
-                    <SmmProjectCard key={item.id} item={item} featured />
+                    <SmmProjectCard key={item.id} item={item} featured titleLevel="h3" />
                   ))}
                 </div>
               </div>
@@ -69,8 +69,10 @@ export default function SmmProjects({
                   <h2 className="mb-7 font-display text-display-md font-black text-ink-950 md:mb-10">Другие работы</h2>
                 )}
                 <div className="grid gap-x-6 gap-y-12 sm:grid-cols-2 xl:grid-cols-3 xl:gap-x-8">
+                  {/* Under «Другие работы» a card title is an h3; with no top cases
+                      there is no such heading, and it sits right under the page's h1. */}
                   {rest.map((item) => (
-                    <SmmProjectCard key={item.id} item={item} />
+                    <SmmProjectCard key={item.id} item={item} titleLevel={featured.length > 0 ? 'h3' : 'h2'} />
                   ))}
                 </div>
               </div>
@@ -82,7 +84,16 @@ export default function SmmProjects({
   )
 }
 
-function SmmProjectCard({ item, featured = false }: { item: ProjectItem; featured?: boolean }) {
+function SmmProjectCard({
+  item,
+  featured = false,
+  titleLevel: Title,
+}: {
+  item: ProjectItem
+  featured?: boolean
+  /** One level under whatever heads the grid, so the outline never skips a step. */
+  titleLevel: 'h2' | 'h3'
+}) {
   return (
     <article className="group/case relative flex flex-col">
       <div className="relative">
@@ -108,7 +119,7 @@ function SmmProjectCard({ item, featured = false }: { item: ProjectItem; feature
       </div>
 
       <div className="mt-5 flex flex-1 flex-col px-1">
-        <h3 className="font-display text-xl font-bold leading-tight tracking-tight text-ink-950 lg:text-2xl">{item.name}</h3>
+        <Title className="font-display text-xl font-bold leading-tight tracking-tight text-ink-950 lg:text-2xl">{item.name}</Title>
         <p className="mt-1.5 text-base leading-snug text-ink-600">{item.subtitle}</p>
         <p className="mt-3 line-clamp-2 text-sm leading-relaxed text-ink-600">{item.description}</p>
 

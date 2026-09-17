@@ -114,6 +114,20 @@ export default function BriefForm({ initialDirection = '' }: { initialDirection?
 
   const onPhone = (v: string) => setPhone(PHONE_PREFIX + formatPhone(nationalDigits(v)))
 
+  // Arrow keys inside a single-choice question: move to the neighbour and choose
+  // it, as a native radio group does.
+  const onRadioKey = (e: React.KeyboardEvent<HTMLDivElement>, dir: string, labels: string[]) => {
+    const step = e.key === 'ArrowDown' || e.key === 'ArrowRight' ? 1 : e.key === 'ArrowUp' || e.key === 'ArrowLeft' ? -1 : 0
+    if (!step) return
+    const radios = [...e.currentTarget.querySelectorAll<HTMLElement>('[role="radio"]')]
+    const at = radios.indexOf(document.activeElement as HTMLElement)
+    if (at < 0) return
+    e.preventDefault()
+    const next = (at + step + radios.length) % radios.length
+    setAnswer(dir, labels[next], false)
+    radios[next].focus()
+  }
+
   const onFile = (f: File | null) => {
     if (!f) {
       setFile(null)
@@ -367,18 +381,28 @@ export default function BriefForm({ initialDirection = '' }: { initialDirection?
                           {q.q}
                         </h3>
                         <p className="mt-1 text-sm text-ink-600">{q.multi ? 'Можно выбрать несколько' : 'Выберите один вариант'}</p>
-                        <div className="mt-4 grid gap-2.5 sm:grid-cols-2">
-                          {q.options.map((opt) => {
+                        <div
+                          role={q.multi ? undefined : 'radiogroup'}
+                          aria-labelledby={q.multi ? undefined : `brief-q-${dir}`}
+                          onKeyDown={q.multi ? undefined : (e) => onRadioKey(e, dir, q.options.map((o) => o.l))}
+                          className="mt-4 grid gap-2.5 sm:grid-cols-2"
+                        >
+                          {q.options.map((opt, i) => {
                             const Ico = opt.icon
                             const isActive = q.multi
                               ? Array.isArray(value) && value.includes(opt.l)
                               : value === opt.l
+                            // One stop in the tab order per radio group: the chosen
+                            // option, or the first while nothing is chosen.
+                            const tabStop = isActive || (!value && i === 0)
                             return (
                               <button
                                 key={opt.l}
                                 type="button"
                                 onClick={() => setAnswer(dir, opt.l, q.multi)}
-                                aria-pressed={isActive}
+                                {...(q.multi
+                                  ? { 'aria-pressed': isActive }
+                                  : { role: 'radio', 'aria-checked': isActive, tabIndex: tabStop ? 0 : -1 })}
                                 className={cn(CHOICE, 'min-h-[3.5rem] p-2.5 pr-3.5 text-[15px]', isActive ? CHOICE_ON : CHOICE_OFF)}
                               >
                                 <span

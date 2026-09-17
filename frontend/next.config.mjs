@@ -1,6 +1,11 @@
 // Uploaded media (project logos and covers, news covers, partner logos) lives
 // on the API host. The image optimiser may fetch from there and nowhere else.
 const api = new URL(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000')
+if (process.env.VERCEL && !process.env.NEXT_PUBLIC_API_URL) {
+  // Without it the site has no data at all, and the optimiser would only trust
+  // localhost: every image would fail once and fall back to its original file.
+  console.warn('[webrand] NEXT_PUBLIC_API_URL is not set for this Vercel build — content and optimised images will not load.')
+}
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {

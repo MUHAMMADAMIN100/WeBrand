@@ -661,7 +661,7 @@ function StepSelection({ selected, toggle, onNext }: {
           {DIRECTIONS.map(({ id, label, sub, icon: Icon, wide }) => {
             const active = selected.includes(id);
             return (
-              <button key={id} onClick={() => toggle(id)}
+              <button key={id} type="button" onClick={() => toggle(id)} aria-pressed={active}
                 className={`dircard ${active ? "active" : ""} ${wide ? "wide" : ""}`}>
                 <span className="iconwrap"><Icon size={20} /></span>
                 <span style={{ minWidth: 0 }}>
@@ -715,7 +715,7 @@ function StepQuestion({ dir, value, setAnswer, onBack, onNext, reduce }: {
           {options.map((opt) => {
             const Ico = opt.icon;
             return (
-              <button key={opt.l}
+              <button key={opt.l} type="button" aria-pressed={isActive(opt.l)}
                 className={`opt ${isActive(opt.l) ? "active" : ""} ${picking === opt.l ? "picking" : ""}`}
                 onClick={() => choose(opt.l)}>
                 <span className="opticon"><Ico size={20} /></span>
@@ -843,6 +843,7 @@ function ApplicationStep({
               <FileText size={18} color="#2B5ED3" style={{ flexShrink: 0 }} />
               <span style={{ flex: 1, fontSize: 14, fontWeight: 500, color: "#0B0D12", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{resumeFile.name}</span>
               <button type="button" onClick={() => { setResumeFile(null); onBlur("resume"); }} aria-label="Убрать файл"
+                aria-describedby="cqf-resume-hint" data-invalid={!!errors.resume}
                 style={{ border: "none", background: "transparent", cursor: "pointer", color: "#565C6B", display: "flex",
                   alignItems: "center", justifyContent: "center", width: 44, height: 40, flexShrink: 0 }}><X size={18} /></button>
             </div>
@@ -995,7 +996,7 @@ function FieldSelect({ icon: Icon, label, value, options, placeholder, error, on
             else if (e.key === "End") { e.preventDefault(); setActive(options.length - 1); }
             else if (e.key === "Enter" || e.key === " ") { e.preventDefault(); choose(active); }
             else if (e.key === "Escape") { e.preventDefault(); close(); }
-            else if (e.key === "Tab") { setOpen(false); }
+            else if (e.key === "Tab") { close(); }
             else typeahead(e.key);
           }}
           className="wb-exp-pop"
@@ -1132,9 +1133,13 @@ function SuccessView({ selected, unsure, isApplication, roleTitle }: {
   selected: string[]; unsure: boolean; isApplication?: boolean; roleTitle?: string;
 }) {
   const labels = DIRECTIONS.filter((s) => selected.includes(s.id) && s.id !== "unsure").map((s) => s.label);
+  // The button that had focus is gone with the form: move focus here, so a screen
+  // reader announces the result and the keyboard is not left on <body>.
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => { ref.current?.focus(); }, []);
   return (
-    <div style={{ height: "100%", minHeight: 380, display: "flex", flexDirection: "column",
-      alignItems: "center", justifyContent: "center", textAlign: "center", gap: 16 }}>
+    <div ref={ref} tabIndex={-1} style={{ height: "100%", minHeight: 380, display: "flex", flexDirection: "column",
+      alignItems: "center", justifyContent: "center", textAlign: "center", gap: 16, outline: "none" }}>
       <div style={{ width: 64, height: 64, borderRadius: "50%", background: "#C8F135",
         display: "flex", alignItems: "center", justifyContent: "center" }}>
         <Check size={30} color="#0B0D12" strokeWidth={2.5} />
