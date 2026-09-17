@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { motion } from "framer-motion";
 import { useReducedMotionSafe as useReducedMotion } from "../lib/capabilities";
@@ -150,100 +150,117 @@ type ContactTouched = { name?: boolean; contact?: boolean; phone?: boolean; expe
 const CSS = `
 .cqf, .cqf * { box-sizing: border-box; }
 .cqf {
-  --brand:#2B5ED3; --brand-dark:#1E47A8; --brand-soft:#EEF3FC;
+  --brand:#2B5ED3; --brand-dark:#224EB4; --brand-soft:#EFF3FE;
+  --ink:#0B0D12; --ink-600:#565C6B; --ink-500:#6B7180; --ink-300:#BEC2CC; --ink-200:#DCDFE5; --ink-100:#ECEEF1;
+  --paper:#F4F6FA; --lime:#C8F135; --danger:#B91C1C; --danger-line:#EF4444;
   --spring: cubic-bezier(.34,1.56,.64,1);
-  font-family: system-ui, -apple-system, sans-serif;
+  --expo: cubic-bezier(.16,1,.3,1);
+  font-family: var(--font-manrope), system-ui, -apple-system, sans-serif;
+  color: var(--ink);
 }
+/* Unbounded for the few lines that are headings; everything else stays Manrope. */
+.cqf .display { font-family: var(--font-unbounded), var(--font-manrope), system-ui, sans-serif; letter-spacing:-.025em; }
+.cqf .cqf-title { font-size:19px; font-weight:800; line-height:1.15; margin:0; }
 @keyframes cqf-pop { 0%{transform:scale(0)} 60%{transform:scale(1.18)} 100%{transform:scale(1)} }
-@keyframes cqf-ready { 0%,100%{box-shadow:0 8px 20px rgba(43,94,211,.28)} 50%{box-shadow:0 8px 28px rgba(43,94,211,.5)} }
+@keyframes cqf-ready { 0%{box-shadow:0 0 0 0 rgba(200,241,53,.9)} 70%,100%{box-shadow:0 0 0 12px rgba(200,241,53,0)} }
 @keyframes cqf-up { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
 .cqf .up { animation: cqf-up .5s var(--spring) both; }
 
 /* All cards are a single fixed size everywhere. Hover/selected change only
-   colour/border/shadow — never the box geometry (no scale/translate), so a card
+   colour/border — never the box geometry (no scale/translate), so a card
    can never grow past the top of its container. */
 .cqf .dircard {
   position:relative; display:flex; align-items:center; gap:13px;
-  min-height:48px; padding:8px 13px; border-radius:12px; border:1.5px solid #E6E9F0;
-  background:#fff; cursor:pointer; text-align:left; width:100%;
-  transition: border-color .2s ease, background .2s ease, box-shadow .2s ease;
+  min-height:48px; padding:8px 13px; border-radius:14px; border:1.5px solid var(--ink-200);
+  background:#fff; color:var(--ink); cursor:pointer; text-align:left; width:100%;
+  transition: border-color .2s ease, background .2s ease, color .2s ease;
 }
 .cqf .dircard.wide { width:100%; }
-.cqf .dircard:hover { border-color:#BFD0F0; box-shadow:0 6px 18px rgba(43,94,211,.12); }
-.cqf .dircard.active { border-color:var(--brand); background:var(--brand-soft); box-shadow:0 6px 18px rgba(43,94,211,.14); }
+/* Chosen = blue as a surface, ticked in lime: unmistakable at a glance. */
+.cqf .dircard.active { border-color:var(--brand); background:var(--brand); color:#fff; }
 .cqf .iconwrap {
   width:36px;height:36px;border-radius:10px;flex-shrink:0;
-  background:#EFF3FB; color:var(--brand); display:flex;align-items:center;justify-content:center;
+  background:var(--paper); color:var(--brand); display:flex;align-items:center;justify-content:center;
   transition: background .2s ease, color .2s ease;
 }
-.cqf .dircard.active .iconwrap { background:var(--brand); color:#fff; }
-.cqf .dirlabel { display:block; font-size:14.5px; font-weight:600; color:#1F2937; }
-.cqf .dircard.active .dirlabel { color:var(--brand-dark); }
-.cqf .dirsub { display:block; font-size:12.5px; color:#9AA0AA; margin-top:1px; }
+.cqf .dircard.active .iconwrap { background:rgba(255,255,255,.16); color:#fff; }
+.cqf .dirlabel { display:block; font-size:14.5px; font-weight:600; }
+.cqf .dirsub { display:block; font-size:12.5px; color:var(--ink-600); margin-top:1px; transition: color .2s ease; }
+.cqf .dircard.active .dirsub { color:rgba(255,255,255,.85); }
 .cqf .badge {
-  position:absolute; top:11px; right:11px; width:21px;height:21px;border-radius:50%;
-  background:var(--brand); color:#fff; display:flex;align-items:center;justify-content:center;
+  position:absolute; top:50%; right:13px; margin-top:-11px; width:22px;height:22px;border-radius:50%;
+  background:var(--lime); color:var(--ink); display:flex;align-items:center;justify-content:center;
   transform:scale(0); transition: transform .3s var(--spring);
 }
 .cqf .dircard.active .badge { animation: cqf-pop .35s var(--spring) forwards; }
 
 .cqf .opt {
   display:flex; align-items:center; gap:12px; width:100%;
-  min-height:46px; padding:8px 12px; border-radius:12px; border:1.5px solid #E6E9F0; background:#fff;
-  color:#1F2937; font-size:14px; font-weight:500; cursor:pointer; text-align:left;
-  transition: border-color .2s ease, background .2s ease, box-shadow .2s ease;
+  min-height:46px; padding:8px 12px; border-radius:14px; border:1.5px solid var(--ink-200); background:#fff;
+  color:var(--ink); font-size:14px; font-weight:500; cursor:pointer; text-align:left;
+  transition: border-color .2s ease, background .2s ease, color .2s ease;
 }
-.cqf .opt:hover { border-color:#BFD0F0; box-shadow:0 6px 18px rgba(43,94,211,.12); }
-.cqf .opt.active { border-color:var(--brand); background:var(--brand-soft); box-shadow:0 6px 18px rgba(43,94,211,.14); }
+.cqf .opt.active { border-color:var(--brand); background:var(--brand); color:#fff; }
 .cqf .opticon {
   width:34px;height:34px;border-radius:9px;flex-shrink:0;
-  background:#EFF3FB; color:var(--brand); display:flex;align-items:center;justify-content:center;
+  background:var(--paper); color:var(--brand); display:flex;align-items:center;justify-content:center;
   transition: background .2s ease, color .2s ease;
 }
-.cqf .opt.active .opticon { background:var(--brand); color:#fff; }
+.cqf .opt.active .opticon { background:rgba(255,255,255,.16); color:#fff; }
 .cqf .optlabel { flex:1; }
-.cqf .opt.active .optlabel { color:var(--brand-dark); }
 .cqf .ind {
-  width:21px;height:21px;flex-shrink:0; border:1.5px solid #CBD2DE; color:#fff;
+  width:22px;height:22px;flex-shrink:0; border:1.5px solid var(--ink-300); color:var(--ink);
   display:flex;align-items:center;justify-content:center;
   transition: background .2s ease, border-color .2s ease;
 }
 .cqf .ind.radio { border-radius:50%; }
 .cqf .ind.check { border-radius:7px; }
-.cqf .opt.active .ind { background:var(--brand); border-color:var(--brand); }
+.cqf .opt.active .ind { background:var(--lime); border-color:var(--lime); }
 .cqf .ind > svg { opacity:0; transform:scale(.3); transition: opacity .18s ease, transform .3s var(--spring); }
 .cqf .opt.active .ind > svg { opacity:1; transform:scale(1); }
 
+.cqf .dircard:focus-visible, .cqf .opt:focus-visible,
+.cqf .btn-primary:focus-visible, .cqf .btn-ghost:focus-visible { outline:none; box-shadow:0 0 0 4px rgba(43,94,211,.3); }
+
 .cqf .btn-primary {
-  flex:1; padding:13px; border-radius:13px; border:none; background:var(--brand); color:#fff;
+  flex:1; min-height:50px; padding:13px 22px; border-radius:999px; border:none; background:var(--ink); color:#fff;
   font-size:15px; font-weight:600; cursor:pointer; display:flex; align-items:center;
-  justify-content:center; gap:8px; transition: transform .15s var(--spring), background .2s ease, box-shadow .2s ease;
+  justify-content:center; gap:8px; transition: transform .15s var(--spring), background .25s ease, box-shadow .2s ease;
 }
-.cqf .btn-primary:hover:not(:disabled) { box-shadow:0 10px 24px rgba(43,94,211,.3); transform:translateY(-1px); }
-.cqf .btn-primary:active:not(:disabled) { transform:translateY(0) scale(.98); }
-.cqf .btn-primary:disabled { background:#BFD0F0; cursor:not-allowed; }
-.cqf .btn-primary.ready { animation: cqf-ready 1.8s ease-in-out infinite; }
+.cqf .btn-primary:active:not(:disabled) { transform:scale(.98); }
+.cqf .btn-primary:disabled { background:var(--ink-100); color:var(--ink-500); cursor:not-allowed; }
+.cqf .btn-primary.ready { animation: cqf-ready 1.8s ease-out infinite; }
 .cqf .btn-ghost {
-  padding:12px 18px; border-radius:13px; border:1.5px solid #E6E9F0; background:#fff;
-  color:#6B7280; font-size:14px; font-weight:500; cursor:pointer; display:flex;
+  min-height:50px; padding:12px 20px; border-radius:999px; border:1.5px solid var(--ink-200); background:#fff;
+  color:var(--ink); font-size:14px; font-weight:600; cursor:pointer; display:flex;
   align-items:center; gap:6px; transition: border-color .2s ease, transform .15s var(--spring);
 }
-.cqf .btn-ghost:hover { border-color:#CBD2DE; }
 .cqf .btn-ghost:active { transform:scale(.97); }
 
-.cqf .field { position:relative; border:1.5px solid #E6E9F0; border-radius:12px;
+.cqf .field { position:relative; border:1.5px solid var(--ink-200); border-radius:14px;
   padding:6px 14px 6px 40px; background:#fff; transition: border-color .2s ease, box-shadow .2s ease; }
-.cqf .field.focus { border-color:var(--brand); box-shadow:0 0 0 4px rgba(43,94,211,.1); }
-.cqf .field.done { border-color:#BFD0F0; }
-.cqf .field input { border:none; outline:none; width:100%; font-size:14.5px; color:#1F2937;
-  background:transparent; padding:1px 0 0; }
-.cqf .field input::placeholder { color:#B6BCC6; }
+.cqf .field.focus { border-color:var(--brand); box-shadow:0 0 0 4px rgba(43,94,211,.14); }
+.cqf .field.done { border-color:var(--ink-300); }
+.cqf .field input { border:none; outline:none; width:100%; font-size:14.5px; color:var(--ink);
+  background:transparent; padding:1px 0 0; font-family:inherit; }
+.cqf .field input::placeholder { color:var(--ink-500); opacity:1; }
 .cqf .tick { position:absolute; right:14px; top:13px; width:21px;height:21px;border-radius:50%;
-  background:var(--brand); color:#fff; display:flex;align-items:center;justify-content:center;
+  background:var(--lime); color:var(--ink); display:flex;align-items:center;justify-content:center;
   opacity:0; transform:scale(.4); transition: opacity .2s ease, transform .3s var(--spring); }
 .cqf .field.done .tick { opacity:1; transform:scale(1); }
+.cqf button.field:focus-visible { outline:none; border-color:var(--brand); box-shadow:0 0 0 4px rgba(43,94,211,.14); }
 
-.cqf .field.error { border-color:#E5484D; box-shadow:0 0 0 4px rgba(229,72,77,.1); }
+.cqf .field.error { border-color:var(--danger-line); box-shadow:0 0 0 4px rgba(239,68,68,.12); }
+
+/* Hover only where a pointer can hover: on touch it would stick after the tap
+   and leave a deselected card looking half-selected. Placed before nothing that
+   it must beat — .active/.error/.focus rules win by coming from state classes. */
+@media (hover:hover) and (pointer:fine) {
+  .cqf .dircard:not(.active):hover, .cqf .opt:not(.active):hover { border-color:var(--ink); }
+  .cqf .btn-primary:hover:not(:disabled) { background:var(--brand); }
+  .cqf .btn-ghost:hover { border-color:var(--ink); }
+  .cqf .field:not(.focus):not(.error):hover { border-color:var(--ink-300); }
+}
 .cqf a.cqf-tglink { transition: opacity .2s ease; }
 .cqf a.cqf-tglink:hover { opacity:.82; text-decoration:underline !important; }
 
@@ -268,7 +285,7 @@ const CSS = `
 .cqf-stepbody { display:flex; flex-direction:column; flex:1 1 auto; min-height:0; }
 .cqf-scroll { flex:1 1 auto; min-height:0; overflow-y:auto; overscroll-behavior:contain; }
 .cqf-scroll::-webkit-scrollbar { width:7px; }
-.cqf-scroll::-webkit-scrollbar-thumb { background:#D9DEE8; border-radius:9px; }
+.cqf-scroll::-webkit-scrollbar-thumb { background:#DCDFE5; border-radius:9px; }
 .cqf-foot { flex-shrink:0; padding-top:12px; }
 
 /* Single column, full-width cards on every step. */
@@ -276,7 +293,7 @@ const CSS = `
 
 /* Brief "fixating" highlight on the chosen option before an auto-advance —
    colour only, no scale (card size never changes). */
-.cqf .opt.picking { border-color:var(--brand); background:var(--brand-soft); box-shadow:0 6px 18px rgba(43,94,211,.16); }
+.cqf .opt.picking { border-color:var(--brand); background:var(--brand); color:#fff; }
 
 /* Below lg the modal is full-screen: the card fills the viewport, no rounding/shadow,
    and the marketing side panel is hidden (its inline display needs an !important here). */
@@ -292,6 +309,7 @@ const CSS = `
   .cqf .btn-primary.ready,
   .cqf .opt.picking,
   .cqf .dircard.active .badge { animation:none !important; }
+  .cqf .dircard.active .badge { transform:scale(1); }
 }
 
 /* === Мобильный адаптив (≤640px). !important — чтобы перебить инлайн-стили карточки. === */
@@ -301,7 +319,9 @@ const CSS = `
   /* Форма занимает всю ширину, отступы компактнее — без тесноты и гориз. скролла */
   .cqf .cqf-body { padding:22px 16px 20px !important; }
   /* Заголовок-строка: правый отступ под кнопку-крестик модалки, чтобы «Шаг X из Y» не перекрывался */
-  .cqf .cqf-head { padding-right:40px !important; }
+  .cqf .cqf-head { padding-right:48px !important; }
+  .cqf .cqf-stephead { padding-right:48px; }
+  .cqf .cqf-title { font-size:17px; }
   /* Карточки направлений — в один столбец на всю ширину; компактные паддинги,
      тап-таргет держит min-height из базовых правил. */
   .cqf .dircard { width:100% !important; padding:10px 14px !important; }
@@ -339,6 +359,9 @@ export default function ContactForm({
   const [submitted, setSubmitted] = useState(false);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState(false);
+  // Bumped by a submit that validation stopped — see the focus effect below.
+  const [attempt, setAttempt] = useState(0);
+  const rootRef = useRef<HTMLDivElement>(null);
 
   // In application mode there is no quiz — go straight to the contacts step.
   const questionDirs = isApplication
@@ -403,6 +426,7 @@ export default function ContactForm({
   const handleSubmit = async () => {
     if (!canSubmit || sending) {
       setTouched({ name: true, contact: true, phone: true, experience: true, age: true, resume: true });
+      setAttempt((n) => n + 1);
       return;
     }
     setError(false);
@@ -452,6 +476,12 @@ export default function ContactForm({
     }
   };
 
+  // After a stopped submit the errors are on screen; put focus on the first one.
+  useEffect(() => {
+    if (!attempt) return;
+    rootRef.current?.querySelector<HTMLElement>('[aria-invalid="true"], [data-invalid="true"]')?.focus();
+  }, [attempt]);
+
   let heading = "";
   let subtitle = "";
   if (onSelection) {
@@ -492,29 +522,31 @@ export default function ContactForm({
       };
 
   return (
-    <div className="cqf" style={{ width: "100%", maxWidth: 920, display: "flex", borderRadius: 24,
-      overflow: "hidden", boxShadow: "0 30px 80px rgba(43,94,211,0.18)", background: "#fff" }}>
+    <div ref={rootRef} className="cqf" style={{ width: "100%", maxWidth: 920, display: "flex", borderRadius: 28,
+      overflow: "hidden", boxShadow: "0 40px 100px -20px rgba(11,13,18,0.55)", background: "#fff" }}>
       <style>{CSS}</style>
 
-        <div className="hidden lg:flex cqf-side" style={{ width: "38%",
-          background: "linear-gradient(160deg, #2B5ED3 0%, #1E47A8 100%)", color: "#fff",
+        {/* Blue as a surface (flat, gridded) — the same block the page's CTA is made of. */}
+        <div className="hidden lg:flex cqf-side" style={{ width: "38%", position: "relative",
+          background: "#2B5ED3", color: "#fff",
           padding: "30px 26px", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
-          <div>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: 12,
-              letterSpacing: 1, textTransform: "uppercase", opacity: 0.85 }}>
-              <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#fff" }} /> {side.badge}
+          <div className="bg-grid-dark" aria-hidden="true" style={{ position: "absolute", inset: 0, opacity: 0.7, pointerEvents: "none" }} />
+          <div style={{ position: "relative" }}>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: 12.5, fontWeight: 600,
+              padding: "5px 12px 5px 10px", borderRadius: 99, background: "rgba(255,255,255,0.16)" }}>
+              <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#C8F135" }} /> {side.badge}
             </div>
-            <h2 style={{ fontSize: 24, lineHeight: 1.14, fontWeight: 700, margin: "14px 0 10px" }}>
+            <h2 className="display" style={{ fontSize: 25, lineHeight: 1.08, fontWeight: 900, margin: "18px 0 12px" }}>
               {side.title}
             </h2>
-            <p style={{ fontSize: 14, lineHeight: 1.5, opacity: 0.9 }}>
+            <p style={{ fontSize: 14, lineHeight: 1.55, opacity: 0.9 }}>
               {side.text}
             </p>
           </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          <div style={{ position: "relative", display: "flex", flexDirection: "column", gap: 14 }}>
             {side.trust.map((t) => <Trust key={t.title} icon={t.icon} title={t.title} sub={t.sub} />)}
           </div>
-          <div style={{ fontSize: 14, lineHeight: 2 }}>
+          <div style={{ position: "relative", fontSize: 14, lineHeight: 2, fontWeight: 600 }}>
             <a href={contacts.telegram} target="_blank" rel="noopener noreferrer" onClick={openTelegram} className="cqf-tglink"
               style={{ display: "flex", alignItems: "center", gap: 8, color: "#fff", textDecoration: "none" }}>
               <Send size={15} /> Написать в Telegram
@@ -533,14 +565,14 @@ export default function ContactForm({
                   close (X) button in the top-right corner. */}
               <div className="cqf-head" style={{ paddingRight: 44, flexShrink: 0 }}>
                 {totalSteps > 1 && (
-                  <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: 0.6, textTransform: "uppercase", color: "#9AA0AA", marginBottom: 8 }}>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: "#565C6B", marginBottom: 8 }}>
                     Шаг {screen + 1} из {totalSteps}
                   </div>
                 )}
                 {totalSteps > 1 && (
-                  <div style={{ height: 6, borderRadius: 99, background: "#EDF0F5", margin: "0 0 4px", overflow: "hidden" }}>
+                  <div style={{ height: 6, borderRadius: 99, background: "#ECEEF1", margin: "0 0 16px", overflow: "hidden" }}>
                     <div style={{ height: "100%", width: `${Math.min(progress, 100)}%`,
-                      background: "#2B5ED3", borderRadius: 99, transition: "width .4s cubic-bezier(.34,1.56,.64,1)" }} />
+                      background: "#2B5ED3", borderRadius: 99, transition: "width .6s cubic-bezier(.16,1,.3,1)" }} />
                   </div>
                 )}
               </div>
@@ -567,8 +599,8 @@ export default function ContactForm({
                   className="cqf-step"
                 >
                   <div className="cqf-stephead">
-                    <h3 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>{heading}</h3>
-                    <p style={{ fontSize: 13.5, color: "#6B7280", margin: "5px 0 0" }}>{subtitle}</p>
+                    <h3 className="display cqf-title">{heading}</h3>
+                    <p style={{ fontSize: 14, color: "#565C6B", margin: "6px 0 0", lineHeight: 1.45 }}>{subtitle}</p>
                   </div>
                   <div style={{ height: 12, flexShrink: 0 }} />
 
@@ -609,11 +641,11 @@ export default function ContactForm({
 function Trust({ icon: Icon, title, sub }: { icon: LucideIcon; title: string; sub: string }) {
   return (
     <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-      <div style={{ width: 38, height: 38, borderRadius: 10, background: "rgba(255,255,255,0.15)",
+      <div style={{ width: 40, height: 40, borderRadius: 12, background: "rgba(255,255,255,0.16)",
         display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><Icon size={18} /></div>
       <div>
         <div style={{ fontSize: 15, fontWeight: 600 }}>{title}</div>
-        <div style={{ fontSize: 12.5, opacity: 0.8 }}>{sub}</div>
+        <div style={{ fontSize: 12.5, opacity: 0.9 }}>{sub}</div>
       </div>
     </div>
   );
@@ -732,14 +764,14 @@ function StepContacts({ name, setName, contact, setContact, phone, setPhone, can
       </div>
       <div className="cqf-foot">
         {error && (
-          <p style={{ fontSize: 13, color: "#D14545", margin: "0 2px 8px", lineHeight: 1.4 }}>
+          <p role="alert" style={{ fontSize: 13, color: "#B91C1C", margin: "0 2px 8px", lineHeight: 1.4 }}>
             Не получилось отправить. Напишите нам в{" "}
-            <a href="https://t.me/bobodushanbe" onClick={openTelegram} style={{ color: "#2B5ED3", fontWeight: 600 }}>Telegram</a>.
+            <a href="https://t.me/bobodushanbe" onClick={openTelegram} style={{ color: "#224EB4", fontWeight: 600, textDecoration: "underline" }}>Telegram</a>.
           </p>
         )}
         <NavButtons onBack={onBack} onNext={onSubmit}
           nextLabel={sending ? "Отправляем…" : "Получить решение"} nextIcon={Send}
-          nextDisabled={!canSubmit || sending} ready={canSubmit && !sending}
+          nextDisabled={sending} ready={canSubmit && !sending}
           footer="Позвоним только если сами попросите. По умолчанию пишем в Telegram." />
       </div>
     </div>
@@ -775,8 +807,8 @@ function ApplicationStep({
     <div className="cqf-stepbody">
       <div className="cqf-scroll">
       {reqParts.length > 0 && (
-        <div style={{ fontSize: 12.5, color: "#6B7280", margin: "0 2px 12px", lineHeight: 1.5 }}>
-          <b style={{ color: "#1F2937" }}>Требования:</b> {reqParts.join(" · ")}
+        <div style={{ fontSize: 13, color: "#565C6B", margin: "0 2px 12px", lineHeight: 1.5 }}>
+          <b style={{ color: "#0B0D12" }}>Требования:</b> {reqParts.join(", ")}
         </div>
       )}
 
@@ -801,28 +833,30 @@ function ApplicationStep({
           error={errors.age} onBlur={() => onBlur("age")} />
 
         <div className="span2">
-          <label style={{ display: "block", fontSize: 11.5, color: errors.resume ? "#E5484D" : "#9AA0AA", fontWeight: 500, margin: "0 2px 5px" }}>
-            Резюме (PDF) <span style={{ color: "#2B5ED3" }}>*</span>
-          </label>
-          <input ref={fileRef} type="file" accept="application/pdf,.pdf" style={{ display: "none" }}
+          <div id="cqf-resume-label" style={{ fontSize: 12, color: errors.resume ? "#B91C1C" : "#565C6B", fontWeight: 600, margin: "0 2px 5px" }}>
+            Резюме (PDF) <span style={{ color: "#2B5ED3" }} aria-hidden="true">*</span>
+          </div>
+          <input ref={fileRef} type="file" accept="application/pdf,.pdf" style={{ display: "none" }} tabIndex={-1} aria-hidden="true"
             onChange={(e) => { setResumeFile(e.target.files?.[0] ?? null); onBlur("resume"); }} />
           {resumeFile ? (
-            <div className={`field ${errors.resume ? "error" : "done"}`} style={{ display: "flex", alignItems: "center", gap: 10, paddingLeft: 14 }}>
+            <div className={`field ${errors.resume ? "error" : "done"}`} style={{ display: "flex", alignItems: "center", gap: 10, minHeight: 48, paddingLeft: 14, paddingRight: 4 }}>
               <FileText size={18} color="#2B5ED3" style={{ flexShrink: 0 }} />
-              <span style={{ flex: 1, fontSize: 14, color: "#1F2937", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{resumeFile.name}</span>
+              <span style={{ flex: 1, fontSize: 14, fontWeight: 500, color: "#0B0D12", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{resumeFile.name}</span>
               <button type="button" onClick={() => { setResumeFile(null); onBlur("resume"); }} aria-label="Убрать файл"
-                style={{ border: "none", background: "transparent", cursor: "pointer", color: "#9AA0AA", display: "flex" }}><X size={16} /></button>
+                style={{ border: "none", background: "transparent", cursor: "pointer", color: "#565C6B", display: "flex",
+                  alignItems: "center", justifyContent: "center", width: 44, height: 40, flexShrink: 0 }}><X size={18} /></button>
             </div>
           ) : (
             <button type="button" onClick={() => fileRef.current?.click()}
+              aria-describedby="cqf-resume-label cqf-resume-hint" data-invalid={!!errors.resume}
               className={`field ${errors.resume ? "error" : ""}`}
-              style={{ display: "flex", alignItems: "center", gap: 10, width: "100%", cursor: "pointer", paddingLeft: 14, textAlign: "left", background: "#fff" }}>
-              <Paperclip size={18} color={errors.resume ? "#E5484D" : "#9AA0AA"} style={{ flexShrink: 0 }} />
-              <span style={{ fontSize: 15, color: "#6B7280" }}>Прикрепить PDF</span>
+              style={{ display: "flex", alignItems: "center", gap: 10, width: "100%", minHeight: 48, cursor: "pointer", paddingLeft: 14, textAlign: "left", background: "#fff", borderStyle: "dashed" }}>
+              <Paperclip size={18} color={errors.resume ? "#B91C1C" : "#6B7180"} style={{ flexShrink: 0 }} />
+              <span style={{ fontSize: 15, color: "#565C6B" }}>Прикрепить PDF</span>
             </button>
           )}
-          <p style={{ fontSize: 12, color: errors.resume ? "#E5484D" : "#9AA0AA", margin: "4px 4px 0", lineHeight: 1.4 }}>
-            {errors.resume ?? "Только PDF · до 10 МБ"}
+          <p id="cqf-resume-hint" role={errors.resume ? "alert" : undefined} style={{ fontSize: 12.5, color: errors.resume ? "#B91C1C" : "#565C6B", margin: "5px 4px 0", lineHeight: 1.4 }}>
+            {errors.resume ?? "Только PDF, до 10 МБ"}
           </p>
         </div>
       </div>
@@ -830,18 +864,18 @@ function ApplicationStep({
 
       <div className="cqf-foot">
         {error && (
-          <p style={{ fontSize: 13, color: "#D14545", margin: "0 2px 8px", lineHeight: 1.4 }}>
+          <p role="alert" style={{ fontSize: 13, color: "#B91C1C", margin: "0 2px 8px", lineHeight: 1.4 }}>
             Не получилось отправить. Напишите нам в{" "}
-            <a href={contacts.telegram} target="_blank" rel="noopener noreferrer" onClick={openTelegram} style={{ color: "#2B5ED3", fontWeight: 600 }}>Telegram</a>.
+            <a href={contacts.telegram} target="_blank" rel="noopener noreferrer" onClick={openTelegram} style={{ color: "#224EB4", fontWeight: 600, textDecoration: "underline" }}>Telegram</a>.
           </p>
         )}
 
-        <button type="button" onClick={onSubmit} disabled={!canSubmit || sending}
+        <button type="button" onClick={onSubmit} disabled={sending}
           className={`btn-primary ${canSubmit && !sending ? "ready" : ""}`}
           style={{ width: "100%" }}>
           {sending ? "Отправляем…" : "Отправить отклик"} <Send size={18} />
         </button>
-        <p style={{ textAlign: "center", fontSize: 12.5, color: "#9AA0AA", marginTop: 10 }}>
+        <p style={{ textAlign: "center", fontSize: 12.5, color: "#565C6B", marginTop: 10 }}>
           Резюме в PDF обязательно. Свяжемся после рассмотрения.
         </p>
       </div>
@@ -932,18 +966,19 @@ function FieldSelect({ icon: Icon, label, value, options, placeholder, error, on
           if (e.key === "ArrowDown" || e.key === "Enter" || e.key === " ") { e.preventDefault(); openMenu(); }
           else if (e.key === "ArrowUp") { e.preventDefault(); openMenu(selIndex >= 0 ? selIndex : options.length - 1); }
         }}
+        data-invalid={!!error}
         className={`field ${value ? "done" : ""} ${error ? "error" : ""}`}
         style={{ display: "flex", alignItems: "center", width: "100%", paddingLeft: 42, cursor: "pointer", textAlign: "left", background: "#fff" }}>
-        <Icon size={18} color={error ? "#E5484D" : value ? "#2B5ED3" : "#9AA0AA"} style={{ position: "absolute", left: 13, top: 13 }} />
+        <Icon size={18} color={error ? "#B91C1C" : value ? "#2B5ED3" : "#6B7180"} style={{ position: "absolute", left: 13, top: 13 }} />
         <span style={{ flex: 1, minWidth: 0 }}>
-          <span style={{ display: "block", fontSize: 11.5, color: error ? "#E5484D" : "#9AA0AA", fontWeight: 500 }}>
-            {label} <span style={{ color: "#2B5ED3" }}>*</span>
+          <span style={{ display: "block", fontSize: 12, color: error ? "#B91C1C" : "#565C6B", fontWeight: 600 }}>
+            {label} <span style={{ color: "#2B5ED3" }} aria-hidden="true">*</span>
           </span>
-          <span style={{ display: "block", fontSize: 15, color: value ? "#1F2937" : "#B6BCC6", marginTop: 2 }}>
+          <span style={{ display: "block", fontSize: 15, color: value ? "#0B0D12" : "#6B7180", marginTop: 2 }}>
             {value || placeholder || "Выберите…"}
           </span>
         </span>
-        <ChevronDown size={18} color="#9AA0AA"
+        <ChevronDown size={18} color="#6B7180"
           style={{ flexShrink: 0, transition: "transform .2s ease", transform: open ? "rotate(180deg)" : "none" }} />
       </button>
 
@@ -974,8 +1009,8 @@ function FieldSelect({ icon: Icon, label, value, options, placeholder, error, on
             margin: 0,
             padding: 6,
             background: "#fff",
-            border: "1px solid #E3E8F0",
-            borderRadius: 14,
+            border: "1px solid #DCDFE5",
+            borderRadius: 16,
             boxShadow: "0 18px 44px rgba(16,24,40,0.20), 0 4px 12px rgba(16,24,40,0.10)",
             zIndex: 1000,
             transformOrigin: "top center",
@@ -1002,17 +1037,17 @@ function FieldSelect({ icon: Icon, label, value, options, placeholder, error, on
                     alignItems: "center",
                     gap: 10,
                     width: "100%",
-                    minHeight: 36,
-                    padding: "7px 12px 7px 36px",
-                    borderRadius: 9,
+                    minHeight: 40,
+                    padding: "8px 12px 8px 36px",
+                    borderRadius: 10,
                     border: "none",
                     cursor: "pointer",
                     fontSize: 14,
                     textAlign: "left",
                     outline: "none",
                     transition: "background .12s ease, color .12s ease",
-                    background: isSel ? "#EAF1FC" : isAct ? "#F1F4F9" : "transparent",
-                    color: isSel ? "#1E47A8" : "#1F2937",
+                    background: isSel ? "#EFF3FE" : isAct ? "#F4F6FA" : "transparent",
+                    color: isSel ? "#224EB4" : "#0B0D12",
                     fontWeight: isSel ? 600 : 400,
                   }}
                 >
@@ -1025,7 +1060,7 @@ function FieldSelect({ icon: Icon, label, value, options, placeholder, error, on
         </ul>,
         document.body,
       )}
-      {error && <p role="alert" style={{ fontSize: 12, color: "#E5484D", margin: "5px 4px 0", lineHeight: 1.4 }}>{error}</p>}
+      {error && <p role="alert" style={{ fontSize: 12.5, color: "#B91C1C", margin: "5px 4px 0", lineHeight: 1.4 }}>{error}</p>}
     </div>
   );
 }
@@ -1047,7 +1082,7 @@ function NavButtons({ onBack, onNext, nextLabel, nextIcon: NextIcon = ArrowRight
           {nextLabel} <NextIcon size={18} />
         </button>
       </div>
-      {footer && <p style={{ textAlign: "center", fontSize: 12.5, color: "#9AA0AA", marginTop: 12 }}>{footer}</p>}
+      {footer && <p style={{ textAlign: "center", fontSize: 12.5, color: "#565C6B", marginTop: 12 }}>{footer}</p>}
     </>
   );
 }
@@ -1067,25 +1102,27 @@ function Field({ icon: Icon, label, value, onChange, placeholder, hint, done, er
   compact?: boolean;
 }) {
   const [focus, setFocus] = useState(false);
-  const accent = error ? "#E5484D" : focus || done ? "#2B5ED3" : "#9AA0AA";
+  const id = useId();
+  const accent = error ? "#B91C1C" : focus || done ? "#2B5ED3" : "#6B7180";
   return (
     <div style={{ marginBottom: compact ? 0 : 14 }}>
       <div className={`field ${focus ? "focus" : ""} ${done && !error ? "done" : ""} ${error ? "error" : ""}`}>
         <Icon size={18} color={accent}
           style={{ position: "absolute", left: 13, top: 13, transition: "color .25s ease" }} />
-        <label style={{ display: "block", fontSize: 11.5, color: error ? "#E5484D" : focus ? "#2B5ED3" : "#9AA0AA",
-          fontWeight: 500, transition: "color .25s ease" }}>
-          {label} <span style={{ color: "#2B5ED3" }}>*</span>
+        <label htmlFor={id} style={{ display: "block", fontSize: 12, color: error ? "#B91C1C" : focus ? "#2B5ED3" : "#565C6B",
+          fontWeight: 600, transition: "color .25s ease" }}>
+          {label} <span style={{ color: "#2B5ED3" }} aria-hidden="true">*</span>
         </label>
-        <input value={value} maxLength={maxLength} inputMode={inputMode} aria-invalid={!!error}
+        <input id={id} value={value} maxLength={maxLength} inputMode={inputMode} aria-invalid={!!error} aria-required="true"
+          aria-describedby={error || hint ? `${id}-note` : undefined}
           onChange={(e) => onChange(e.target.value)} onFocus={() => setFocus(true)}
           onBlur={() => { setFocus(false); onBlur?.(); }} placeholder={placeholder} />
         <span className="tick"><Check size={13} strokeWidth={3} /></span>
       </div>
       {error ? (
-        <p role="alert" style={{ fontSize: 12, color: "#E5484D", margin: "5px 4px 0", lineHeight: 1.4 }}>{error}</p>
+        <p id={`${id}-note`} role="alert" style={{ fontSize: 12.5, color: "#B91C1C", margin: "5px 4px 0", lineHeight: 1.4 }}>{error}</p>
       ) : hint ? (
-        <p style={{ fontSize: 12, color: "#9AA0AA", margin: "5px 4px 0", lineHeight: 1.4 }}>{hint}</p>
+        <p id={`${id}-note`} style={{ fontSize: 12.5, color: "#565C6B", margin: "5px 4px 0", lineHeight: 1.4 }}>{hint}</p>
       ) : null}
     </div>
   );
@@ -1098,14 +1135,14 @@ function SuccessView({ selected, unsure, isApplication, roleTitle }: {
   return (
     <div style={{ height: "100%", minHeight: 380, display: "flex", flexDirection: "column",
       alignItems: "center", justifyContent: "center", textAlign: "center", gap: 16 }}>
-      <div style={{ width: 64, height: 64, borderRadius: "50%", background: "rgba(43,94,211,0.1)",
+      <div style={{ width: 64, height: 64, borderRadius: "50%", background: "#C8F135",
         display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <Sparkles size={30} color="#2B5ED3" />
+        <Check size={30} color="#0B0D12" strokeWidth={2.5} />
       </div>
-      <h3 style={{ fontSize: 22, fontWeight: 700, margin: 0 }}>
+      <h3 className="display" style={{ fontSize: 23, fontWeight: 800, lineHeight: 1.12, margin: 0 }}>
         {isApplication ? "Отклик отправлен!" : "Заявка отправлена!"}
       </h3>
-      <p style={{ fontSize: 15, color: "#6B7280", maxWidth: 330, lineHeight: 1.5 }}>
+      <p style={{ fontSize: 15, color: "#565C6B", maxWidth: 340, lineHeight: 1.55 }}>
         {isApplication
           ? `Спасибо за отклик${roleTitle ? ` на «${roleTitle}»` : ""}! Посмотрим и свяжемся с вами в течение пары дней.`
           : unsure

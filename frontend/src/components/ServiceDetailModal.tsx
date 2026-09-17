@@ -1,63 +1,13 @@
 'use client'
 
-import { motion, AnimatePresence } from 'framer-motion'
-import { useReducedMotionSafe as useReducedMotion } from '../lib/capabilities'
-import { ArrowRight, Check, Clock, Sparkles, Target, X } from 'lucide-react'
-import { useEffect, useRef } from 'react'
+import { ArrowRight, Check, Clock, Target } from 'lucide-react'
 import { useModal } from '../context/ModalContext'
 import { directionsForService } from './ContactForm'
+import Button from './ui/Button'
+import Dialog, { DialogHeader } from './ui/Dialog'
 
 export default function ServiceDetailModal() {
   const { serviceDetail, closeServiceDetail, open: openContact } = useModal()
-  const reduce = useReducedMotion()
-  const isOpen = !!serviceDetail
-
-  const modalRef = useRef<HTMLDivElement>(null)
-  const restoreFocusRef = useRef<HTMLElement | null>(null)
-
-  useEffect(() => {
-    if (isOpen) {
-      const prev = document.body.style.overflow
-      document.body.style.overflow = 'hidden'
-      return () => {
-        document.body.style.overflow = prev
-      }
-    }
-  }, [isOpen])
-
-  // Focus the dialog on open; restore focus to the trigger on close
-  useEffect(() => {
-    if (!isOpen) return
-    restoreFocusRef.current = document.activeElement as HTMLElement | null
-    const t = setTimeout(() => modalRef.current?.focus(), 60)
-    return () => {
-      clearTimeout(t)
-      restoreFocusRef.current?.focus?.()
-    }
-  }, [isOpen])
-
-  // Focus trap + Esc, scoped to the dialog
-  const onKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Escape') {
-      e.stopPropagation()
-      closeServiceDetail()
-      return
-    }
-    if (e.key !== 'Tab' || !modalRef.current) return
-    const nodes = modalRef.current.querySelectorAll<HTMLElement>(
-      'a[href],button:not([disabled]),input:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])',
-    )
-    if (!nodes.length) return
-    const first = nodes[0]
-    const last = nodes[nodes.length - 1]
-    if (e.shiftKey && document.activeElement === first) {
-      e.preventDefault()
-      last.focus()
-    } else if (!e.shiftKey && document.activeElement === last) {
-      e.preventDefault()
-      first.focus()
-    }
-  }
 
   const handleOrder = () => {
     const preselect = serviceDetail ? directionsForService(serviceDetail.parent) : []
@@ -66,133 +16,69 @@ export default function ServiceDetailModal() {
   }
 
   return (
-    <AnimatePresence>
-      {isOpen && serviceDetail && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[100] flex items-center justify-center p-4"
-          onKeyDown={onKeyDown}
-        >
-          {/* Backdrop */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={closeServiceDetail}
-            className="absolute inset-0 bg-neutral-900/60 backdrop-blur-md"
-          />
+    <Dialog open={!!serviceDetail} onClose={closeServiceDetail} labelledBy="sdm-title" className="max-w-2xl">
+      {serviceDetail && (
+        <>
+          <DialogHeader>
+            <p className="inline-flex rounded-full bg-white/15 px-3 py-1.5 text-xs font-semibold">{serviceDetail.parent}</p>
+            <h2
+              id="sdm-title"
+              className="mt-4 font-display text-2xl font-black leading-[1.08] tracking-tight [overflow-wrap:anywhere] sm:text-3xl lg:text-4xl"
+            >
+              {serviceDetail.sub.title}
+            </h2>
+            <p className="mt-3 max-w-xl text-sm leading-relaxed text-white/90 sm:text-base">{serviceDetail.sub.short}</p>
+          </DialogHeader>
 
-          {/* Modal */}
-          <motion.div
-            ref={modalRef}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="sdm-title"
-            tabIndex={-1}
-            initial={reduce ? { opacity: 0 } : { opacity: 0, scale: 0.95, y: 30 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={reduce ? { opacity: 0 } : { opacity: 0, scale: 0.95, y: 20 }}
-            transition={reduce ? { duration: 0.15 } : { type: 'spring', damping: 28, stiffness: 320 }}
-            className="relative bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[92vh] overflow-y-auto outline-none"
-          >
-            {/* Header gradient */}
-            <div className="relative bg-gradient-to-br from-brand-700 via-brand-600 to-brand-800 p-8 sm:p-10 text-white overflow-hidden">
-              <div className="absolute top-0 right-0 w-72 h-72 bg-white/10 rounded-full blur-3xl pointer-events-none" />
-              <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff0a_1px,transparent_1px),linear-gradient(to_bottom,#ffffff0a_1px,transparent_1px)] bg-[size:32px_32px] [mask-image:radial-gradient(ellipse_at_top_left,black,transparent_70%)] pointer-events-none" />
+          <div className="space-y-8 p-6 sm:p-9">
+            <p className="text-[15px] leading-relaxed text-ink-700 sm:text-base">{serviceDetail.sub.description}</p>
 
-              <button
-                type="button"
-                onClick={closeServiceDetail}
-                aria-label="Закрыть"
-                className="absolute top-4 right-4 z-30 w-11 h-11 rounded-full bg-white/15 hover:bg-white/25 active:bg-white/30 backdrop-blur flex items-center justify-center text-white transition-colors touch-manipulation"
-              >
-                <X className="w-5 h-5" />
-              </button>
-
-              <div className="relative">
-                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 backdrop-blur border border-white/20 text-xs font-semibold mb-4">
-                  <Sparkles className="w-3.5 h-3.5" />
-                  {serviceDetail.parent}
-                </div>
-                <h2 id="sdm-title" className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight leading-[1.1]">
-                  {serviceDetail.sub.title}
-                </h2>
-                <p className="mt-2 text-white/85 text-sm sm:text-base leading-relaxed max-w-xl">
-                  {serviceDetail.sub.short}
-                </p>
-              </div>
+            <div>
+              <h3 className="mb-4 font-display text-base font-bold text-ink-950">Что входит</h3>
+              <ul className="grid gap-3 sm:grid-cols-2">
+                {serviceDetail.sub.includes.map((item) => (
+                  <li key={item} className="flex items-start gap-3 text-ink-950">
+                    <span className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full bg-lime text-ink-950">
+                      <Check className="h-3.5 w-3.5" strokeWidth={3} aria-hidden="true" />
+                    </span>
+                    <span className="text-[15px] leading-relaxed sm:text-base">{item}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
 
-            {/* Body */}
-            <div className="p-8 sm:p-10 space-y-8">
-              <p className="text-sm sm:text-base text-neutral-700 leading-relaxed">
-                {serviceDetail.sub.description}
-              </p>
-
-              <div>
-                <h3 className="text-sm font-bold text-brand-600 uppercase tracking-[0.15em] mb-4">
-                  Что входит
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="rounded-2xl bg-paper p-5">
+                <h3 className="flex items-center gap-2 text-sm font-semibold text-ink-600">
+                  <Clock className="h-4 w-4 text-brand-600" aria-hidden="true" />
+                  Срок
                 </h3>
-                <ul className="grid sm:grid-cols-2 gap-3">
-                  {serviceDetail.sub.includes.map((item, i) => (
-                    <motion.li
-                      key={item}
-                      initial={reduce ? false : { opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={reduce ? { duration: 0 } : { delay: 0.15 + i * 0.04 }}
-                      className="flex items-start gap-3 text-neutral-800"
-                    >
-                      <span className="w-6 h-6 rounded-full bg-brand-50 flex items-center justify-center shrink-0 mt-0.5">
-                        <Check className="w-3.5 h-3.5 text-brand-600" strokeWidth={3} />
-                      </span>
-                      <span className="text-sm sm:text-base leading-relaxed">{item}</span>
-                    </motion.li>
-                  ))}
-                </ul>
+                <p className="mt-2 font-semibold text-ink-950">{serviceDetail.sub.timeline}</p>
               </div>
-
-              <div className="grid sm:grid-cols-2 gap-4">
-                <div className="p-5 rounded-2xl bg-neutral-50 border border-neutral-100">
-                  <div className="flex items-center gap-2 text-brand-600 mb-2">
-                    <Clock className="w-4 h-4" />
-                    <span className="text-xs font-bold uppercase tracking-wider">Срок</span>
-                  </div>
-                  <p className="text-neutral-900 font-semibold">{serviceDetail.sub.timeline}</p>
-                </div>
-                <div className="p-5 rounded-2xl bg-neutral-50 border border-neutral-100">
-                  <div className="flex items-center gap-2 text-brand-600 mb-2">
-                    <Target className="w-4 h-4" />
-                    <span className="text-xs font-bold uppercase tracking-wider">Кому подходит</span>
-                  </div>
-                  <p className="text-neutral-900 text-sm leading-relaxed">{serviceDetail.sub.bestFor}</p>
-                </div>
-              </div>
-
-              <div className="flex flex-col sm:flex-row gap-3 pt-2">
-                <motion.button
-                  whileHover={{ scale: 1.02, y: -1 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={handleOrder}
-                  className="flex-1 py-4 px-6 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-white font-semibold inline-flex items-center justify-center gap-2 transition-colors shadow-lg"
-                >
-                  Заказать эту услугу
-                  <ArrowRight className="w-5 h-5" />
-                </motion.button>
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={closeServiceDetail}
-                  className="py-4 px-6 rounded-xl bg-brand-50 hover:bg-brand-100 text-brand-700 font-semibold transition-colors"
-                >
-                  Закрыть
-                </motion.button>
+              <div className="rounded-2xl bg-paper p-5">
+                <h3 className="flex items-center gap-2 text-sm font-semibold text-ink-600">
+                  <Target className="h-4 w-4 text-brand-600" aria-hidden="true" />
+                  Кому подходит
+                </h3>
+                <p className="mt-2 text-[15px] leading-relaxed text-ink-950">{serviceDetail.sub.bestFor}</p>
               </div>
             </div>
-          </motion.div>
-        </motion.div>
+
+            <div className="flex flex-col gap-3 pt-1 sm:flex-row">
+              <Button variant="ink" size="lg" onClick={handleOrder} className="flex-1">
+                Заказать эту услугу
+                <ArrowRight
+                  className="h-5 w-5 transition-transform duration-300 ease-expo group-hover/btn:translate-x-1"
+                  aria-hidden="true"
+                />
+              </Button>
+              <Button variant="outline" size="lg" onClick={closeServiceDetail}>
+                Закрыть
+              </Button>
+            </div>
+          </div>
+        </>
       )}
-    </AnimatePresence>
+    </Dialog>
   )
 }

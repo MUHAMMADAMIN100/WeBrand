@@ -117,6 +117,10 @@ const config: Config = {
       },
     },
   },
+  // hover: only where a pointer can actually hover. On a phone a tapped element
+  // otherwise keeps its hover look until the next tap — a deselected card that
+  // still looks half-selected.
+  future: { hoverOnlyWhenSupported: true },
   plugins: [],
 }
 
