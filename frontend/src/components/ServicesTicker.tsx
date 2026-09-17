@@ -35,7 +35,7 @@ export default function ServicesTicker() {
       <Marquee speed={2} reverse className="mt-4 lg:mt-6">
         {DETAIL.map((title) => (
           <Fragment key={title}>
-            <span className="text-stroke whitespace-nowrap font-display text-[clamp(1.35rem,3.2vw,3rem)] font-light leading-none tracking-[-0.02em] text-paper/60">
+            <span className="hollow whitespace-nowrap font-display text-[clamp(1.35rem,3.2vw,3rem)] font-light leading-none tracking-[-0.02em] text-paper/60">
               {title}
             </span>
             <Dot className="mx-4 h-1.5 w-1.5 lg:mx-7 lg:h-2.5 lg:w-2.5" />

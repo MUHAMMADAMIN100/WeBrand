@@ -60,11 +60,22 @@ function read(): Capabilities {
 /** What this device can afford. The audience is mostly phones on slow mobile
  *  data, so the expensive effects are opt-in by capability, never the default:
  *  everything reports `false` until the client has measured. */
+// The last measurement, kept for the life of the page. The very first render
+// (hydration) must still report INITIAL so it matches the server HTML — and it
+// does, because nothing has measured yet. But a client-side navigation remounts
+// the whole page subtree, and without this every capability-gated layout would
+// snap back to its fallback for a frame: the Process scene alone is ~1600px
+// taller than its fallback, which threw the viewport around on a filter click.
+let cached: Capabilities | null = null
+
 export function useCapabilities(): Capabilities {
-  const [caps, setCaps] = useState<Capabilities>(INITIAL)
+  const [caps, setCaps] = useState<Capabilities>(() => cached ?? INITIAL)
 
   useEffect(() => {
-    const update = () => setCaps(read())
+    const update = () => {
+      cached = read()
+      setCaps(cached)
+    }
     update()
     const queries = [
       window.matchMedia('(hover: hover) and (pointer: fine)'),

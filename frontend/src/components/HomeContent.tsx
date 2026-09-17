@@ -6,8 +6,10 @@ import Services from './Services'
 import Process from './Process'
 import Portfolio from './Portfolio'
 import Partners from './Partners'
+import Faq from './Faq'
 import CTA from './CTA'
 import { getProjects, SITE_URL } from '../lib/api'
+import { faq } from '../data/content'
 
 // Home-only structured data. Lives here (not in a global head) so it appears
 // once, on the home page, exactly like the Vite app.
@@ -30,6 +32,17 @@ const LOCAL_BUSINESS_JSONLD = {
   ],
 }
 
+// Built from the same `faq` array the section renders, so the two cannot drift.
+const FAQ_JSONLD = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faq.map((item) => ({
+    '@type': 'Question',
+    name: item.q,
+    acceptedAnswer: { '@type': 'Answer', text: item.a },
+  })),
+}
+
 // Shared by /, /devprojects and /smmprojects — they render identical content;
 // only the active portfolio filter (derived client-side from the pathname) and
 // the page metadata differ. Projects are fetched server-side for SEO.
@@ -42,6 +55,10 @@ export default async function HomeContent() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(LOCAL_BUSINESS_JSONLD) }}
       />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(FAQ_JSONLD) }}
+      />
       <main>
         <Hero />
         <ServicesTicker />
@@ -50,6 +67,7 @@ export default async function HomeContent() {
         <Process />
         <Portfolio initialProjects={projects} initialError={error} />
         <Partners />
+        <Faq />
         <CTA />
       </main>
     </SiteShell>

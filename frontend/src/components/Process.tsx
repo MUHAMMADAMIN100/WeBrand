@@ -1,96 +1,158 @@
 'use client'
 
-import { motion } from 'framer-motion'
+import { useEffect, useRef, useState } from 'react'
+import { motion, useScroll, useTransform } from 'framer-motion'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import { useCapabilities } from '../lib/capabilities'
+import { cn } from '../lib/utils'
 
+// A real sequence, so it is the one place on the page that carries numbers.
 const steps = [
-  {
-    num: '01',
-    title: 'Брифинг',
-    desc: 'Изучаем ваш бизнес, цели, аудиторию и конкурентов.',
-  },
-  {
-    num: '02',
-    title: 'Стратегия',
-    desc: 'Создаём план роста, визуальную концепцию и тех. задание.',
-  },
-  {
-    num: '03',
-    title: 'Реализация',
-    desc: 'Разрабатываем, дизайним и запускаем — на согласованных этапах.',
-  },
-  {
-    num: '04',
-    title: 'Рост',
-    desc: 'Привлекаем клиентов, измеряем результат и масштабируем.',
-  },
+  { num: '01', title: 'Брифинг', desc: 'Изучаем ваш бизнес, цели, аудиторию и конкурентов.' },
+  { num: '02', title: 'Стратегия', desc: 'Создаём план роста, визуальную концепцию и тех. задание.' },
+  { num: '03', title: 'Реализация', desc: 'Разрабатываем, дизайним и запускаем — на согласованных этапах.' },
+  { num: '04', title: 'Рост', desc: 'Привлекаем клиентов, измеряем результат и масштабируем.' },
 ]
 
+// Survive the page-subtree remount of a client-side navigation (see the note in
+// lib/capabilities.ts): start from what was last known, not from the fallback.
+let lastWide = false
+let lastDistance = 0
+
 export default function Process() {
+  const { rich } = useCapabilities()
+  const [wide, setWide] = useState(lastWide)
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 1024px)')
+    const update = () => {
+      lastWide = mq.matches
+      setWide(mq.matches)
+    }
+    update()
+    mq.addEventListener('change', update)
+    return () => mq.removeEventListener('change', update)
+  }, [])
+
+  // The sideways scene is for a wide screen with a mouse and no motion
+  // objection. The server and everyone else get the plain top-to-bottom list.
+  const horizontal = rich && wide
+
+  const sectionRef = useRef<HTMLElement>(null)
+  const trackRef = useRef<HTMLOListElement>(null)
+  const distanceRef = useRef(lastDistance)
+  const [distance, setDistance] = useState(lastDistance)
+
+  useEffect(() => {
+    if (!horizontal) {
+      lastDistance = 0
+      distanceRef.current = 0
+      setDistance(0)
+      return
+    }
+    const measure = () => {
+      const track = trackRef.current
+      if (!track) return
+      const d = Math.max(0, track.scrollWidth - window.innerWidth)
+      lastDistance = d
+      distanceRef.current = d
+      setDistance(d)
+    }
+    measure()
+    const observer = new ResizeObserver(measure)
+    if (trackRef.current) observer.observe(trackRef.current)
+    window.addEventListener('resize', measure)
+    return () => {
+      observer.disconnect()
+      window.removeEventListener('resize', measure)
+    }
+  }, [horizontal])
+
+  // The section grows by the scene's travel, which moves everything below it:
+  // scroll-triggered reveals further down must re-measure.
+  useEffect(() => {
+    ScrollTrigger.refresh()
+  }, [horizontal, distance])
+
+  const { scrollYProgress } = useScroll({ target: sectionRef, offset: ['start start', 'end end'] })
+  // Reads the distance from a ref so a re-measure never needs a new transform.
+  const x = useTransform(scrollYProgress, (v) => -v * distanceRef.current)
+
   return (
-    <section className="relative py-14 md:py-24 lg:py-32 bg-neutral-950 text-white overflow-hidden">
-      {/* BG */}
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff08_1px,transparent_1px),linear-gradient(to_bottom,#ffffff08_1px,transparent_1px)] bg-[size:64px_64px]" />
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[60rem] h-[40rem] bg-brand-600/25 rounded-full blur-3xl" />
-      <div className="absolute bottom-0 right-0 w-[30rem] h-[30rem] bg-brand-500/10 rounded-full blur-3xl" />
+    <section
+      ref={sectionRef}
+      // One screen to sit in, plus exactly the sideways travel to scroll through:
+      // vertical scroll maps 1:1 onto the track's horizontal movement.
+      style={horizontal ? { height: `calc(100vh + ${distance}px)` } : undefined}
+      className="relative bg-ink-950 text-paper"
+    >
+      <div className={cn(horizontal ? 'sticky top-0 flex h-screen flex-col overflow-hidden' : 'py-16 md:py-24')}>
+        <div className="bg-grid-dark pointer-events-none absolute inset-0 opacity-60" aria-hidden="true" />
 
-      <div className="relative max-w-7xl mx-auto px-5 md:px-6 lg:px-10">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '-100px' }}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-12 md:mb-20"
+        <div
+          className={cn(
+            'relative mx-auto flex w-full max-w-[88rem] flex-col gap-5 px-5 lg:flex-row lg:items-end lg:justify-between lg:px-10',
+            horizontal ? 'pt-28' : '',
+          )}
         >
-          <span className="text-sm font-bold text-brand-400 uppercase tracking-[0.2em]">
-            — Процесс
-          </span>
-          <h2 className="mt-5 text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight">
-            Как мы работаем
-          </h2>
-          <p className="mt-5 max-w-2xl mx-auto text-base text-neutral-400 leading-relaxed">
-            Прозрачный процесс — от первой встречи до запуска и масштабирования. Без сюрпризов и срывов сроков.
+          <h2 className="font-display text-display-xl font-black">Как мы работаем</h2>
+          <p className="max-w-sm text-base leading-relaxed text-paper/65 lg:pb-2 lg:text-right">
+            Прозрачный процесс — от первой встречи до запуска и масштабирования. Без сюрпризов и
+            срывов сроков.
           </p>
-        </motion.div>
-
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-5 lg:gap-6">
-          {steps.map((step, i) => (
-            <motion.div
-              key={step.num}
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{
-                duration: 0.6,
-                delay: i * 0.1,
-                ease: [0.16, 1, 0.3, 1],
-              }}
-              whileHover={{ y: -8 }}
-              className="group relative p-8 rounded-3xl bg-white/5 border border-white/10 hover:border-brand-500/50 hover:bg-white/10 transition-all backdrop-blur-sm overflow-hidden"
-            >
-              <div className="absolute -top-10 -right-6 text-[10rem] font-extrabold bg-gradient-to-br from-brand-400/30 to-transparent bg-clip-text text-transparent leading-none pointer-events-none select-none">
-                {step.num}
-              </div>
-
-              <div className="relative">
-                <div className="inline-block text-5xl lg:text-6xl font-extrabold bg-gradient-to-br from-brand-400 to-brand-600 bg-clip-text text-transparent mb-6 group-hover:scale-110 transition-transform origin-left">
-                  {step.num}
-                </div>
-                <h3 className="text-2xl font-bold mb-3">{step.title}</h3>
-                <p className="text-neutral-400 leading-relaxed">{step.desc}</p>
-              </div>
-
-              {i < steps.length - 1 && (
-                <motion.div
-                  initial={{ scaleX: 0 }}
-                  whileInView={{ scaleX: 1 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.6, delay: 0.5 + i * 0.1 }}
-                  className="hidden lg:block absolute top-16 -right-4 w-8 h-px bg-gradient-to-r from-brand-400 to-transparent origin-left"
-                />
-              )}
-            </motion.div>
-          ))}
         </div>
+
+        <motion.ol
+          ref={trackRef}
+          style={horizontal ? { x } : undefined}
+          className={cn(
+            'relative',
+            horizontal
+              ? 'mt-10 flex w-max flex-1 items-stretch gap-6 px-10 pb-6 will-change-transform'
+              : 'mx-auto mt-10 grid max-w-[88rem] gap-4 px-5 sm:grid-cols-2 md:mt-14 lg:px-10',
+          )}
+        >
+          {steps.map((step, i) => {
+            const last = i === steps.length - 1
+            return (
+              <li
+                key={step.num}
+                className={cn(
+                  'relative flex flex-col justify-between overflow-hidden rounded-[2rem] p-7 lg:p-10',
+                  horizontal ? 'w-[min(74vw,46rem)] shrink-0' : 'min-h-[15rem]',
+                  // The sequence pays off in lime: growth is the point of the other three.
+                  last ? 'bg-lime text-ink-950' : 'border border-white/10 bg-white/[0.04]',
+                )}
+              >
+                <span
+                  aria-hidden="true"
+                  className={cn(
+                    'hollow font-display text-[clamp(4.5rem,11vw,10rem)] font-black leading-none tracking-[-0.05em]',
+                    last ? 'text-ink-950/50' : 'text-paper/35',
+                  )}
+                >
+                  {step.num}
+                </span>
+                <div className="mt-8">
+                  <h3 className="font-display text-display-md font-black">
+                    <span className="sr-only">Шаг {i + 1}. </span>
+                    {step.title}
+                  </h3>
+                  <p className={cn('mt-3 max-w-md text-base leading-relaxed lg:text-lg', last ? 'text-ink-950/75' : 'text-paper/65')}>
+                    {step.desc}
+                  </p>
+                </div>
+              </li>
+            )
+          })}
+        </motion.ol>
+
+        {horizontal && (
+          <div className="relative mx-auto mb-10 w-full max-w-[88rem] px-10" aria-hidden="true">
+            <div className="h-[3px] w-full overflow-hidden rounded-full bg-white/15">
+              <motion.div className="h-full origin-left rounded-full bg-lime" style={{ scaleX: scrollYProgress }} />
+            </div>
+          </div>
+        )}
       </div>
     </section>
   )

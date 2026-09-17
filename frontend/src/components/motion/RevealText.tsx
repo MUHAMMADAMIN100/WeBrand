@@ -5,6 +5,7 @@ import gsap from 'gsap'
 import { useGSAP } from '@gsap/react'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { SplitText } from 'gsap/SplitText'
+import { cn } from '../../lib/utils'
 
 gsap.registerPlugin(useGSAP, ScrollTrigger, SplitText)
 
@@ -43,6 +44,9 @@ export default function RevealText({
         split = SplitText.create(el, {
           type: by === 'lines' ? 'lines' : 'words,lines',
           mask: 'lines',
+          // Masks are tagged `rt-line-mask` (globals.css pads them): at display
+          // leading a bare mask clips «?», «Й» and Cyrillic descenders.
+          linesClass: 'rt-line',
           // Re-split on resize; returning the tween from onSplit lets GSAP
           // retire the stale one instead of stacking animations.
           autoSplit: true,
@@ -73,7 +77,11 @@ export default function RevealText({
   )
 
   return (
-    <Tag ref={ref} className={className}>
+    // flow-root: the line masks carry negative margins (globals.css) to buy room
+    // for tall glyphs. Without its own formatting context those margins collapse
+    // through this element, so the heading took a different height split than
+    // unsplit — a layout shift every time the page subtree remounted.
+    <Tag ref={ref} className={cn('flow-root', className)}>
       {children}
     </Tag>
   )

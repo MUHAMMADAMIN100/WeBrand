@@ -50,6 +50,9 @@ export default function Navbar() {
       (entries) => {
         entries.forEach((e) => {
           if (e.isIntersecting) setActiveId(e.target.id)
+          // Left the band without another tracked section entering it (the
+          // hero, FAQ, CTA…): no nav item describes this spot, so mark none.
+          else setActiveId((current) => (current === e.target.id ? '' : current))
         })
       },
       { rootMargin: '-45% 0px -50% 0px', threshold: 0 },
