@@ -6,12 +6,12 @@ import {
   useAnimationFrame,
   useInView,
   useMotionValue,
-  useReducedMotion,
   useScroll,
   useSpring,
   useTransform,
   useVelocity,
 } from 'framer-motion'
+import { useReducedMotionSafe as useReducedMotion } from '../../lib/capabilities'
 import { cn } from '../../lib/utils'
 
 const wrap = (min: number, max: number, v: number) => {

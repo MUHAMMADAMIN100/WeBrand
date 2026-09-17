@@ -1,6 +1,7 @@
 'use client'
 
 import type { ReactNode } from 'react'
+import { MotionConfig } from 'framer-motion'
 import { ModalProvider } from '../context/ModalContext'
 import SmoothScroll from '../components/motion/SmoothScroll'
 
@@ -9,8 +10,14 @@ import SmoothScroll from '../components/motion/SmoothScroll'
 // standalone 404 page stays free of site chrome — matching the Vite app.
 export function Providers({ children }: { children: ReactNode }) {
   return (
-    <ModalProvider>
-      <SmoothScroll>{children}</SmoothScroll>
-    </ModalProvider>
+    // reducedMotion="user": for visitors who ask for less motion Framer skips
+    // transform/layout animations by itself (opacity still fades). Components
+    // therefore need no `reduce ? a : b` branching for entrances — which is what
+    // used to make server and client HTML disagree.
+    <MotionConfig reducedMotion="user">
+      <ModalProvider>
+        <SmoothScroll>{children}</SmoothScroll>
+      </ModalProvider>
+    </MotionConfig>
   )
 }

@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { motion, useReducedMotion } from 'framer-motion'
+import { motion } from 'framer-motion'
+import { useReducedMotionSafe as useReducedMotion } from '../lib/capabilities'
 import { ExternalLink, Sparkles } from 'lucide-react'
 import { contacts } from '../data/content'
 import type { ProjectItem } from '../lib/api'

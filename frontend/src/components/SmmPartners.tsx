@@ -1,7 +1,8 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
+import { useReducedMotionSafe as useReducedMotion } from '../lib/capabilities'
 import { ArrowUpRight, Sparkles, TrendingUp, X } from 'lucide-react'
 import type { Partner } from '../lib/api'
 

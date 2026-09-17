@@ -6,8 +6,8 @@ import {
   AnimatePresence,
   useScroll,
   useMotionValueEvent,
-  useReducedMotion,
 } from 'framer-motion'
+import { useReducedMotionSafe as useReducedMotion } from '../lib/capabilities'
 import { Phone } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'

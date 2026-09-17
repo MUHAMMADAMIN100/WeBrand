@@ -76,3 +76,16 @@ export function useCapabilities(): Capabilities {
 
   return caps
 }
+
+/** Drop-in for Framer Motion's `useReducedMotion()` wherever the answer shapes
+ *  what gets *rendered* (a different `initial`, a class, a whole branch).
+ *
+ *  Framer's hook answers `false` on the server and `true` on a reduced-motion
+ *  client's very first render, so such markup disagrees with the server HTML
+ *  and React throws a hydration error, then re-renders the tree from scratch.
+ *  This one stays `false` until after mount, so the first client render always
+ *  matches the server; the real preference applies one tick later. */
+export function useReducedMotionSafe(): boolean {
+  const { ready, reducedMotion } = useCapabilities()
+  return ready && reducedMotion
+}

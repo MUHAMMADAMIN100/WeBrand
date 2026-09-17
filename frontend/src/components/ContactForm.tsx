@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
+import { useReducedMotionSafe as useReducedMotion } from "../lib/capabilities";
 import {
   User, AtSign, Phone, Clock, ShieldCheck, Send, ArrowRight, ArrowLeft,
   Check, Sparkles, Megaphone, Palette, Code2, Target, HelpCircle,

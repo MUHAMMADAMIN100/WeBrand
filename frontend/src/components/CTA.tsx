@@ -1,6 +1,7 @@
 'use client'
 
-import { motion, useReducedMotion } from 'framer-motion'
+import { motion } from 'framer-motion'
+import { useReducedMotionSafe as useReducedMotion } from '../lib/capabilities'
 import { ArrowRight, Mail, Phone, Send } from 'lucide-react'
 import { contacts } from '../data/content'
 import { useModal } from '../context/ModalContext'

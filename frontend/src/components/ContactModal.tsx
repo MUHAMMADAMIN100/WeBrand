@@ -1,6 +1,7 @@
 'use client'
 
-import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
+import { useReducedMotionSafe as useReducedMotion } from '../lib/capabilities'
 import { X } from 'lucide-react'
 import { useEffect } from 'react'
 import { useModal } from '../context/ModalContext'
