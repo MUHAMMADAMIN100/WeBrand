@@ -1,13 +1,17 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { motion, useReducedMotion } from 'framer-motion'
-import { ArrowUpRight, ChevronRight } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
+import { motion, useScroll, useTransform, type MotionStyle, type MotionValue } from 'framer-motion'
+import { ArrowUpRight } from 'lucide-react'
 import { services, contacts, type Service, type SubService } from '../data/content'
 import { useModal } from '../context/ModalContext'
 import { directionsForService } from './ContactForm'
 import { SERVICE_HIGHLIGHT_EVENT, serviceAnchorId } from '../lib/serviceAnchors'
 import { openTelegram } from '../lib/telegram'
+import { useCapabilities } from '../lib/capabilities'
+import { cn } from '../lib/utils'
+import Button from './ui/Button'
+import RevealText from './motion/RevealText'
 
 /** Briefly flag the card a hero chip just sent the user to. Listens to the hash
  *  (deep links and the first click) and to the chip's own event, which covers
@@ -42,80 +46,95 @@ function useHighlightedService() {
   return id
 }
 
+// Each service is a solid block of colour rather than one more white card; the
+// four surfaces are the palette itself. `ring` is the highlight colour that
+// stays visible against that surface.
+const THEMES = [
+  {
+    card: 'bg-brand-600 text-white',
+    muted: 'text-white/75',
+    rule: 'border-white/20',
+    row: 'hover:bg-white/10 focus-visible:ring-lime',
+    ring: 'ring-lime',
+    button: 'lime',
+  },
+  {
+    card: 'bg-ink-950 text-paper',
+    muted: 'text-paper/65',
+    rule: 'border-white/15',
+    row: 'hover:bg-white/10 focus-visible:ring-lime',
+    ring: 'ring-lime',
+    button: 'lime',
+  },
+  {
+    card: 'bg-lime text-ink-950',
+    muted: 'text-ink-950/70',
+    rule: 'border-ink-950/15',
+    row: 'hover:bg-ink-950/10 focus-visible:ring-ink-950',
+    ring: 'ring-brand-600',
+    button: 'ink',
+  },
+  {
+    card: 'border border-ink-200 bg-white text-ink-950',
+    muted: 'text-ink-600',
+    rule: 'border-ink-200',
+    row: 'hover:bg-paper focus-visible:ring-brand-600',
+    ring: 'ring-brand-600',
+    button: 'ink',
+  },
+] as const
+
 export default function Services() {
   const { open: openModal, openServiceDetail } = useModal()
-  const reduce = useReducedMotion()
   const highlighted = useHighlightedService()
+  const { rich } = useCapabilities()
+
+  const stackRef = useRef<HTMLDivElement>(null)
+  const { scrollYProgress } = useScroll({ target: stackRef, offset: ['start start', 'end end'] })
 
   return (
-    <section
-      id="services"
-      className="relative anchor-target snap-start min-h-dvh py-14 md:py-24 lg:py-32 bg-gradient-to-b from-white via-brand-50/30 to-white overflow-hidden"
-    >
-      <div className="absolute top-20 -right-40 w-[30rem] h-[30rem] bg-brand-600/5 rounded-full blur-3xl pointer-events-none" />
-
-      <div className="relative max-w-7xl mx-auto px-5 md:px-6 lg:px-10">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '-100px' }}
-          transition={{ duration: 0.6 }}
-          className="flex items-end justify-between mb-10 md:mb-16 flex-wrap gap-6"
-        >
-          <div>
-            <span className="text-sm font-bold text-brand-600 uppercase tracking-[0.2em]">
-              — Услуги
-            </span>
-            <h2 className="mt-5 text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-neutral-900 leading-[1.05]">
-              Что мы делаем
-            </h2>
-          </div>
-          <p className="max-w-md text-base text-neutral-600 leading-relaxed">
-            Кликните на любую подуслугу — расскажем подробно.
+    <section id="services" className="anchor-target relative py-16 md:py-24 lg:py-32">
+      <div className="mx-auto max-w-[88rem] px-5 lg:px-10">
+        <div className="mb-10 flex flex-col gap-5 md:mb-14 lg:flex-row lg:items-end lg:justify-between">
+          <RevealText as="h2" className="font-display text-display-xl font-black text-ink-950">
+            Что мы делаем
+          </RevealText>
+          <p className="max-w-sm text-base leading-relaxed text-ink-600 lg:pb-2 lg:text-right">
+            Нажмите на любую подуслугу — расскажем, что входит, сколько занимает и кому подходит.
           </p>
-        </motion.div>
+        </div>
 
-        <div className="grid md:grid-cols-2 gap-5 lg:gap-6">
+        {/* On large screens the cards are `sticky` siblings inside this one tall
+            box, so each parks under the header while the next slides over it. */}
+        <div ref={stackRef} className="relative flex flex-col gap-5 lg:gap-8">
           {services.map((service, i) => (
             <ServiceCard
               key={service.id}
               service={service}
               index={i}
+              total={services.length}
+              progress={scrollYProgress}
+              animate={rich}
               highlighted={highlighted === serviceAnchorId(service.id)}
               onOrder={() => openModal(directionsForService(service.title))}
-              onSubClick={(sub) =>
-                openServiceDetail({ parent: service.title, sub })
-              }
+              onSubClick={(sub) => openServiceDetail({ parent: service.title, sub })}
             />
           ))}
         </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          className="mt-10 md:mt-16 flex flex-col items-center"
-        >
-          <motion.a
+        <div className="mt-12 flex flex-col items-start gap-3 sm:flex-row sm:items-center md:mt-16">
+          <Button
             href={contacts.telegram}
             target="_blank"
             rel="noopener noreferrer"
             onClick={openTelegram}
-            whileHover={{ scale: 1.05, y: -2 }}
-            whileTap={{ scale: 0.97 }}
-            className="group px-10 py-5 rounded-full bg-neutral-900 text-white font-semibold text-lg shadow-xl hover:shadow-2xl transition-shadow inline-flex items-center gap-3"
+            variant="outline"
+            size="lg"
           >
-            Написать в TG
-            <motion.span
-              animate={reduce ? undefined : { x: [0, 4, 0] }}
-              transition={{ duration: 1.5, repeat: Infinity }}
-            >
-              →
-            </motion.span>
-          </motion.a>
-          <p className="mt-3 text-sm text-neutral-500">Ответим быстро.</p>
-        </motion.div>
+            Написать в Telegram
+          </Button>
+          <p className="text-sm text-ink-600">Отвечаем в рабочее время за пару часов.</p>
+        </div>
       </div>
     </section>
   )
@@ -124,83 +143,91 @@ export default function Services() {
 type CardProps = {
   service: Service
   index: number
+  total: number
+  progress: MotionValue<number>
+  animate: boolean
   highlighted: boolean
   onOrder: () => void
   onSubClick: (sub: SubService) => void
 }
 
-function ServiceCard({ service, index, highlighted, onOrder, onSubClick }: CardProps) {
+function ServiceCard({ service, index, total, progress, animate, highlighted, onOrder, onSubClick }: CardProps) {
+  const theme = THEMES[index % THEMES.length]
+
+  // While the cards after this one slide over it, it settles back a little —
+  // the pile reads as depth instead of as a flat overlap. The last card has
+  // nothing coming after it, so its range collapses to "no change".
+  const start = index / total
+  const recede = (total - 1 - index) * 0.035
+  const scale = useTransform(progress, [start, 1], [1, 1 - recede])
+
   return (
-    <motion.article
-      id={serviceAnchorId(service.id)}
-      initial={{ opacity: 0, y: 40 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: '-50px' }}
-      transition={{ duration: 0.6, delay: index * 0.1, ease: [0.16, 1, 0.3, 1] }}
-      whileHover="hover"
-      className={`group anchor-target relative p-8 lg:p-10 rounded-3xl bg-white border transition-all duration-500 overflow-hidden ${
-        highlighted
-          ? 'border-brand-600 ring-4 ring-brand-600/30'
-          : 'border-neutral-200 hover:border-brand-600'
-      }`}
-    >
-      <motion.div
-        variants={{ hover: { opacity: 1 } }}
-        initial={{ opacity: 0 }}
-        transition={{ duration: 0.5 }}
-        className="absolute inset-0 bg-gradient-to-br from-brand-600 to-brand-800 pointer-events-none"
-      />
+    <>
+      {/* The hero chips scroll here. It must be this static marker and not the
+          card: a sticky element reports where it is *parked*, not where it lives
+          in the flow, so scrolling "to the card" from below would go nowhere. */}
+      <span id={serviceAnchorId(service.id)} className="anchor-target -mb-5 block h-0 lg:-mb-8" aria-hidden="true" />
 
-      <motion.span
-        variants={{ hover: { scale: 1.2, opacity: 0.1, color: '#FFFFFF' } }}
-        transition={{ duration: 0.5 }}
-        className="absolute top-6 right-8 text-9xl font-extrabold text-neutral-100 group-hover:text-white/10 transition-colors pointer-events-none leading-none select-none"
+      <motion.article
+        data-service-card={service.id}
+        style={
+          {
+            scale: animate ? scale : 1,
+            // Each card parks a step lower than the last, so the pile shows its
+            // edges. A variable, not `top` itself: below `lg` the card is
+            // `relative`, where an inline `top` would shove it down the page.
+            '--park': `calc(var(--header-h) + 1rem + ${index * 0.85}rem)`,
+          } as MotionStyle
+        }
+        className={cn(
+          'relative origin-top overflow-hidden rounded-[2rem] p-6 transition-shadow duration-500 sm:p-9 lg:sticky lg:top-[var(--park)] lg:min-h-[31rem] lg:p-12',
+          theme.card,
+          highlighted && ['ring-4 ring-offset-4 ring-offset-paper', theme.ring],
+        )}
       >
-        {service.number}
-      </motion.span>
+        <div className="grid h-full gap-10 lg:grid-cols-12 lg:gap-12">
+          <div className="flex flex-col lg:col-span-5">
+            <h3 className="font-display text-display-md font-black">{service.title}</h3>
+            <p className={cn('mt-4 max-w-md text-base leading-relaxed lg:text-lg', theme.muted)}>
+              {service.description}
+            </p>
+            <div className="mt-8 lg:mt-auto lg:pt-10">
+              <Button onClick={onOrder} variant={theme.button} size="lg">
+                Заказать
+                <ArrowUpRight className="h-5 w-5 transition-transform duration-300 ease-expo group-hover/btn:rotate-45" aria-hidden="true" />
+              </Button>
+            </div>
+          </div>
 
-      <div className="relative z-10">
-        <div className="flex items-start justify-between mb-8">
-          <span className="text-sm font-bold text-brand-600 group-hover:text-white/80 transition-colors uppercase tracking-widest">
-            {service.number}
-          </span>
-          <motion.button
-            type="button"
-            onClick={onOrder}
-            aria-label="Заказать услугу"
-            variants={{ hover: { rotate: 45, scale: 1.1 } }}
-            transition={{ type: 'spring', stiffness: 300 }}
-            className="w-12 h-12 rounded-full bg-neutral-100 group-hover:bg-white flex items-center justify-center transition-colors cursor-pointer relative z-20"
-          >
-            <ArrowUpRight className="w-5 h-5 text-neutral-900 group-hover:text-brand-600" />
-          </motion.button>
+          <ul className={cn('flex flex-col border-t lg:col-span-7', theme.rule)}>
+            {service.items.map((sub) => (
+              <li key={sub.id} className={cn('border-b', theme.rule)}>
+                <button
+                  type="button"
+                  onClick={() => onSubClick(sub)}
+                  className={cn(
+                    'group/row flex w-full items-center gap-4 rounded-xl px-2 py-4 text-left transition-colors duration-300 ease-expo focus-visible:outline-none focus-visible:ring-2 lg:gap-6 lg:px-4 lg:py-5',
+                    theme.row,
+                  )}
+                >
+                  <span className="min-w-0 flex-1">
+                    <span className="block font-display text-lg font-medium tracking-tight lg:text-2xl">
+                      {sub.title}
+                    </span>
+                    <span className={cn('mt-1 block text-sm leading-snug lg:text-base', theme.muted)}>
+                      {sub.short}
+                    </span>
+                  </span>
+                  <ArrowUpRight
+                    className="h-6 w-6 shrink-0 opacity-50 transition-[transform,opacity] duration-300 ease-expo group-hover/row:translate-x-1 group-hover/row:-translate-y-1 group-hover/row:opacity-100"
+                    aria-hidden="true"
+                  />
+                </button>
+              </li>
+            ))}
+          </ul>
         </div>
-
-        <h3 className="text-2xl lg:text-3xl font-bold text-neutral-900 group-hover:text-white transition-colors mb-3 leading-tight">
-          {service.title}
-        </h3>
-        <p className="text-neutral-600 group-hover:text-white/90 transition-colors text-base leading-relaxed mb-5">
-          {service.description}
-        </p>
-
-        <ul className="space-y-1.5 pt-5 border-t border-neutral-100 group-hover:border-white/20 transition-colors">
-          {service.items.map((sub) => (
-            <li key={sub.id}>
-              <button
-                type="button"
-                onClick={() => onSubClick(sub)}
-                className="group/sub w-full flex items-center justify-between gap-3 py-2.5 px-3 -mx-3 rounded-xl text-left hover:bg-brand-50 group-hover:hover:bg-white/15 transition-colors"
-              >
-                <span className="flex items-center gap-3 text-neutral-800 group-hover:text-white/95 transition-colors text-sm sm:text-base">
-                  <span className="w-1.5 h-1.5 rounded-full bg-brand-600 group-hover:bg-white shrink-0 transition-colors" />
-                  <span className="font-medium">{sub.title}</span>
-                </span>
-                <ChevronRight className="w-4 h-4 text-neutral-400 group-hover:text-white/70 group-hover/sub:translate-x-1 transition-all shrink-0" />
-              </button>
-            </li>
-          ))}
-        </ul>
-      </div>
-    </motion.article>
+      </motion.article>
+    </>
   )
 }

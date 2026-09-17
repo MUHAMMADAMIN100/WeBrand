@@ -34,6 +34,9 @@ export const PROGRAMMATIC_SCROLL = {
 export function scrollToElement(target: HTMLElement | null) {
   if (!target) return
   if (lenis) {
+    // Adopt the real position first — Lenis measures targets from its cached
+    // one, which lags a native scroll by a frame (see SmoothScroll).
+    lenis.scrollTo(window.scrollY, { immediate: true, force: true })
     lenis.scrollTo(target, PROGRAMMATIC_SCROLL)
     return
   }

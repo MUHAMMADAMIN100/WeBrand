@@ -35,6 +35,9 @@
        a fixed value is correct. Using the full 80px guarantees anchored sections
        clear the header in every state. */
     --header-h: 80px;
+    /* Framer Motion's useScroll({ target }) measures targets against the scroll
+       container — the root element here — and wants it positioned. */
+    position: relative;
     /* No CSS `scroll-behavior: smooth` and no scroll-snap: Lenis
        (components/motion/SmoothScroll.tsx) owns scrolling. Leaving either on
        makes anchor jumps ease twice and fights pinned scroll scenes. Under
@@ -47,6 +50,11 @@
   }
   ::selection {
     @apply bg-lime text-ink-950;
+  }
+  /* Anchor jumps move focus to their target section so the keyboard continues
+     from there (SmoothScroll). A section is not a control — no ring on it. */
+  [tabindex='-1']:focus {
+    outline: none;
   }
 }
 

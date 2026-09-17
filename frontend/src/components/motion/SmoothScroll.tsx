@@ -21,9 +21,6 @@ export default function SmoothScroll({ children }: { children: ReactNode }) {
   useEffect(() => {
     const lenis = new Lenis({
       lerp: 0.11,
-      // In-page `#hash` links ease to their target (see PROGRAMMATIC_SCROLL for
-      // why that is timed and carries no offset).
-      anchors: PROGRAMMATIC_SCROLL,
       // Modals and the mobile menu scroll natively inside the locked page.
       allowNestedScroll: true,
     })
@@ -33,6 +30,39 @@ export default function SmoothScroll({ children }: { children: ReactNode }) {
     const tick = (time: number) => lenis.raf(time * 1000)
     gsap.ticker.add(tick)
     gsap.ticker.lagSmoothing(0)
+
+    // In-page `#hash` links. Lenis has an `anchors` option for this, but it
+    // measures the target from its own cached scroll position, which lags the
+    // real one by a frame after any native scroll (the browser bringing a
+    // focused link into view, a scrollbar drag, a test runner's click). A jump
+    // issued in that window lands short by exactly the stale amount. So: adopt
+    // the real position first, then scroll.
+    const onAnchorClick = (e: MouseEvent) => {
+      if (e.defaultPrevented || e.button !== 0) return
+      if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
+      const link = (e.target as Element | null)?.closest?.('a[href*="#"]') as HTMLAnchorElement | null
+      if (!link || link.target === '_blank') return
+      const url = new URL(link.href, window.location.href)
+      if (url.origin !== window.location.origin || url.pathname !== window.location.pathname) return
+      const id = decodeURIComponent(url.hash.slice(1))
+      if (!id) return
+      const target = document.getElementById(id)
+      if (!target) return
+
+      e.preventDefault()
+      // Keep what a native jump would have done: the URL, the hashchange event
+      // (pushState alone does not fire it) and the keyboard's starting point.
+      if (window.location.hash !== url.hash) {
+        window.history.pushState(null, '', url.hash)
+        window.dispatchEvent(new HashChangeEvent('hashchange'))
+      }
+      if (!target.hasAttribute('tabindex')) target.setAttribute('tabindex', '-1')
+      target.focus({ preventScroll: true })
+
+      lenis.scrollTo(window.scrollY, { immediate: true, force: true })
+      lenis.scrollTo(id === 'top' ? 0 : target, PROGRAMMATIC_SCROLL)
+    }
+    document.addEventListener('click', onAnchorClick)
 
     // Every overlay in the app (contact modal, service modal, partner modal,
     // mobile menu) locks the page the same way: `body.style.overflow = 'hidden'`.
@@ -51,6 +81,7 @@ export default function SmoothScroll({ children }: { children: ReactNode }) {
     document.fonts?.ready.then(() => ScrollTrigger.refresh())
 
     return () => {
+      document.removeEventListener('click', onAnchorClick)
       lockObserver.disconnect()
       gsap.ticker.remove(tick)
       lenis.destroy()
