@@ -5,7 +5,6 @@ import gsap from 'gsap'
 import { useGSAP } from '@gsap/react'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { SplitText } from 'gsap/SplitText'
-import { cn } from '../../lib/utils'
 
 gsap.registerPlugin(useGSAP, ScrollTrigger, SplitText)
 
@@ -44,8 +43,9 @@ export default function RevealText({
         split = SplitText.create(el, {
           type: by === 'lines' ? 'lines' : 'words,lines',
           mask: 'lines',
-          // Masks are tagged `rt-line-mask` (globals.css pads them): at display
-          // leading a bare mask clips «?», «Й» and Cyrillic descenders.
+          // Masks are tagged `rt-line-mask`; globals.css widens their clip edge
+          // (overflow-clip-margin) so «?», «Й» and Cyrillic descenders survive
+          // display leading — without touching layout.
           linesClass: 'rt-line',
           // Re-split on resize; returning the tween from onSplit lets GSAP
           // retire the stale one instead of stacking animations.
@@ -58,6 +58,12 @@ export default function RevealText({
               stagger: by === 'lines' ? 0.09 : 0.04,
               delay,
               scrollTrigger: { trigger: el, start: 'top 88%', once: true },
+              // The split exists only to play this once. Put the heading back
+              // to plain text afterwards: at rest it is then byte-for-byte the
+              // server markup, so it can never measure differently from the
+              // unsplit state a remount starts in (that mismatch used to shift
+              // the whole page on every client-side navigation).
+              onComplete: () => self.revert(),
             })
           },
         })
@@ -77,11 +83,7 @@ export default function RevealText({
   )
 
   return (
-    // flow-root: the line masks carry negative margins (globals.css) to buy room
-    // for tall glyphs. Without its own formatting context those margins collapse
-    // through this element, so the heading took a different height split than
-    // unsplit — a layout shift every time the page subtree remounted.
-    <Tag ref={ref} className={cn('flow-root', className)}>
+    <Tag ref={ref} className={className}>
       {children}
     </Tag>
   )

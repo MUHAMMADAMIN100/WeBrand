@@ -157,10 +157,14 @@
     padding: 0.1em 0 0.2em;
     margin: -0.1em 0 -0.2em;
   }
-  /* Same trick for RevealText's SplitText line masks. */
+  /* RevealText's SplitText line masks. NOT the padding/negative-margin trick
+     used above: margins of neighbouring masks collapse into the larger one
+     instead of adding up, so a multi-line heading came out 0.14em taller per
+     line break split than unsplit. overflow-clip-margin moves the clip edge
+     and nothing else. (Browsers without it clip tall glyphs for the one second
+     the reveal runs; RevealText unsplits afterwards.) */
   .rt-line-mask {
-    padding: 0.14em 0.06em 0.22em;
-    margin: -0.14em -0.06em -0.22em;
+    overflow-clip-margin: 0.28em;
   }
   .hero-line > span {
     display: block;
