@@ -1,17 +1,16 @@
 'use client'
 
-import { useState } from 'react'
-import { motion } from 'framer-motion'
-import { useReducedMotionSafe as useReducedMotion } from '../lib/capabilities'
-import { ExternalLink, Sparkles } from 'lucide-react'
+import { ArrowUpRight } from 'lucide-react'
 import { contacts } from '../data/content'
 import type { ProjectItem } from '../lib/api'
 import { openTelegram } from '../lib/telegram'
+import { cn } from '../lib/utils'
+import CasePoster from './portfolio/CasePoster'
 
 // Section 2 of /smm: a curated «Топ-кейсы» showcase (is_featured, max 3) followed
-// by the rest of the SMM projects in the standard portfolio-card grid. The card
-// style mirrors the home Portfolio block (category badge, logo on an accent
-// gradient, floating colour dots).
+// by the rest of the SMM projects. The cards share the home portfolio's poster
+// (cover, or accent + logo), but unlike there they do not open a case page:
+// an SMM project's proof is the live account, so the card links out to `url`.
 export default function SmmProjects({
   projects,
   error = false,
@@ -26,19 +25,19 @@ export default function SmmProjects({
   const rest = projects.filter((p) => !featuredIds.has(p.id))
 
   return (
-    <section className="relative bg-white py-12 md:py-16 lg:py-20">
-      <div className="mx-auto max-w-7xl px-5 md:px-6 lg:px-10">
+    <section className="relative py-12 md:py-16 lg:py-20">
+      <div className="mx-auto max-w-[88rem] px-5 lg:px-10">
         {error ? (
-          <div className="rounded-3xl border border-neutral-200 bg-neutral-50 px-6 py-16 text-center">
-            <p className="text-base font-semibold text-neutral-800">Не удалось загрузить работы</p>
-            <p className="mt-2 text-sm text-neutral-600">
-              Попробуйте обновить страницу или напишите нам в{' '}
+          <div className="rounded-[1.75rem] border border-ink-200 bg-white px-6 py-16 text-center">
+            <p className="font-display text-lg font-bold text-ink-950">Не удалось загрузить работы</p>
+            <p className="mt-2 text-sm text-ink-600">
+              Обновите страницу или напишите нам в{' '}
               <a
                 href={contacts.telegram}
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={openTelegram}
-                className="font-semibold text-brand-600 hover:underline"
+                className="font-semibold text-brand-600 underline decoration-brand-300 underline-offset-2 hover:text-brand-700"
               >
                 Telegram
               </a>
@@ -46,26 +45,19 @@ export default function SmmProjects({
             </p>
           </div>
         ) : projects.length === 0 ? (
-          <div className="rounded-3xl border border-neutral-200 bg-neutral-50 px-6 py-20 text-center">
-            <Sparkles className="mx-auto h-10 w-10 text-neutral-300" />
-            <p className="mt-4 text-base font-semibold text-neutral-800">SMM-кейсы скоро появятся</p>
-            <p className="mt-2 text-sm text-neutral-600">
-              Мы готовим подборку работ — загляните чуть позже.
-            </p>
+          <div className="rounded-[1.75rem] border border-ink-200 bg-white px-6 py-20 text-center">
+            <p className="font-display text-lg font-bold text-ink-950">SMM-кейсы скоро появятся</p>
+            <p className="mt-2 text-sm text-ink-600">Мы готовим подборку работ — загляните чуть позже.</p>
           </div>
         ) : (
-          <div className="space-y-12 md:space-y-16">
+          <div className="space-y-14 md:space-y-20">
             {featured.length > 0 && (
               <div>
-                <div className="mb-6 md:mb-8">
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-50 px-3.5 py-1.5 text-xs font-bold uppercase tracking-wider text-brand-700">
-                    <Sparkles className="h-3.5 w-3.5" />
-                    Топ-кейсы
-                  </span>
-                </div>
-                <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 lg:gap-6">
-                  {featured.map((item, i) => (
-                    <SmmProjectCard key={item.id} item={item} index={i} featured />
+                <h2 className="mb-7 font-display text-display-md font-black text-ink-950 md:mb-10">Топ-кейсы</h2>
+                {/* Two top cases get the wider two-column grid; a full set of three lines up with the rest. */}
+                <div className={cn('grid gap-x-6 gap-y-12 sm:grid-cols-2 xl:gap-x-8', featured.length === 3 && 'xl:grid-cols-3')}>
+                  {featured.map((item) => (
+                    <SmmProjectCard key={item.id} item={item} featured />
                   ))}
                 </div>
               </div>
@@ -74,13 +66,11 @@ export default function SmmProjects({
             {rest.length > 0 && (
               <div>
                 {featured.length > 0 && (
-                  <h2 className="mb-6 text-xl font-bold text-neutral-900 md:mb-8 md:text-2xl">
-                    Другие работы
-                  </h2>
+                  <h2 className="mb-7 font-display text-display-md font-black text-ink-950 md:mb-10">Другие работы</h2>
                 )}
-                <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 lg:gap-6">
-                  {rest.map((item, i) => (
-                    <SmmProjectCard key={item.id} item={item} index={i} />
+                <div className="grid gap-x-6 gap-y-12 sm:grid-cols-2 xl:grid-cols-3 xl:gap-x-8">
+                  {rest.map((item) => (
+                    <SmmProjectCard key={item.id} item={item} />
                   ))}
                 </div>
               </div>
@@ -92,135 +82,60 @@ export default function SmmProjects({
   )
 }
 
-function SmmProjectCard({
-  item,
-  index,
-  featured = false,
-}: {
-  item: ProjectItem
-  index: number
-  featured?: boolean
-}) {
+function SmmProjectCard({ item, featured = false }: { item: ProjectItem; featured?: boolean }) {
   return (
-    <motion.article
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: '-80px' }}
-      transition={{ duration: 0.5, delay: (index % 6) * 0.06 }}
-      whileHover={{ y: -8 }}
-      className={`group relative flex h-full flex-col overflow-hidden rounded-3xl bg-white transition-all hover:shadow-2xl hover:shadow-brand-600/10 ${
-        featured
-          ? 'border-2 border-brand-600/30 ring-1 ring-brand-600/10 hover:border-brand-600'
-          : 'border border-neutral-200 hover:border-brand-600'
-      }`}
-    >
-      <div
-        className={`relative overflow-hidden ${featured ? 'aspect-[16/10]' : 'aspect-[4/3]'}`}
-        style={{ background: `linear-gradient(135deg, ${item.accent}15, ${item.accent}05 50%, #ffffff)` }}
-      >
-        <SmmProjectVisual item={item} />
+    <article className="group/case relative flex flex-col">
+      <div className="relative">
+        <CasePoster item={item} className="aspect-[4/3] rounded-[1.75rem]" />
 
-        <div className="absolute left-3 top-3 z-10">
-          <span className="rounded-full bg-white/95 px-3 py-1.5 text-xs font-bold text-neutral-900 shadow-sm backdrop-blur">
-            {item.category}
-          </span>
-        </div>
-
+        <span className="absolute left-4 top-4 rounded-full bg-white/95 px-3 py-1.5 text-xs font-bold text-ink-950 shadow-sm">
+          {item.category}
+        </span>
         {featured && (
-          <div className="absolute right-3 top-3 z-10">
-            <span className="inline-flex items-center gap-1 rounded-full bg-brand-600 px-3 py-1.5 text-xs font-bold text-white shadow-lg shadow-brand-600/30">
-              <Sparkles className="h-3.5 w-3.5" />
-              Топ
-            </span>
-          </div>
+          <span className="absolute right-4 top-4 rounded-full bg-lime px-3 py-1.5 text-xs font-bold text-ink-950 shadow-sm">
+            Топ
+          </span>
+        )}
+
+        {item.url && (
+          <span
+            aria-hidden="true"
+            className="absolute bottom-4 right-4 grid h-12 w-12 place-items-center rounded-full bg-white text-ink-950 shadow-lg transition-[background-color,transform] duration-500 ease-expo group-hover/case:scale-110 group-hover/case:bg-lime"
+          >
+            <ArrowUpRight className="h-5 w-5 transition-transform duration-500 ease-expo group-hover/case:rotate-45" />
+          </span>
         )}
       </div>
 
-      <div className="flex flex-1 flex-col p-6 lg:p-7">
-        <h3 className="text-xl font-bold leading-tight text-neutral-900">
-          {item.name}{' '}
-          <span className="text-base font-normal text-neutral-400">— {item.subtitle}</span>
-        </h3>
-        <p className="mt-3 line-clamp-2 text-sm leading-relaxed text-neutral-600">
-          {item.description}
-        </p>
+      <div className="mt-5 flex flex-1 flex-col px-1">
+        <h3 className="font-display text-xl font-bold leading-tight tracking-tight text-ink-950 lg:text-2xl">{item.name}</h3>
+        <p className="mt-1.5 text-base leading-snug text-ink-600">{item.subtitle}</p>
+        <p className="mt-3 line-clamp-2 text-sm leading-relaxed text-ink-600">{item.description}</p>
 
-        <div className="mt-5 flex flex-wrap gap-2">
-          {item.tags.map((t) => (
-            <span
-              key={t}
-              className="rounded-full bg-neutral-100 px-3 py-1 text-xs font-medium text-neutral-700 transition-colors group-hover:bg-brand-50 group-hover:text-brand-700"
-            >
-              {t}
-            </span>
-          ))}
-        </div>
+        {item.tags.length > 0 && (
+          <ul className="mt-4 flex flex-wrap gap-1.5">
+            {item.tags.slice(0, 4).map((t) => (
+              <li key={t} className="rounded-full border border-ink-200 px-2.5 py-1 text-xs font-medium text-ink-600">
+                {t}
+              </li>
+            ))}
+          </ul>
+        )}
 
-        <div className="mt-auto pt-6">
-          {item.url ? (
-            <a
-              href={item.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex w-full items-center justify-center gap-2 rounded-full bg-brand-600 py-3.5 font-semibold text-white shadow-lg shadow-brand-600/20 transition-colors group-hover:bg-brand-700 group-hover:shadow-xl group-hover:shadow-brand-600/30"
-            >
-              Смотреть кейс
-              <ExternalLink className="h-4 w-4 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-1" />
-            </a>
-          ) : (
-            <div className="flex w-full cursor-not-allowed items-center justify-center gap-2 rounded-full bg-neutral-100 py-3.5 font-semibold text-neutral-500">
-              Кейс скоро
-            </div>
-          )}
-        </div>
+        {!item.url && <p className="mt-4 text-sm font-semibold text-ink-500">Кейс скоро</p>}
       </div>
-    </motion.article>
-  )
-}
 
-function SmmProjectVisual({ item }: { item: ProjectItem }) {
-  const initials = item.initials ?? item.name.slice(0, 4).toUpperCase()
-  const [imgError, setImgError] = useState(false)
-  const reduce = useReducedMotion()
-  const showLogo = item.logo && !imgError
-  return (
-    <div className="absolute inset-0 flex items-center justify-center p-6">
-      <motion.div whileHover={{ scale: 1.05, rotate: -2 }} transition={{ type: 'spring' }} className="relative">
-        <div className="absolute inset-0 rounded-full opacity-40 blur-2xl" style={{ background: item.accent }} />
-        <div className="relative flex h-32 w-44 items-center justify-center overflow-hidden rounded-3xl border border-neutral-100 bg-white shadow-xl">
-          {showLogo ? (
-            <img
-              src={item.logo}
-              alt={item.name}
-              className="max-h-20 max-w-[140px] object-contain"
-              loading="lazy"
-              onError={() => setImgError(true)}
-            />
-          ) : (
-            <div className="px-6 text-center">
-              <div className="mb-2 text-4xl font-extrabold tracking-tight" style={{ color: item.accent }}>
-                {initials}
-              </div>
-              <div className="text-[10px] font-semibold uppercase tracking-widest text-neutral-500">
-                {item.category}
-              </div>
-            </div>
-          )}
-        </div>
-
-        <motion.div
-          animate={reduce ? undefined : { y: [0, -8, 0] }}
-          transition={{ duration: 3, repeat: Infinity }}
-          className="absolute -right-3 -top-3 h-6 w-6 rounded-full shadow-md"
-          style={{ background: item.accent }}
+      {/* Stretched link — the whole card opens the live account in a new tab. */}
+      {item.url && (
+        <a
+          href={item.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label={`Смотреть кейс: ${item.name} (откроется в новой вкладке)`}
+          data-cursor="Открыть"
+          className="absolute inset-0 z-10 rounded-[1.75rem] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 focus-visible:ring-offset-4 focus-visible:ring-offset-paper"
         />
-        <motion.div
-          animate={reduce ? undefined : { y: [0, 6, 0] }}
-          transition={{ duration: 4, repeat: Infinity, delay: 0.5 }}
-          className="absolute -bottom-2 -left-2 h-4 w-4 rounded-full border-2 bg-white shadow"
-          style={{ borderColor: item.accent }}
-        />
-      </motion.div>
-    </div>
+      )}
+    </article>
   )
 }

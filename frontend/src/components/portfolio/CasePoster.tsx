@@ -74,17 +74,19 @@ export default function CasePoster({ item, size = 'card', className }: Props) {
         {item.logo ? (
           <div
             className={cn(
-              'grid place-items-center rounded-2xl bg-white shadow-[0_24px_60px_-24px_rgba(11,13,18,0.55)] transition-transform duration-700 ease-expo group-hover/case:-translate-y-1.5 group-hover/case:-rotate-2',
-              size === 'hero' ? 'h-[46%] w-[44%] p-[5%]' : 'h-[48%] w-[58%] p-[7%]',
+              'relative rounded-2xl bg-white shadow-[0_24px_60px_-24px_rgba(11,13,18,0.55)] transition-transform duration-700 ease-expo group-hover/case:-translate-y-1.5 group-hover/case:-rotate-2',
+              size === 'hero' ? 'h-[52%] w-[46%] md:w-[34%]' : 'h-[54%] w-[58%]',
             )}
           >
+            {/* Pinned to the plate and contained: a square or portrait logo
+                would otherwise size itself by width and spill out underneath. */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={item.logo}
               alt={`Логотип ${item.name}`}
               loading="lazy"
               decoding="async"
-              className="max-h-full max-w-full object-contain"
+              className={cn('absolute inset-0 h-full w-full object-contain', size === 'hero' ? 'p-[6%]' : 'p-[8%]')}
             />
           </div>
         ) : (

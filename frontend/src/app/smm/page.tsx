@@ -30,24 +30,19 @@ export default async function Page() {
   return (
     <SiteShell>
       <main>
-        {/* Section 1 — page header, styled like the home «Портфолио» block. */}
-        <section className="mx-auto max-w-7xl px-5 pt-28 md:px-6 md:pt-36 lg:px-10">
-          <span className="text-sm font-bold uppercase tracking-[0.2em] text-brand-600">
-            — Работы по SMM
-          </span>
-          <h1 className="mt-5 text-3xl font-extrabold leading-[1.05] tracking-tight text-neutral-900 sm:text-4xl lg:text-5xl">
-            Наши работы по SMM
-          </h1>
-          <p className="mt-4 max-w-2xl text-base leading-relaxed text-neutral-600">
+        {/* Section 1 — page header, the same scale as the other inner pages. */}
+        <section className="mx-auto max-w-[88rem] px-5 pt-28 md:pt-36 lg:px-10">
+          <h1 className="font-display text-display-xl font-black text-ink-950">Наши работы по SMM</h1>
+          <p className="mt-6 max-w-2xl text-base leading-relaxed text-ink-600 lg:text-lg">
             Топовые кейсы, видео и рилсы, а также сильные партнёры — реальные результаты
             продвижения бизнеса в социальных сетях.
           </p>
           <Link
             href="/brief?direction=smm"
-            className="group mt-6 inline-flex items-center gap-2 rounded-full bg-brand-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-brand-600/20 transition-all hover:bg-brand-700 hover:shadow-xl hover:shadow-brand-600/30"
+            className="group mt-8 inline-flex h-14 items-center gap-2.5 rounded-full bg-ink-950 px-8 text-base font-semibold text-white transition-colors duration-300 ease-expo hover:bg-brand-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 focus-visible:ring-offset-2 focus-visible:ring-offset-paper"
           >
             Обсудить проект
-            <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+            <ArrowRight className="h-5 w-5 transition-transform duration-300 ease-expo group-hover:translate-x-1" aria-hidden="true" />
           </Link>
         </section>
 
