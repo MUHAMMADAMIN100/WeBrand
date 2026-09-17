@@ -69,6 +69,12 @@ function StaticMark({ className }: { className?: string }) {
     // eslint-disable-next-line @next/next/no-img-element
     <img
       src="/hero/w-mark.webp"
+      // The poster is the page's LCP element on phones (it outweighs any single
+      // line of the headline), so it is fetched ahead of the JS chunks, in a
+      // size that fits the slot: ~54vw on phones, ~52% of the container above.
+      srcSet="/hero/w-mark-480.webp 480w, /hero/w-mark-640.webp 640w, /hero/w-mark.webp 960w"
+      sizes="(min-width: 1024px) 46rem, (min-width: 640px) 40vw, 54vw"
+      fetchPriority="high"
       alt=""
       width={960}
       height={720}

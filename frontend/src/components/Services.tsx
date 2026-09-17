@@ -52,7 +52,8 @@ function useHighlightedService() {
 const THEMES = [
   {
     card: 'bg-brand-600 text-white',
-    muted: 'text-white/75',
+    // white/75 on brand-600 is 4.0:1 and fails AA; /90 is 5.0:1.
+    muted: 'text-white/90',
     rule: 'border-white/20',
     row: 'hover:bg-white/10 focus-visible:ring-lime',
     ring: 'ring-lime',

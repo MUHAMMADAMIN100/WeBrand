@@ -8,14 +8,10 @@ import Button from './ui/Button'
 import Magnetic from './motion/Magnetic'
 import HeroVisual from './webgl/HeroVisual'
 
-// Real clients, real logos (public/logos) — the faces behind «30+ компаний».
-const TRUSTED = [
-  { src: '/logos/sabt.png', alt: 'SABT' },
-  { src: '/logos/todo.webp', alt: 'Todo' },
-  { src: '/logos/asan.webp', alt: 'ASAN' },
-  { src: '/logos/aiva.webp', alt: 'Aiva' },
-  { src: '/logos/getup.jpg', alt: 'GetUp' },
-]
+// Real clients (public/logos) — the faces behind «30+ компаний». These are
+// 120px thumbnails cut for the 40px avatars: the full-size logos cost ~100 KB
+// for five dots.
+const TRUSTED = ['sabt', 'todo', 'asan', 'aiva', 'getup'].map((name) => `/hero/trust-${name}.webp`)
 
 export default function Hero() {
   const { open: openModal } = useModal()
@@ -101,13 +97,13 @@ export default function Hero() {
 
           <div className="flex shrink-0 items-center gap-3.5">
             <ul className="flex -space-x-2.5" aria-hidden="true">
-              {TRUSTED.map((logo) => (
+              {TRUSTED.map((src) => (
                 <li
-                  key={logo.src}
+                  key={src}
                   className="grid h-10 w-10 place-items-center overflow-hidden rounded-full border-2 border-paper bg-white shadow-sm"
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={logo.src} alt="" width={40} height={40} loading="lazy" className="h-full w-full object-contain p-1.5" />
+                  <img src={src} alt="" width={40} height={40} loading="lazy" decoding="async" className="h-full w-full object-contain p-1" />
                 </li>
               ))}
             </ul>
