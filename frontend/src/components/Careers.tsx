@@ -86,6 +86,7 @@ export default function Careers({
               <VacancyRow
                 key={v.id}
                 vacancy={v}
+                titleLevel={headingLevel === 'h1' ? 'h2' : 'h3'}
                 onApply={() =>
                   openApply({
                     role: v.id,
@@ -104,7 +105,16 @@ export default function Careers({
   )
 }
 
-function VacancyRow({ vacancy, onApply }: { vacancy: Vacancy; onApply: () => void }) {
+function VacancyRow({
+  vacancy,
+  titleLevel: Title,
+  onApply,
+}: {
+  vacancy: Vacancy
+  /** One level under the section heading, so the outline never skips a step. */
+  titleLevel: 'h2' | 'h3'
+  onApply: () => void
+}) {
   const Icon = ICONS[vacancy.icon] ?? Briefcase
 
   // Applicant requirements shown to the candidate (all optional).
@@ -123,9 +133,9 @@ function VacancyRow({ vacancy, onApply }: { vacancy: Vacancy; onApply: () => voi
           <Icon className="h-6 w-6" aria-hidden="true" />
         </span>
         <div className="min-w-0">
-          <h3 className="font-display text-xl font-bold leading-tight tracking-tight text-ink-950 lg:text-2xl">
+          <Title className="font-display text-xl font-bold leading-tight tracking-tight text-ink-950 lg:text-2xl">
             {vacancy.title}
-          </h3>
+          </Title>
           <p className="mt-1.5 inline-flex items-center gap-1.5 text-sm font-semibold text-ink-600">
             <Briefcase className="h-4 w-4" aria-hidden="true" />
             {vacancy.type}

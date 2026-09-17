@@ -1,5 +1,6 @@
 import type { PortfolioItem } from '../../data/content'
 import { cn } from '../../lib/utils'
+import MediaImage from '../ui/MediaImage'
 
 /** Which text colour reads better on `hex`: ink or white. WCAG relative
  *  luminance, then whichever contrast ratio is higher. On the current project
@@ -36,14 +37,14 @@ export default function CasePoster({ item, size = 'card', className }: Props) {
   if (item.cover) {
     return (
       <div className={cn('relative overflow-hidden bg-paper-2', className)}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
+        <MediaImage
           src={item.cover}
           alt={`${item.name} — ${item.subtitle}`}
           width={1600}
           height={1000}
-          loading="lazy"
-          decoding="async"
+          // The case page opens on this image; in a grid it waits its turn.
+          priority={size === 'hero'}
+          sizes={size === 'hero' ? '(min-width: 1440px) 83rem, 94vw' : '(min-width: 1280px) 30vw, (min-width: 640px) 46vw, 92vw'}
           className="h-full w-full object-cover transition-transform duration-700 ease-expo group-hover/case:scale-[1.04]"
         />
         {/* A hairline over the image (an inset ring on the wrapper would sit
@@ -58,17 +59,19 @@ export default function CasePoster({ item, size = 'card', className }: Props) {
       className={cn('relative isolate overflow-hidden', className)}
       style={{ backgroundColor: item.accent }}
     >
-      {/* The name as texture: oversized, tone on tone, cropped by the frame. */}
+      {/* The name as texture: oversized, tone on tone, cropped by the frame.
+          Drawn as generated content — it is decoration, and this way nothing
+          mistakes it for copy: not a screen reader, not a contrast audit, not
+          the browser picking the page's "largest contentful paint". */}
       <span
         aria-hidden="true"
+        data-name={item.name}
         className={cn(
-          'pointer-events-none absolute -bottom-[0.18em] left-[0.04em] -z-10 select-none whitespace-nowrap font-display font-black leading-none tracking-[-0.05em] transition-transform duration-700 ease-expo group-hover/case:-translate-x-[4%]',
+          'before:content-[attr(data-name)] pointer-events-none absolute -bottom-[0.18em] left-[0.04em] -z-10 select-none whitespace-nowrap font-display font-black leading-none tracking-[-0.05em] transition-transform duration-700 ease-expo group-hover/case:-translate-x-[4%]',
           size === 'hero' ? 'text-[clamp(7rem,22vw,20rem)]' : 'text-[clamp(5.5rem,11vw,9.5rem)]',
           tone === 'ink' ? 'text-ink-950/[0.13]' : 'text-white/[0.14]',
         )}
-      >
-        {item.name}
-      </span>
+      />
 
       <div className="grid h-full w-full place-items-center p-[12%]">
         {item.logo ? (
@@ -80,12 +83,12 @@ export default function CasePoster({ item, size = 'card', className }: Props) {
           >
             {/* Pinned to the plate and contained: a square or portrait logo
                 would otherwise size itself by width and spill out underneath. */}
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
+            <MediaImage
               src={item.logo}
               alt={`Логотип ${item.name}`}
-              loading="lazy"
-              decoding="async"
+              width={640}
+              height={640}
+              sizes={size === 'hero' ? '(min-width: 768px) 26vw, 36vw' : '(min-width: 640px) 21vw, 41vw'}
               className={cn('absolute inset-0 h-full w-full object-contain', size === 'hero' ? 'p-[6%]' : 'p-[8%]')}
             />
           </div>

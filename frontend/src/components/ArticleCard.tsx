@@ -1,24 +1,27 @@
 import { ArrowUpRight } from 'lucide-react'
 import Link from 'next/link'
 import { formatDate, type NewsListItem } from '../lib/api'
+import MediaImage from './ui/MediaImage'
 
 /** A post in the blog feed. A plain server component: the blog is for reading
  *  and for crawlers, so it ships no animation library — the hover is CSS.
  *  Titles are set in Manrope, not the display face: real headlines run long,
  *  and a wide grotesque turns them into a wall. */
-export default function ArticleCard({ item }: { item: NewsListItem; index?: number }) {
+export default function ArticleCard({ item, index = 99 }: { item: NewsListItem; index?: number }) {
   return (
     <article className="group relative flex h-full flex-col">
       <div className="relative aspect-[16/10] overflow-hidden rounded-[1.75rem] bg-paper-2">
         {item.cover ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
+          <MediaImage
             src={item.cover}
             alt=""
             width={800}
             height={500}
-            loading="lazy"
-            decoding="async"
+            sizes="(min-width: 1024px) 30vw, (min-width: 640px) 46vw, 92vw"
+            // The first cover is what the page is judged by; the first row is on
+            // screen at once. Everything below waits until it is scrolled to.
+            priority={index === 0}
+            loading={index < 3 ? 'eager' : 'lazy'}
             className="h-full w-full object-cover transition-transform duration-700 ease-expo group-hover:scale-[1.04]"
           />
         ) : (

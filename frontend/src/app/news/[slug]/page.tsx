@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
 import SiteShell from '../../../components/SiteShell'
+import MediaImage from '../../../components/ui/MediaImage'
 import { SITE_URL, formatDate, getNewsArticle, type NewsArticle } from '../../../lib/api'
 import { pageMetadata } from '../../../lib/seo'
 
@@ -74,10 +75,14 @@ export default async function Page({ params }: { params: Promise<Params> }) {
             <p className="mt-5 text-lg leading-relaxed text-ink-600">{article.excerpt}</p>
 
             {article.cover && (
-              <img
+              <MediaImage
                 src={article.cover}
                 alt={article.title}
-                className="mt-9 aspect-[16/9] w-full rounded-[1.75rem] object-cover ring-1 ring-inset ring-ink-950/10"
+                width={1600}
+                height={900}
+                sizes="(min-width: 768px) 44rem, 92vw"
+                priority
+                className="mt-9 aspect-[16/9] h-auto w-full rounded-[1.75rem] object-cover ring-1 ring-inset ring-ink-950/10"
               />
             )}
 

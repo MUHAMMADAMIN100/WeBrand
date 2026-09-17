@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { ArrowUpRight, TrendingUp } from 'lucide-react'
 import type { Partner } from '../lib/api'
 import RevealText from './motion/RevealText'
+import MediaImage from './ui/MediaImage'
 import Button from './ui/Button'
 import Dialog, { DialogHeader } from './ui/Dialog'
 
@@ -56,11 +57,13 @@ function LogoOrInitials({
   return (
     <div className={className}>
       {showLogo ? (
-        <img
+        <MediaImage
           src={partner.logo as string}
           alt={partner.name}
-          loading="lazy"
-          onError={() => setImgError(true)}
+          width={320}
+          height={160}
+          sizes="160px"
+          onGiveUp={() => setImgError(true)}
           className={imgClassName}
         />
       ) : (
@@ -72,17 +75,12 @@ function LogoOrInitials({
 
 function PartnerCard({ partner, onOpen }: { partner: Partner; onOpen: () => void }) {
   return (
-    <button
-      type="button"
-      onClick={onOpen}
-      aria-label={`Подробнее о партнёре: ${partner.name}`}
-      className="group flex h-full flex-col rounded-[1.75rem] border border-ink-200 bg-white p-6 text-left transition-colors duration-300 ease-expo hover:border-ink-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 focus-visible:ring-offset-4 focus-visible:ring-offset-paper lg:p-7"
-    >
+    <article className="group relative flex h-full flex-col rounded-[1.75rem] border border-ink-200 bg-white p-6 transition-colors duration-300 ease-expo hover:border-ink-950 lg:p-7">
       <div className="flex w-full items-start justify-between gap-4">
         <LogoOrInitials
           partner={partner}
           className="flex h-14 items-center"
-          imgClassName="max-h-14 max-w-[160px] object-contain"
+          imgClassName="h-auto max-h-14 w-auto max-w-[160px] object-contain"
           initialsClassName="grid h-14 w-14 place-items-center rounded-2xl bg-brand-600 font-display text-lg font-black text-white"
         />
         <span
@@ -98,7 +96,18 @@ function PartnerCard({ partner, onOpen }: { partner: Partner; onOpen: () => void
       </h3>
       {partner.niche && <p className="mt-1.5 text-sm font-semibold text-brand-600">{partner.niche}</p>}
       {partner.result && <p className="mt-3 line-clamp-2 text-sm leading-relaxed text-ink-600">{partner.result}</p>}
-    </button>
+
+      {/* Stretched button — the whole card opens the details. It holds no text
+          of its own (a heading may not live inside a button), so its label is
+          free to say what the press does. */}
+      <button
+        type="button"
+        onClick={onOpen}
+        aria-label={`Подробнее о партнёре: ${partner.name}`}
+        aria-haspopup="dialog"
+        className="absolute inset-0 rounded-[1.75rem] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 focus-visible:ring-offset-4 focus-visible:ring-offset-paper"
+      />
+    </article>
   )
 }
 
@@ -113,7 +122,7 @@ function PartnerModal({ partner, onClose }: { partner: Partner | null; onClose: 
                 key={partner.id}
                 partner={partner}
                 className="grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-2xl bg-white p-2"
-                imgClassName="max-h-12 max-w-12 object-contain"
+                imgClassName="h-auto max-h-12 w-auto max-w-12 object-contain"
                 initialsClassName="font-display text-xl font-black text-brand-600"
               />
               <div className="min-w-0">
