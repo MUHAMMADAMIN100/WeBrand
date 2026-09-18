@@ -1,20 +1,23 @@
 import { Loader2 } from 'lucide-react'
-import type { ButtonHTMLAttributes, ReactNode } from 'react'
+import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from 'react'
+import { cn } from '../../lib/cn'
 
 type Variant = 'primary' | 'secondary' | 'ghost' | 'danger'
 type Size = 'sm' | 'md'
 
 const VARIANTS: Record<Variant, string> = {
+  // The site's one button: ink that turns brand blue under the pointer. In the
+  // dark theme it inverts to white, and the pointer brings out the lime.
   primary:
-    'bg-brand-600 text-white shadow-sm hover:bg-brand-700 active:bg-brand-700 disabled:bg-brand-300',
+    'bg-ink-950 text-white hover:bg-brand-600 disabled:bg-ink-300 dark:bg-white dark:text-ink-950 dark:hover:bg-lime dark:disabled:bg-ink-700 dark:disabled:text-ink-400',
   secondary:
-    'bg-white dark:bg-neutral-800 text-neutral-700 dark:text-neutral-200 border border-neutral-300 dark:border-neutral-700 hover:bg-neutral-50 dark:hover:bg-neutral-700 hover:border-neutral-400 dark:hover:border-neutral-600 disabled:opacity-60',
-  ghost: 'bg-transparent text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-neutral-100',
-  danger: 'bg-red-600 text-white shadow-sm hover:bg-red-700 active:bg-red-700 disabled:bg-red-300',
+    'border-2 border-ink-200 bg-white text-ink-950 hover:border-ink-950 disabled:opacity-60 dark:border-ink-700 dark:bg-ink-900 dark:text-ink-100 dark:hover:border-white',
+  ghost: 'bg-transparent text-ink-600 hover:bg-ink-100 hover:text-ink-950 dark:text-ink-300 dark:hover:bg-ink-800 dark:hover:text-white',
+  danger: 'bg-red-600 text-white hover:bg-red-700 disabled:bg-red-300',
 }
 const SIZES: Record<Size, string> = {
-  sm: 'h-9 px-3.5 text-sm gap-1.5 rounded-lg',
-  md: 'h-11 px-5 text-sm gap-2 rounded-xl',
+  sm: 'h-9 gap-1.5 px-4 text-sm',
+  md: 'h-11 gap-2 px-5 text-sm',
 }
 
 type Props = ButtonHTMLAttributes<HTMLButtonElement> & {
@@ -24,24 +27,24 @@ type Props = ButtonHTMLAttributes<HTMLButtonElement> & {
   icon?: ReactNode
 }
 
-export function Button({
-  variant = 'primary',
-  size = 'md',
-  loading = false,
-  icon,
-  children,
-  className = '',
-  disabled,
-  ...rest
-}: Props) {
+export const Button = forwardRef<HTMLButtonElement, Props>(function Button(
+  { variant = 'primary', size = 'md', loading = false, icon, children, className = '', disabled, ...rest },
+  ref,
+) {
   return (
     <button
+      ref={ref}
       {...rest}
       disabled={disabled || loading}
-      className={`inline-flex items-center justify-center font-semibold transition-colors duration-150 disabled:cursor-not-allowed ${VARIANTS[variant]} ${SIZES[size]} ${className}`}
+      className={cn(
+        'inline-flex items-center justify-center rounded-full font-semibold transition-colors duration-200 disabled:cursor-not-allowed',
+        VARIANTS[variant],
+        SIZES[size],
+        className,
+      )}
     >
       {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : icon}
       {children}
     </button>
   )
-}
+})

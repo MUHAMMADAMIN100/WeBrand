@@ -3,6 +3,7 @@ import { useState, type ReactNode } from 'react'
 import { Outlet } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext'
+import { cn } from '../lib/cn'
 import { Sidebar } from './Sidebar'
 
 function ThemeToggle() {
@@ -13,7 +14,7 @@ function ThemeToggle() {
       onClick={toggle}
       aria-label={dark ? 'Светлая тема' : 'Тёмная тема'}
       title={dark ? 'Светлая тема' : 'Тёмная тема'}
-      className="grid h-9 w-9 place-items-center rounded-lg text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-800 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-neutral-100"
+      className="grid h-10 w-10 place-items-center rounded-full text-ink-600 transition-colors hover:bg-ink-100 hover:text-ink-950 dark:text-ink-300 dark:hover:bg-ink-800 dark:hover:text-white"
     >
       {dark ? <Sun className="h-[18px] w-[18px]" /> : <Moon className="h-[18px] w-[18px]" />}
     </button>
@@ -24,10 +25,10 @@ function Topbar({ onMenu }: { onMenu: () => void }) {
   const { username } = useAuth()
   const initial = (username || 'A').charAt(0).toUpperCase()
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-neutral-200 bg-white/80 px-4 backdrop-blur-md dark:border-neutral-800 dark:bg-neutral-900/80 lg:px-8">
+    <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-ink-200 bg-paper/85 px-4 backdrop-blur-md dark:border-ink-800 dark:bg-ink-950/85 lg:px-8">
       <button
         onClick={onMenu}
-        className="rounded-lg p-2 text-neutral-500 transition-colors hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-neutral-800 lg:hidden"
+        className="grid h-10 w-10 place-items-center rounded-full text-ink-600 transition-colors hover:bg-ink-100 dark:text-ink-300 dark:hover:bg-ink-800 lg:hidden"
         aria-label="Меню"
       >
         <Menu className="h-5 w-5" />
@@ -35,11 +36,11 @@ function Topbar({ onMenu }: { onMenu: () => void }) {
       <div className="flex-1" />
       <div className="flex items-center gap-2.5">
         <ThemeToggle />
-        <div className="text-right leading-tight">
-          <div className="text-sm font-semibold text-neutral-800 dark:text-neutral-100">{username || 'Администратор'}</div>
-          <div className="text-[11px] text-neutral-400 dark:text-neutral-500">Администратор</div>
+        <div className="hidden text-right leading-tight sm:block">
+          <div className="text-sm font-semibold text-ink-950 dark:text-ink-100">{username || 'Администратор'}</div>
+          <div className="text-[11px] text-ink-600 dark:text-ink-400">Администратор</div>
         </div>
-        <div className="grid h-9 w-9 place-items-center rounded-full bg-brand-600 text-sm font-bold text-white">
+        <div className="grid h-10 w-10 place-items-center rounded-full bg-ink-950 font-display text-sm font-bold text-lime dark:bg-lime dark:text-ink-950">
           {initial}
         </div>
       </div>
@@ -51,24 +52,24 @@ export function Layout() {
   const [mobileOpen, setMobileOpen] = useState(false)
 
   return (
-    <div className="flex min-h-screen bg-neutral-50 dark:bg-neutral-950">
-      {/* Desktop / tablet sidebar (>= md) */}
+    <div className="flex min-h-screen bg-paper dark:bg-ink-950">
+      {/* Desktop / tablet sidebar (>= lg) */}
       <div className="hidden lg:block">
         <div className="fixed inset-y-0 left-0">
           <Sidebar />
         </div>
       </div>
 
-      {/* Mobile sidebar (< md) */}
+      {/* Mobile sidebar (< lg) */}
       {mobileOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
-          <div className="absolute inset-0 animate-fade-in bg-neutral-950/40" onClick={() => setMobileOpen(false)} />
+          <div className="absolute inset-0 animate-fade-in bg-ink-950/60" onClick={() => setMobileOpen(false)} />
           <div className="absolute inset-y-0 left-0 animate-slide-in [animation-name:none]">
             <Sidebar onNavigate={() => setMobileOpen(false)} />
           </div>
           <button
             onClick={() => setMobileOpen(false)}
-            className="absolute left-[17rem] top-4 rounded-lg bg-white/90 p-2 text-neutral-600 shadow dark:bg-neutral-800/90 dark:text-neutral-200"
+            className="absolute left-[17rem] top-3 grid h-11 w-11 place-items-center rounded-full bg-white text-ink-950 shadow dark:bg-ink-800 dark:text-white"
             aria-label="Закрыть меню"
           >
             <X className="h-5 w-5" />
@@ -104,8 +105,8 @@ export function PageHeader({
     // Stack on mobile (title, then full-width action); side-by-side from sm up.
     <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between sm:gap-4">
       <div className="min-w-0">
-        <h1 className="text-2xl font-extrabold tracking-tight text-neutral-900 dark:text-neutral-100">{title}</h1>
-        {subtitle && <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">{subtitle}</p>}
+        <h1 className="font-display text-2xl font-black tracking-tight text-ink-950 dark:text-white">{title}</h1>
+        {subtitle && <p className="mt-1.5 max-w-2xl text-sm leading-relaxed text-ink-600 dark:text-ink-400">{subtitle}</p>}
       </div>
       {action && <div className="w-full sm:w-auto [&>*]:w-full sm:[&>*]:w-auto">{action}</div>}
     </div>
@@ -114,7 +115,12 @@ export function PageHeader({
 
 export function Card({ children, className = '' }: { children: ReactNode; className?: string }) {
   return (
-    <div className={`overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-card dark:border-neutral-800 dark:bg-neutral-900 ${className}`}>
+    <div
+      className={cn(
+        'overflow-hidden rounded-[1.25rem] border border-ink-200 bg-white shadow-card dark:border-ink-800 dark:bg-ink-900',
+        className,
+      )}
+    >
       {children}
     </div>
   )

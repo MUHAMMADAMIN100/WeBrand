@@ -7,13 +7,14 @@
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
   }
+  /* Light: the site's cool paper with white cards on it. Dark: ink. */
   body {
-    @apply bg-neutral-50 font-sans text-neutral-900;
+    @apply bg-paper font-sans text-ink-950 dark:bg-ink-950 dark:text-ink-100;
   }
-  /* Restrained focus ring across the app */
+  /* One focus ring for the whole app, legible on both themes. */
   :focus-visible {
     outline: none;
-    @apply ring-2 ring-brand-500/60 ring-offset-1 ring-offset-white;
+    @apply ring-2 ring-brand-600 ring-offset-2 ring-offset-paper dark:ring-lime dark:ring-offset-ink-950;
   }
 }
 
@@ -21,14 +22,28 @@
   /* Thin, subtle scrollbars in scroll areas */
   .scroll-thin {
     scrollbar-width: thin;
-    scrollbar-color: rgb(203 213 225) transparent;
+    scrollbar-color: rgb(190 194 204) transparent;
   }
   .scroll-thin::-webkit-scrollbar {
     width: 8px;
     height: 8px;
   }
   .scroll-thin::-webkit-scrollbar-thumb {
-    @apply rounded-full bg-neutral-300;
+    @apply rounded-full bg-ink-300 dark:bg-ink-700;
+  }
+  /* The site's faint grid, for the login backdrop. */
+  .bg-grid {
+    background-image:
+      linear-gradient(to right, rgb(11 13 18 / 0.055) 1px, transparent 1px),
+      linear-gradient(to bottom, rgb(11 13 18 / 0.055) 1px, transparent 1px);
+    background-size: 72px 72px;
+    mask-image: radial-gradient(ellipse 90% 80% at 50% 40%, black 30%, transparent 78%);
+    -webkit-mask-image: radial-gradient(ellipse 90% 80% at 50% 40%, black 30%, transparent 78%);
+  }
+  .dark .bg-grid {
+    background-image:
+      linear-gradient(to right, rgb(244 246 250 / 0.06) 1px, transparent 1px),
+      linear-gradient(to bottom, rgb(244 246 250 / 0.06) 1px, transparent 1px);
   }
 }
 

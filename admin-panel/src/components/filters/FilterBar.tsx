@@ -26,31 +26,25 @@ export function FilterBar({
   const paged = total > 0 && (from > 1 || to < total)
   return (
     <>
-      {/* Filter controls only — the result count no longer floats in the card corner.
-          Mobile: each control on its own comfortable row (flex-col, left-aligned),
-          so the search (w-full) gets a full row and chips never get squeezed next
-          to it. Desktop (sm+): the original inline-wrap layout — unchanged. */}
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-2.5 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 px-3.5 py-3 shadow-card">
+      {/* Mobile: each control on its own row (the search gets a full row);
+          from sm up: one wrapping line. */}
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-2.5 rounded-2xl border border-ink-200 bg-white px-3.5 py-3 shadow-card dark:border-ink-800 dark:bg-ink-900">
         <div className="flex min-w-0 flex-1 flex-col items-start gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-2.5">
           {children}
         </div>
       </div>
 
-      {/* Thin, muted caption between the filter bar and the table — in normal flow,
-          right-aligned, consistent across every list. */}
       <div className="mb-4 mt-2 flex items-center justify-end gap-2.5 px-1">
-        <span className="text-xs text-neutral-400 dark:text-neutral-500" aria-live="polite">
+        <span className="text-xs text-ink-600 dark:text-ink-400" aria-live="polite">
           Показано{' '}
-          <span className="font-semibold text-neutral-600 dark:text-neutral-300">
-            {paged ? `${from}–${to}` : total}
-          </span>
+          <span className="font-semibold text-ink-950 dark:text-ink-100">{paged ? `${from}–${to}` : total}</span>
           {paged ? ` из ${total}` : ''}
         </span>
         {active && (
           <button
             type="button"
             onClick={onReset}
-            className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-xs font-semibold text-neutral-500 dark:text-neutral-400 transition-colors hover:bg-neutral-100 hover:text-neutral-800 dark:hover:bg-neutral-800 dark:hover:text-neutral-100"
+            className="inline-flex h-8 items-center gap-1.5 rounded-full px-2.5 text-xs font-semibold text-ink-600 transition-colors hover:bg-ink-100 hover:text-ink-950 dark:text-ink-400 dark:hover:bg-ink-800 dark:hover:text-white"
           >
             <RotateCcw className="h-3.5 w-3.5" />
             Сбросить

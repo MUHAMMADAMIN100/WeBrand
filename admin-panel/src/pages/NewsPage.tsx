@@ -1,5 +1,6 @@
 import { GripVertical, Newspaper, Pencil, Plus, SearchX, Trash2 } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import {
   DndContext,
   closestCenter,
@@ -19,6 +20,7 @@ import {
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { PageHeader, Card } from '../components/Layout'
+import { rowAttributes } from '../components/Sortable'
 import { Button } from '../components/ui/Button'
 import { PublishBadge } from '../components/ui/Badge'
 import { TableSkeleton } from '../components/ui/Skeleton'
@@ -103,14 +105,14 @@ function NewsCells({ n, onEdit, onDelete, onToggle, loadingEdit }: { n: NewsList
           <button
             onClick={() => onEdit(n)}
             disabled={loadingEdit === n.slug}
-            className="cursor-pointer rounded-lg p-2 text-neutral-400 dark:text-neutral-500 transition-colors hover:bg-brand-50 dark:hover:bg-brand-500/15 hover:text-brand-600 dark:hover:text-brand-300 disabled:opacity-50"
+            className="grid h-10 w-10 cursor-pointer place-items-center rounded-full text-ink-500 transition-colors hover:bg-ink-950 hover:text-white dark:text-ink-400 dark:hover:bg-white dark:hover:text-ink-950 disabled:opacity-50"
             aria-label="Редактировать"
           >
             <Pencil className="h-4 w-4" />
           </button>
           <button
             onClick={() => onDelete(n)}
-            className="cursor-pointer rounded-lg p-2 text-neutral-400 dark:text-neutral-500 transition-colors hover:bg-red-50 dark:hover:bg-red-500/15 hover:text-red-600 dark:hover:text-red-400"
+            className="grid h-10 w-10 cursor-pointer place-items-center rounded-full text-ink-500 transition-colors hover:bg-red-50 hover:text-red-700 dark:text-ink-400 dark:hover:bg-red-500/15 dark:hover:text-red-300"
             aria-label="Удалить"
           >
             <Trash2 className="h-4 w-4" />
@@ -129,7 +131,7 @@ function SortableNewsRow({ n, ...handlers }: { n: NewsListItem } & RowHandlers) 
     <tr
       ref={setNodeRef}
       style={style}
-      {...attributes}
+      {...rowAttributes(attributes)}
       {...listeners}
       aria-label={`Статья «${n.title}». Перетащите, чтобы изменить порядок`}
       className={`touch-none outline-none transition-colors focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-500/60 ${
@@ -220,6 +222,15 @@ export default function NewsPage() {
     setFormKey((k) => k + 1)
     setFormOpen(true)
   }
+  // `?new=1` (the dashboard's quick actions) opens the create drawer once.
+  const [params, setParams] = useSearchParams()
+  useEffect(() => {
+    if (params.get('new') !== '1') return
+    setParams({}, { replace: true })
+    setEditing(null)
+    setFormKey((k) => k + 1)
+    setFormOpen(true)
+  }, [params, setParams])
 
   // The list lacks the heavy body — fetch the full article before editing.
   const openEdit = async (n: NewsListItem) => {
@@ -346,7 +357,7 @@ export default function NewsPage() {
           <div className="overflow-x-auto">
             <table className="w-full min-w-[760px] text-left text-sm">
               <thead>
-                <tr className="border-b border-neutral-200 dark:border-neutral-800 text-xs font-semibold uppercase tracking-wide text-neutral-400 dark:text-neutral-500">
+                <tr className="border-b border-neutral-200 dark:border-neutral-800 text-xs font-semibold text-ink-600 dark:text-ink-400">
                   <th className="w-10" aria-label="Перетащить" />
                   <th className="px-5 py-3 font-semibold">Статья</th>
                   <th className="px-5 py-3 font-semibold">Дата</th>
@@ -356,6 +367,9 @@ export default function NewsPage() {
               </thead>
               {reorderable ? (
                 <DndContext
+                  // The live region dnd-kit renders for screen readers goes to <body>, not
+                  // between <table> and <tbody> (a <div> may not live there).
+                  accessibility={{ container: document.body }}
                   sensors={sensors}
                   collisionDetection={closestCenter}
                   modifiers={[restrictToVerticalAxis, restrictToParentElement]}

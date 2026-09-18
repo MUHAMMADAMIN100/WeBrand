@@ -46,7 +46,7 @@ function CopyButton({ value }: { value: string }) {
       type="button"
       onClick={copy}
       aria-label={`Скопировать: ${value}`}
-      className="shrink-0 rounded-lg p-2 text-neutral-400 transition-colors hover:bg-white hover:text-neutral-700 dark:text-neutral-500 dark:hover:bg-neutral-700 dark:hover:text-neutral-200"
+      className="grid h-10 w-10 shrink-0 place-items-center rounded-full text-ink-500 transition-colors hover:bg-ink-950 hover:text-white dark:text-ink-400 dark:hover:bg-white dark:hover:text-ink-950"
     >
       {done ? <Check className="h-4 w-4 text-emerald-500" /> : <Copy className="h-4 w-4" />}
     </button>
@@ -56,7 +56,7 @@ function CopyButton({ value }: { value: string }) {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="space-y-2.5">
-      <h3 className="text-[11px] font-bold uppercase tracking-wider text-neutral-400 dark:text-neutral-500">{title}</h3>
+      <h3 className="text-xs font-semibold text-ink-600 dark:text-ink-400">{title}</h3>
       {children}
     </section>
   )

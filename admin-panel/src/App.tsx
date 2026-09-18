@@ -9,6 +9,7 @@ import ReelsPage from './pages/ReelsPage'
 import PartnersPage from './pages/PartnersPage'
 import NewsPage from './pages/NewsPage'
 import LeadsPage from './pages/LeadsPage'
+import DashboardPage from './pages/DashboardPage'
 
 export default function App() {
   return (
@@ -21,6 +22,7 @@ export default function App() {
           </ProtectedRoute>
         }
       >
+        <Route path="/" element={<DashboardPage />} />
         <Route path="/vacancies" element={<VacanciesPage />} />
         <Route path="/vacancies/applications" element={<ApplicationsPage />} />
         <Route path="/projects" element={<ProjectsPage />} />
@@ -29,8 +31,7 @@ export default function App() {
         <Route path="/news" element={<NewsPage />} />
         <Route path="/leads" element={<LeadsPage />} />
       </Route>
-      <Route path="/" element={<Navigate to="/vacancies" replace />} />
-      <Route path="*" element={<Navigate to="/vacancies" replace />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )
 }

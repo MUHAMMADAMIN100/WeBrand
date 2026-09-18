@@ -1,5 +1,13 @@
 import { ArrowUpDown, Check, ChevronsDown, ChevronsUp } from 'lucide-react'
+import type { DraggableAttributes } from '@dnd-kit/core'
 import { Button } from './ui/Button'
+
+/** dnd-kit's row attributes without `role="button"`: a table row that holds
+ *  buttons and a switch must not itself be a button (nested interactive). The
+ *  keyboard drag still works — it listens on the focusable row, not the role. */
+export function rowAttributes({ role: _role, ...rest }: DraggableAttributes) {
+  return rest
+}
 
 /**
  * The «Сортировка» toggle shown above a reorderable list. OFF = normal
@@ -14,15 +22,16 @@ export function SortModeBar({ active, onToggle }: { active: boolean; onToggle: (
         size="sm"
         icon={active ? <Check className="h-4 w-4" /> : <ArrowUpDown className="h-4 w-4" />}
         onClick={onToggle}
+        aria-pressed={active}
       >
         {active ? 'Готово' : 'Сортировка'}
       </Button>
       {active ? (
-        <span className="inline-flex items-center rounded-full bg-brand-50 px-3 py-1.5 text-xs font-medium text-brand-700 dark:bg-brand-500/15 dark:text-brand-300">
+        <span className="inline-flex items-center rounded-full bg-lime-soft px-3 py-1.5 text-xs font-medium text-ink-950 dark:bg-lime/15 dark:text-lime">
           Перетаскивайте строки по всему списку или жмите «В начало / В конец». Фильтры отключены.
         </span>
       ) : (
-        <span className="text-xs text-neutral-400 dark:text-neutral-500">
+        <span className="text-xs text-ink-600 dark:text-ink-400">
           Включите, чтобы менять порядок перетаскиванием по всему списку (через границы страниц).
         </span>
       )}
@@ -34,7 +43,7 @@ export function SortModeBar({ active, onToggle }: { active: boolean; onToggle: (
  * bottom of the whole list — a fast path without long dragging. */
 export function RowMoveButtons({ onStart, onEnd }: { onStart: () => void; onEnd: () => void }) {
   const cls =
-    'cursor-pointer rounded-lg p-2 text-neutral-400 dark:text-neutral-500 transition-colors hover:bg-brand-50 dark:hover:bg-brand-500/15 hover:text-brand-600 dark:hover:text-brand-300'
+    'grid h-9 w-9 cursor-pointer place-items-center rounded-full text-ink-500 transition-colors hover:bg-ink-950 hover:text-white dark:text-ink-400 dark:hover:bg-white dark:hover:text-ink-950'
   return (
     // stopPropagation so a tap on a button never starts a row drag.
     <div className="flex items-center justify-end gap-1" onPointerDown={(e) => e.stopPropagation()}>

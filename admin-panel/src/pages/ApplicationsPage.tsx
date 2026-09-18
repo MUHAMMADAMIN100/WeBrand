@@ -187,7 +187,7 @@ export default function ApplicationsPage() {
           <div className="overflow-hidden">
             <table className="w-full table-fixed text-left text-sm">
               <thead>
-                <tr className="border-b border-neutral-200 dark:border-neutral-800 text-xs font-semibold uppercase tracking-wide text-neutral-400 dark:text-neutral-500">
+                <tr className="border-b border-neutral-200 dark:border-neutral-800 text-xs font-semibold text-ink-600 dark:text-ink-400">
                   <th className="w-[24%] px-4 py-3 font-semibold sm:w-[18%]">Кандидат</th>
                   <th className="hidden w-[14%] px-4 py-3 font-semibold sm:table-cell">Вакансия</th>
                   <th className="hidden w-[12%] px-4 py-3 font-semibold md:table-cell">Опыт</th>
@@ -265,7 +265,7 @@ export default function ApplicationsPage() {
                             e.stopPropagation()
                             setToDelete(l)
                           }}
-                          className="rounded-lg p-2 text-neutral-400 dark:text-neutral-500 transition-colors hover:bg-red-50 dark:hover:bg-red-500/15 hover:text-red-600 dark:hover:text-red-400"
+                          className="grid h-10 w-10 place-items-center rounded-full text-ink-500 transition-colors hover:bg-red-50 hover:text-red-700 dark:text-ink-400 dark:hover:bg-red-500/15 dark:hover:text-red-300"
                           aria-label={`Удалить отклик «${l.name}»`}
                         >
                           <Trash2 className="h-4 w-4" />

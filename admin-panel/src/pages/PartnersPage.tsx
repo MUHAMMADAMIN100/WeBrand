@@ -22,7 +22,7 @@ import { TableSkeleton } from '../components/ui/Skeleton'
 import { EmptyState } from '../components/ui/EmptyState'
 import { ConfirmDialog } from '../components/ui/ConfirmDialog'
 import { Pagination } from '../components/ui/Pagination'
-import { SortModeBar, RowMoveButtons } from '../components/Sortable'
+import { SortModeBar, RowMoveButtons, rowAttributes } from '../components/Sortable'
 import { FilterBar } from '../components/filters/FilterBar'
 import { SearchInput } from '../components/filters/SearchInput'
 import { useDebounce } from '../lib/useDebounce'
@@ -94,14 +94,14 @@ function PartnerCells({ p, onEdit, onDelete, sortMode, onMoveStart, onMoveEnd }:
           <div className="flex items-center justify-end gap-1" onPointerDown={(e) => e.stopPropagation()}>
             <button
               onClick={() => onEdit(p)}
-              className="cursor-pointer rounded-lg p-2 text-neutral-400 dark:text-neutral-500 transition-colors hover:bg-brand-50 dark:hover:bg-brand-500/15 hover:text-brand-600 dark:hover:text-brand-300"
+              className="grid h-10 w-10 cursor-pointer place-items-center rounded-full text-ink-500 transition-colors hover:bg-ink-950 hover:text-white dark:text-ink-400 dark:hover:bg-white dark:hover:text-ink-950"
               aria-label="Редактировать"
             >
               <Pencil className="h-4 w-4" />
             </button>
             <button
               onClick={() => onDelete(p)}
-              className="cursor-pointer rounded-lg p-2 text-neutral-400 dark:text-neutral-500 transition-colors hover:bg-red-50 dark:hover:bg-red-500/15 hover:text-red-600 dark:hover:text-red-400"
+              className="grid h-10 w-10 cursor-pointer place-items-center rounded-full text-ink-500 transition-colors hover:bg-red-50 hover:text-red-700 dark:text-ink-400 dark:hover:bg-red-500/15 dark:hover:text-red-300"
               aria-label="Удалить"
             >
               <Trash2 className="h-4 w-4" />
@@ -120,7 +120,7 @@ function SortablePartnerRow({ p, ...handlers }: { p: Partner } & RowHandlers) {
     <tr
       ref={setNodeRef}
       style={style}
-      {...attributes}
+      {...rowAttributes(attributes)}
       {...listeners}
       aria-label={`Партнёр «${p.name}». Перетащите, чтобы изменить порядок`}
       className={`touch-none outline-none transition-colors focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-500/60 ${
@@ -301,7 +301,7 @@ export default function PartnersPage() {
             <div className="overflow-x-auto">
               <table className="w-full min-w-[680px] text-left text-sm">
                 <thead>
-                  <tr className="border-b border-neutral-200 dark:border-neutral-800 text-xs font-semibold uppercase tracking-wide text-neutral-400 dark:text-neutral-500">
+                  <tr className="border-b border-neutral-200 dark:border-neutral-800 text-xs font-semibold text-ink-600 dark:text-ink-400">
                     <th className="w-10" aria-label="Перетащить" />
                     <th className="px-5 py-3 font-semibold">Партнёр</th>
                     <th className="px-5 py-3 font-semibold">Результат</th>
@@ -310,6 +310,9 @@ export default function PartnersPage() {
                 </thead>
                 {draggable ? (
                   <DndContext
+                    // The live region dnd-kit renders for screen readers goes to <body>, not
+                    // between <table> and <tbody> (a <div> may not live there).
+                    accessibility={{ container: document.body }}
                     sensors={sensors}
                     collisionDetection={closestCenter}
                     modifiers={[restrictToVerticalAxis, restrictToParentElement]}

@@ -10,7 +10,7 @@ export default function Login() {
   const { status, login } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
-  const from = (location.state as { from?: string })?.from || '/vacancies'
+  const from = (location.state as { from?: string })?.from || '/'
 
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
@@ -37,12 +37,9 @@ export default function Login() {
   return (
     // One cohesive tone per theme: a calm neutral surface family with the brand
     // blue reserved for accents only (logo, focus, primary button). No split.
-    <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-gradient-to-b from-neutral-100 to-neutral-200/70 px-5 py-8 dark:from-neutral-950 dark:to-neutral-950">
-      {/* Depth layers — same tonal family, barely-there brand tint (dark only) */}
-      <div className="pointer-events-none absolute left-1/2 top-[-20%] hidden h-[36rem] w-[60rem] -translate-x-1/2 rounded-full bg-brand-600/[0.07] blur-[140px] dark:block" />
-      <div className="pointer-events-none absolute bottom-[-30%] left-1/2 hidden h-[30rem] w-[50rem] -translate-x-1/2 rounded-full bg-brand-900/[0.12] blur-[120px] dark:block" />
-      {/* Light theme: a whisper of warm white light behind the card */}
-      <div className="pointer-events-none absolute left-1/2 top-1/3 h-[26rem] w-[40rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/80 blur-[100px] dark:hidden" />
+    <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-paper px-5 py-8 dark:bg-ink-950">
+      {/* The site's faint grid — the same paper the public pages sit on. */}
+      <div className="bg-grid pointer-events-none absolute inset-0" aria-hidden="true" />
 
       <main className="relative w-full max-w-[25rem] motion-safe:animate-toast-in">
         {/* Real Webrand lockup (themed: full-colour / blue+white) */}
@@ -51,21 +48,22 @@ export default function Login() {
         </div>
 
         {/* Elevated card */}
-        <div className="rounded-3xl border border-neutral-200/90 bg-white p-7 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_24px_48px_-20px_rgba(16,24,40,0.16)] dark:border-white/[0.07] dark:bg-neutral-900 dark:shadow-[0_28px_80px_-32px_rgba(0,0,0,0.9)] dark:ring-1 dark:ring-white/[0.03] sm:p-8">
+        <div className="rounded-[1.75rem] border border-ink-200 bg-white p-7 shadow-[0_1px_2px_rgba(11,13,18,0.04),0_24px_48px_-20px_rgba(11,13,18,0.18)] dark:border-ink-800 dark:bg-ink-900 dark:shadow-[0_28px_80px_-32px_rgba(0,0,0,0.9)] sm:p-8">
           <div className="mb-7">
-            <h1 className="text-[1.45rem] font-extrabold tracking-tight text-neutral-900 dark:text-white">
+            <h1 className="font-display text-[1.45rem] font-black tracking-tight text-ink-950 dark:text-white">
               Вход в панель
             </h1>
-            <p className="mt-1.5 text-sm leading-relaxed text-neutral-500 dark:text-neutral-400">
+            <p className="mt-1.5 text-sm leading-relaxed text-ink-600 dark:text-ink-400">
               Войдите с учётной записью администратора.
             </p>
           </div>
 
           <form onSubmit={onSubmit} className="space-y-4">
-            <Field label="Имя пользователя" required>
-              <div className="group relative rounded-xl transition-shadow duration-200 focus-within:shadow-[0_0_0_4px_rgba(43,94,211,0.10)] dark:focus-within:shadow-[0_0_0_4px_rgba(64,111,219,0.16)]">
-                <User className="pointer-events-none absolute left-3.5 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-neutral-400 transition-colors duration-150 group-focus-within:text-brand-500 dark:text-neutral-500 dark:group-focus-within:text-brand-400" />
+            <Field label="Имя пользователя" required htmlFor="login-username">
+              <div className="group relative">
+                <User className="pointer-events-none absolute left-3.5 top-1/2 z-10 h-[18px] w-[18px] -translate-y-1/2 text-ink-500 transition-colors duration-150 group-focus-within:text-brand-600 dark:group-focus-within:text-brand-300" />
                 <Input
+                  id="login-username"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   placeholder="admin"
@@ -77,10 +75,11 @@ export default function Login() {
               </div>
             </Field>
 
-            <Field label="Пароль" required>
-              <div className="group relative rounded-xl transition-shadow duration-200 focus-within:shadow-[0_0_0_4px_rgba(43,94,211,0.10)] dark:focus-within:shadow-[0_0_0_4px_rgba(64,111,219,0.16)]">
-                <Lock className="pointer-events-none absolute left-3.5 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-neutral-400 transition-colors duration-150 group-focus-within:text-brand-500 dark:text-neutral-500 dark:group-focus-within:text-brand-400" />
+            <Field label="Пароль" required htmlFor="login-password">
+              <div className="group relative">
+                <Lock className="pointer-events-none absolute left-3.5 top-1/2 z-10 h-[18px] w-[18px] -translate-y-1/2 text-ink-500 transition-colors duration-150 group-focus-within:text-brand-600 dark:group-focus-within:text-brand-300" />
                 <Input
+                  id="login-password"
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -96,7 +95,7 @@ export default function Login() {
                   aria-label={showPassword ? 'Скрыть пароль' : 'Показать пароль'}
                   aria-pressed={showPassword}
                   title={showPassword ? 'Скрыть пароль' : 'Показать пароль'}
-                  className="absolute right-1.5 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-lg text-neutral-400 transition-colors hover:text-neutral-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 dark:text-neutral-500 dark:hover:text-neutral-200"
+                  className="absolute right-1 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full text-ink-500 transition-colors hover:bg-ink-100 hover:text-ink-950 dark:hover:bg-ink-800 dark:hover:text-white"
                 >
                   {showPassword ? (
                     <EyeOff className="h-[18px] w-[18px]" />
@@ -120,7 +119,7 @@ export default function Login() {
               type="submit"
               loading={loading}
               icon={<LogIn className="h-4 w-4" />}
-              className="w-full !transition-all duration-200 shadow-lg shadow-brand-600/20 hover:shadow-xl hover:shadow-brand-600/30 motion-safe:hover:-translate-y-0.5 motion-safe:active:translate-y-0"
+              className="h-12 w-full"
             >
               Войти
             </Button>
@@ -128,9 +127,9 @@ export default function Login() {
         </div>
 
         {/* Quiet footer in the same tone */}
-        <div className="mt-7 flex items-center justify-center gap-4 text-xs text-neutral-400 dark:text-neutral-600">
+        <div className="mt-7 flex items-center justify-center gap-4 text-xs text-ink-600 dark:text-ink-500">
           <span>© {new Date().getFullYear()} Webrand</span>
-          <span className="h-3 w-px bg-neutral-300 dark:bg-neutral-800" aria-hidden="true" />
+          <span className="h-3 w-px bg-ink-300 dark:bg-ink-700" aria-hidden="true" />
           <span className="inline-flex items-center gap-1.5">
             <ShieldCheck className="h-3.5 w-3.5" />
             Защищённый вход
