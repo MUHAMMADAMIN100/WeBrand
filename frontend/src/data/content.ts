@@ -350,7 +350,7 @@ export type PortfolioItem = {
   // Project screenshot shown inside the device mockup; falls back to `logo`.
   cover?: string | null
   url?: string
-  // Link to the live site (shown on the case page only).
+  // Legacy: the case page now links out via `url`; honoured only if still set.
   site_url?: string
   initials?: string
 }

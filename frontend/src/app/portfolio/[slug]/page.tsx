@@ -2,7 +2,8 @@ import type { Metadata } from 'next'
 import { cache } from 'react'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ArrowLeft, ArrowRight, ArrowUpRight } from 'lucide-react'
+import { ArrowLeft, ArrowRight, ArrowUpRight, Instagram } from 'lucide-react'
+import Button from '../../../components/ui/Button'
 import SiteShell from '../../../components/SiteShell'
 import CasePoster from '../../../components/portfolio/CasePoster'
 import { SITE_URL, getProjectBySlug } from '../../../lib/api'
@@ -22,6 +23,29 @@ type Params = { slug: string }
 // SMM → smm, Разработка (everything else) → dev.
 function directionFor(category: string): string {
   return category === 'SMM' ? 'smm' : 'dev'
+}
+
+// The live project behind a case: the admin's «Ссылка на кейс» (`url`), filled
+// for every project — a website for development cases, an Instagram account
+// for SMM ones. The older `site_url` is honoured if it is ever set.
+// Returns what to say about the link, judged by where it points: an Instagram
+// URL is shown as the account («@handle»), anything else as the site's host.
+type LiveLink = { href: string; kind: 'instagram' | 'site'; label: string; display: string }
+
+function liveLinkFor(project: PortfolioItem): LiveLink | null {
+  const href = project.url?.trim() || project.site_url?.trim()
+  if (!href) return null
+  try {
+    const u = new URL(href)
+    const host = u.hostname.replace(/^www\./, '')
+    if (/(^|\.)instagram\.com$/i.test(host)) {
+      const handle = u.pathname.split('/').filter(Boolean)[0]
+      return { href, kind: 'instagram', label: 'Смотреть в Instagram', display: handle ? `@${handle}` : host }
+    }
+    return { href, kind: 'site', label: 'Перейти на сайт', display: host }
+  } catch {
+    return { href, kind: 'site', label: 'Перейти на сайт', display: href }
+  }
 }
 
 export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
@@ -76,7 +100,8 @@ export default async function Page({ params }: { params: Promise<Params> }) {
 function CaseBody({ project }: { project: PortfolioItem }) {
   const body = project.case_description?.trim() || project.description?.trim() || ''
   const direction = directionFor(project.category)
-  const siteUrl = project.site_url?.trim()
+  const live = liveLinkFor(project)
+  const LiveIcon = live?.kind === 'instagram' ? Instagram : ArrowUpRight
 
   return (
     <>
@@ -87,6 +112,24 @@ function CaseBody({ project }: { project: PortfolioItem }) {
         <h1 className="mt-5 font-display text-display-xl font-black text-ink-950">{project.name}</h1>
         {project.subtitle && (
           <p className="mt-4 max-w-2xl text-lg leading-relaxed text-ink-600 lg:text-xl">{project.subtitle}</p>
+        )}
+        {/* The way in to the real thing, right under the name. */}
+        {live && (
+          <Button
+            href={live.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            size="lg"
+            className="mt-7 w-full sm:w-auto"
+            aria-label={`${live.label}: ${live.display} (откроется в новой вкладке)`}
+          >
+            {live.kind === 'instagram' && <Instagram className="h-5 w-5" aria-hidden="true" />}
+            {live.label}
+            <ArrowUpRight
+              className="h-5 w-5 transition-transform duration-300 ease-expo group-hover/btn:rotate-45"
+              aria-hidden="true"
+            />
+          </Button>
         )}
       </header>
 
@@ -113,17 +156,24 @@ function CaseBody({ project }: { project: PortfolioItem }) {
             </ul>
           )}
 
-          {/* Live-site link — only when a site_url is set */}
-          {siteUrl && (
+          {/* The same link again beside the tags, where the eye lands after
+              reading «О проекте». Only when the project has one. */}
+          {live && (
             <a
-              href={siteUrl}
+              href={live.href}
               target="_blank"
               rel="noopener noreferrer"
+              aria-label={`${live.label}: ${live.display} (откроется в новой вкладке)`}
               className="group flex items-center justify-between gap-4 rounded-2xl border border-ink-200 bg-white px-5 py-4 transition-colors duration-300 ease-expo hover:border-ink-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 focus-visible:ring-offset-2"
             >
-              <span className="min-w-0">
-                <span className="block text-sm font-semibold text-ink-950">Перейти на сайт</span>
-                <span className="block truncate text-sm text-ink-600">{siteUrl}</span>
+              <span className="flex min-w-0 items-center gap-3.5">
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-ink-950 text-white transition-colors duration-300 ease-expo group-hover:bg-brand-600">
+                  <LiveIcon className="h-5 w-5" aria-hidden="true" />
+                </span>
+                <span className="min-w-0">
+                  <span className="block text-sm font-semibold text-ink-950">{live.label}</span>
+                  <span className="block truncate text-sm text-ink-600">{live.display}</span>
+                </span>
               </span>
               <ArrowUpRight className="h-5 w-5 shrink-0 text-ink-950 transition-transform duration-300 ease-expo group-hover:rotate-45" aria-hidden="true" />
             </a>
