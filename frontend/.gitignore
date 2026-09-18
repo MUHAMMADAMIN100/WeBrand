@@ -38,3 +38,6 @@ next-env.d.ts
 .claude
 .agents
 .shots
+
+# Vite-era build output (stale; Next builds into .next/)
+/dist
