@@ -69,7 +69,7 @@ export default function Hero() {
               Phones: tucked into the gap right of «бизнес», behind the heavy line.
               Desktop: rises behind the end of the headline's second line; its top
               tracks the headline's height (2 lines × the 7.6vw / 6.85rem size). */}
-          <div className="pointer-events-none absolute -right-[10%] top-[2vw] -z-10 w-[58%] sm:-right-[4%] sm:top-[4vw] sm:w-[42%] lg:-right-[5%] lg:top-[calc(min(15.2vw,13.7rem)-4.5rem)] lg:w-[52%]">
+          <div className="pointer-events-none absolute -right-[9%] top-[7vw] -z-10 w-[54%] sm:-right-[4%] sm:top-[5vw] sm:w-[40%] lg:-right-[5%] lg:top-[calc(min(15.2vw,13.7rem)-4.5rem)] lg:w-[52%]">
             <HeroVisual className="aspect-[4/3] w-full" />
             {/* Contact shadow: grounds the balloon on the page. */}
             <div className="absolute inset-x-[16%] -bottom-[3%] hidden h-[9%] rounded-[50%] bg-ink-950/25 blur-2xl lg:block" />

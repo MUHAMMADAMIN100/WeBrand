@@ -2,18 +2,17 @@
 
 import { useEffect, useRef } from 'react'
 
-/** The brand's "We", raymarched as inflated glossy balloon letters.
+/** The brand's "W", raymarched as an inflated glossy balloon letter.
  *
  *  Raw WebGL on purpose: the whole effect is one fragment shader (~5 KB), where
  *  three.js + a material would cost ~180 KB for the same picture. It is only
  *  ever mounted on devices that pass `useCapabilities().rich && .webgl`, and the
  *  chunk is lazy (see HeroVisual), so none of this is on the critical path.
  *
- *  The W is four capsules in the logo's italic slant, blended with a
- *  smooth-min so the joints swell like a balloon; the small "e" beside it is an
- *  open ring with a crossbar, and the logo's dot floats above it. `uInflate`
- *  grows the tube radius from a hairline to full on mount — the same "gaining
- *  weight" move the headline makes with its font weight. */
+ *  The letter is four capsules in the logo's italic slant, blended with a
+ *  smooth-min so the joints swell like a balloon. `uInflate` grows the tube
+ *  radius from a hairline to full on mount — the same "gaining weight" move the
+ *  headline makes with its font weight. */
 
 const VERT = `
 attribute vec2 aPos;
@@ -44,36 +43,9 @@ float capsule(vec3 p, vec3 a, vec3 b, float r) {
   return length(pa - ba * h) - r;
 }
 
-// Distance in the plane to a ring of radius R that is open between angles
-// a0 and a1 (radians, counter-clockwise from +x): the lowercase e's bowl.
-float openRing(vec2 q, float R, float a0, float a1) {
-  float ang = atan(q.y, q.x);
-  if (ang > a0 && ang < a1) {
-    vec2 e0 = R * vec2(cos(a0), sin(a0));
-    vec2 e1 = R * vec2(cos(a1), sin(a1));
-    return min(length(q - e0), length(q - e1));
-  }
-  return abs(length(q) - R);
-}
-
-// The lowercase "e": a ring open at the lower right, its crossbar closing the
-// counter at the ring's right end, and the logo's dot above.
-float letterE(vec3 p, float R, float r, float k) {
-  float ring = length(vec2(openRing(p.xy, R, radians(-52.0), 0.0), p.z)) - r;
-  float bar = capsule(p, vec3(-R, 0.0, 0.0), vec3(R, 0.0, 0.0), r * 0.9);
-  float e = smin(ring, bar, k);
-  float dot_ = length(p - vec3(0.0, R + r + 0.3, 0.0)) - r * 0.75;
-  return min(e, dot_);
-}
-
 float map(vec3 p) {
   p.xz *= rot(uRot.x);
   p.yz *= rot(uRot.y);
-  // The pair "We" is wider than the W alone: scale it into the same frame,
-  // shifted so the whole word sits centred.
-  const float S = 0.62;
-  p /= S;
-  p.x += 0.78;
   p.x -= p.y * 0.2; // the logo's italic slant
 
   float r = mix(0.03, 0.25, uInflate);
@@ -89,15 +61,7 @@ float map(vec3 p) {
   w = smin(w, capsule(p, b, c, r), k);
   w = smin(w, capsule(p, c, d, r), k);
   w = smin(w, capsule(p, d, e, r), k);
-
-  // The e: an x-height letter on the W's baseline, with a thinner tube so its
-  // counter stays open at full inflation.
-  const float R = 0.42;
-  float re = r * 0.62;
-  vec3 pe = p - vec3(1.08 + r + 0.32 + R + re, -0.64 - r + R + re, 0.0);
-  float ee = letterE(pe, R, re, k * 0.7);
-
-  return min(w, ee) * S;
+  return w;
 }
 
 vec3 normalAt(vec3 p) {
@@ -125,7 +89,7 @@ void main() {
 
   // Bounding sphere: most pixels never enter the march loop.
   float bb = dot(ro, rd);
-  float cc = dot(ro, ro) - 3.6;
+  float cc = dot(ro, ro) - 3.1;
   float disc = bb * bb - cc;
   if (disc < 0.0) { gl_FragColor = vec4(0.0); return; }
   float t = max(-bb - sqrt(disc), 0.0);
