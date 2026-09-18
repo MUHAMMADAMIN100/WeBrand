@@ -9,7 +9,7 @@ import { cn } from '../../lib/utils'
 // not download a byte of the shader.
 const WMarkCanvas = dynamic(() => import('./WMarkCanvas'), { ssr: false })
 
-/** The hero's brand mark. Everyone gets the static "W" image immediately; devices
+/** The hero's brand mark. Everyone gets the static "We" image immediately; devices
  *  that can afford it swap to the live WebGL version once the page is idle, and
  *  only after its first frame has actually been drawn — so there is never a
  *  hole where the mark should be. */
