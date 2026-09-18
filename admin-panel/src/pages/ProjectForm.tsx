@@ -75,6 +75,9 @@ export function ProjectForm({
   const [form, setForm] = useState<FormState>(initial ? fromProject(initial) : empty)
   const [logoFile, setLogoFile] = useState<File | null>(null)
   const [logoPreview, setLogoPreview] = useState<string | null>(null)
+  const [coverFile, setCoverFile] = useState<File | null>(null)
+  const [coverPreview, setCoverPreview] = useState<string | null>(null)
+  const coverRef = useRef<HTMLInputElement>(null)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [saving, setSaving] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
@@ -87,6 +90,11 @@ export function ProjectForm({
   }
 
   const currentLogo = logoPreview ?? initial?.logo ?? null
+  const onPickCover = (file: File | null) => {
+    setCoverFile(file)
+    setCoverPreview(file ? URL.createObjectURL(file) : null)
+  }
+  const currentCover = coverPreview ?? initial?.cover ?? null
 
   const validate = () => {
     const e: Record<string, string> = {}
@@ -106,6 +114,7 @@ export function ProjectForm({
       ...form,
       is_featured: form.category === 'SMM' ? form.is_featured : false,
       logo: logoFile,
+      cover: coverFile,
     }
     try {
       if (isEdit) {
@@ -168,6 +177,45 @@ export function ProjectForm({
                   type="button"
                   onClick={() => onPickFile(null)}
                   className="inline-flex items-center gap-1 text-xs font-medium text-neutral-500 dark:text-neutral-400 hover:text-red-600 dark:hover:text-red-400"
+                >
+                  <X className="h-3.5 w-3.5" /> Убрать новый файл
+                </button>
+              )}
+            </div>
+          </div>
+        </Field>
+
+        {/* Cover: a screenshot of the live site. With it the card on the home page
+            and the case page show the picture; without it, a poster from the
+            accent colour and the logo. */}
+        <Field label="Обложка — скриншот сайта" hint="16:10, напр. 1600×1000, PNG / JPG / WEBP">
+          <div className="space-y-2">
+            <div className="grid aspect-[16/10] w-full place-items-center overflow-hidden rounded-2xl border border-neutral-200 bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-800">
+              {currentCover ? (
+                <img src={currentCover} alt="" className="h-full w-full object-cover" />
+              ) : (
+                <span className="flex flex-col items-center gap-1 text-xs text-neutral-500 dark:text-neutral-400">
+                  <ImagePlus className="h-6 w-6 text-neutral-300 dark:text-neutral-600" />
+                  Без обложки карточка рисуется из цвета и логотипа
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-3">
+              <input
+                ref={coverRef}
+                type="file"
+                accept="image/png,image/jpeg,image/webp"
+                className="hidden"
+                onChange={(e) => onPickCover(e.target.files?.[0] ?? null)}
+              />
+              <Button variant="secondary" size="sm" icon={<Upload className="h-4 w-4" />} onClick={() => coverRef.current?.click()}>
+                {currentCover ? 'Заменить обложку' : 'Загрузить обложку'}
+              </Button>
+              {coverFile && (
+                <button
+                  type="button"
+                  onClick={() => onPickCover(null)}
+                  className="inline-flex items-center gap-1 text-xs font-medium text-neutral-500 hover:text-red-600 dark:text-neutral-400 dark:hover:text-red-400"
                 >
                   <X className="h-3.5 w-3.5" /> Убрать новый файл
                 </button>

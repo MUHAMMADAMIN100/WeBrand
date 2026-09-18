@@ -27,6 +27,7 @@ export type Project = {
   tags: string[]
   accent: string
   logo: string | null
+  cover: string | null // screenshot of the site — the card and case page picture
   url: string | null
   initials: string | null
   sort_order: number

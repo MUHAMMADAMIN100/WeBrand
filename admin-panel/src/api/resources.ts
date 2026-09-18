@@ -41,6 +41,7 @@ export type ProjectInput = {
   is_published: boolean
   is_featured: boolean
   logo?: File | null
+  cover?: File | null
 }
 
 function projectFormData(data: ProjectInput): FormData {
@@ -57,6 +58,7 @@ function projectFormData(data: ProjectInput): FormData {
   fd.append('is_featured', String(data.is_featured))
   fd.append('tags', JSON.stringify(data.tags)) // JSONField accepts a JSON string
   if (data.logo) fd.append('logo', data.logo)
+  if (data.cover) fd.append('cover', data.cover)
   return fd
 }
 
