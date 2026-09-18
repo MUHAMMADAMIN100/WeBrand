@@ -27,6 +27,11 @@ const nextConfig = {
     // an optimised copy can be kept for a month instead of the default minute.
     minimumCacheTTL: 60 * 60 * 24 * 31,
   },
+  // Retired portfolio filter routes. The tab is gone from the site; a saved or
+  // indexed link still lands on the portfolio instead of a 404.
+  async redirects() {
+    return [{ source: '/adsprojects', destination: '/#portfolio', permanent: true }]
+  },
 }
 
 export default nextConfig

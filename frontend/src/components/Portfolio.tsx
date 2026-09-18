@@ -12,16 +12,15 @@ import { cn } from '../lib/utils'
 import CaseCard from './portfolio/CaseCard'
 import RevealText from './motion/RevealText'
 
-type Filter = 'Все' | 'Разработка' | 'SMM' | 'Дизайн' | 'Реклама'
+type Filter = 'Все' | 'Разработка' | 'SMM' | 'Дизайн'
 
-const filters: Filter[] = ['Все', 'Разработка', 'SMM', 'Дизайн', 'Реклама']
+const filters: Filter[] = ['Все', 'Разработка', 'SMM', 'Дизайн']
 
 const pathToFilter: Record<string, Filter> = {
   '/': 'Все',
   '/devprojects': 'Разработка',
   '/smmprojects': 'SMM',
   '/designprojects': 'Дизайн',
-  '/adsprojects': 'Реклама',
 }
 
 const filterToPath: Record<Filter, string> = {
@@ -29,7 +28,6 @@ const filterToPath: Record<Filter, string> = {
   Разработка: '/devprojects',
   SMM: '/smmprojects',
   Дизайн: '/designprojects',
-  Реклама: '/adsprojects',
 }
 
 // Filter routes (everything except home) auto-scroll to the portfolio on a
@@ -121,10 +119,10 @@ export default function Portfolio({
           </div>
         </div>
 
-        {/* Five tabs are wider than a phone. The row scrolls inside itself (the
-            negative margin lets it run edge to edge) instead of widening the
-            page — which is what it used to do: 501px of tabs forced the whole
-            layout to 521px on a 390px screen. */}
+        {/* Four tabs fit a 390px phone whole (tighter padding below `sm`). The
+            row still scrolls inside itself, edge to edge via the negative
+            margin, as a safety net for narrower screens and longer labels —
+            never widening the page, which 501px of tabs once did. */}
         <div className="-mx-5 mb-9 overflow-x-auto px-5 [scrollbar-width:none] md:mb-12 lg:mx-0 lg:px-0 [&::-webkit-scrollbar]:hidden">
           <div role="tablist" aria-label="Категории работ" className="inline-flex gap-1 rounded-full border border-ink-200 bg-white p-1.5">
             {filters.map((f) => (
@@ -135,7 +133,7 @@ export default function Portfolio({
                 aria-selected={active === f}
                 onClick={() => handleSetFilter(f)}
                 className={cn(
-                  'relative whitespace-nowrap rounded-full px-5 py-2.5 text-sm font-semibold transition-colors duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 focus-visible:ring-offset-2',
+                  'relative whitespace-nowrap rounded-full px-4 py-2.5 text-sm font-semibold sm:px-5 transition-colors duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 focus-visible:ring-offset-2',
                   active === f ? 'text-white' : 'text-ink-600 hover:text-ink-950',
                 )}
               >

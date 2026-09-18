@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation'
 
 // The portfolio filters are routes (/ ↔ /devprojects ↔ …) that navigate with
 // `scroll: false`. To the visitor that is a tab click, not a page change.
-const FILTER_ROUTES = new Set(['/', '/devprojects', '/smmprojects', '/designprojects', '/adsprojects'])
+const FILTER_ROUTES = new Set(['/', '/devprojects', '/smmprojects', '/designprojects'])
 
 // Survives the remount this file exists to react to. `null` until the first
 // page has rendered — on the server as well, so hydration agrees.
