@@ -2,9 +2,9 @@ import type { Metadata } from 'next'
 import HomeContent from '../components/HomeContent'
 import { pageMetadata } from '../lib/seo'
 
-// Projects are fetched fresh from the API on every request (SSR) so Google sees
-// the real content; force-dynamic keeps the build from trying to prerender it.
-export const dynamic = 'force-dynamic'
+// Rendered once and served from the cache; refreshed when the admin saves
+// something and re-checked every five minutes (see lib/api.ts, REVALIDATE).
+export const revalidate = 300
 
 export const metadata: Metadata = pageMetadata({
   title: 'Webrand — Комплексные digital-решения для бизнеса',

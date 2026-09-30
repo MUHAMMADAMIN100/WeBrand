@@ -9,9 +9,9 @@ import SmmPartners from '../../components/SmmPartners'
 import { getPartners, getReels, getSmmProjects } from '../../lib/api'
 import { pageMetadata } from '../../lib/seo'
 
-// Data is fetched fresh from the API on every request (SSR) so the work is
-// crawlable; force-dynamic keeps the build from trying to prerender it.
-export const dynamic = 'force-dynamic'
+// Rendered once and served from the cache; refreshed when the admin saves
+// something and re-checked every five minutes (see lib/api.ts, REVALIDATE).
+export const revalidate = 300
 
 export const metadata: Metadata = pageMetadata({
   title: 'Наши работы по SMM — кейсы, рилсы и партнёры | Webrand',

@@ -4,8 +4,9 @@ import Careers from '../../components/Careers'
 import { getVacancies } from '../../lib/api'
 import { pageMetadata } from '../../lib/seo'
 
-// Vacancies are fetched fresh from the API on every request (SSR) for SEO.
-export const dynamic = 'force-dynamic'
+// Rendered once and served from the cache; refreshed when the admin saves
+// something and re-checked every five minutes (see lib/api.ts, REVALIDATE).
+export const revalidate = 300
 
 export const metadata: Metadata = pageMetadata({
   title: 'Вакансии Webrand — работа в digital-агентстве в Душанбе',

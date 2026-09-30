@@ -8,15 +8,22 @@ import MediaImage from '../../../components/ui/MediaImage'
 import { SITE_URL, formatDate, getNewsArticle, type NewsArticle } from '../../../lib/api'
 import { pageMetadata } from '../../../lib/seo'
 
-// Articles are server-rendered fresh from the API on every request (SSR) so the
-// full body + meta tags are in the initial HTML for crawlers.
-export const dynamic = 'force-dynamic'
+// Rendered once and served from the cache; refreshed when the admin saves
+// something and re-checked every five minutes (see lib/api.ts, REVALIDATE).
+export const revalidate = 300
 
-// React.cache dedupes the fetch across generateMetadata + the page render in a
-// single request.
+// React.cache dedupes the fetch across generateMetadata + the page render.
 const getArticle = cache(getNewsArticle)
 
 type Params = { slug: string }
+
+// Articles are not built ahead of time: each costs the API a request of its
+// own, and fifty at once during a build would trip its rate limit. An article
+// is rendered on its first visit and cached from then on. (An empty list is
+// what tells Next the route is static.)
+export function generateStaticParams(): Params[] {
+  return []
+}
 
 export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
   const { slug } = await params

@@ -6,18 +6,26 @@ import { ArrowLeft, ArrowRight, ArrowUpRight, Instagram } from 'lucide-react'
 import Button from '../../../components/ui/Button'
 import SiteShell from '../../../components/SiteShell'
 import CasePoster from '../../../components/portfolio/CasePoster'
-import { SITE_URL, getProjectBySlug } from '../../../lib/api'
+import { SITE_URL, getProjectBySlug, getProjects } from '../../../lib/api'
 import { pageMetadata } from '../../../lib/seo'
 import type { PortfolioItem } from '../../../data/content'
 
-// Cases are server-rendered fresh from the API on every request (SSR) so the
-// content + meta tags are in the initial HTML for crawlers.
-export const dynamic = 'force-dynamic'
+// Rendered once and served from the cache; refreshed when the admin saves
+// something and re-checked every five minutes (see lib/api.ts, REVALIDATE).
+export const revalidate = 300
 
-// React.cache dedupes the fetch across generateMetadata + the page render.
+// React.cache dedupes the lookup across generateMetadata + the page render.
 const getProject = cache(getProjectBySlug)
 
 type Params = { slug: string }
+
+// Every published case is built ahead of time (one cached request for the whole
+// list). A project added later is rendered on its first visit and cached from
+// then on; with the API unreachable at build time, all of them are.
+export async function generateStaticParams(): Promise<Params[]> {
+  const { data } = await getProjects()
+  return data.flatMap((p) => (p.slug ? [{ slug: p.slug }] : []))
+}
 
 // Pre-select the quiz direction on the brief from the project's category:
 // SMM → smm, Разработка (everything else) → dev.
@@ -121,10 +129,15 @@ function CaseBody({ project }: { project: PortfolioItem }) {
             rel="noopener noreferrer"
             size="lg"
             className="mt-7 w-full sm:w-auto"
-            aria-label={`${live.label}: ${live.display} (откроется в новой вкладке)`}
           >
             {live.kind === 'instagram' && <Instagram className="h-5 w-5" aria-hidden="true" />}
             {live.label}
+            {/* Spoken, not shown. Not an aria-label: that would replace the
+                visible words, and a name that differs from what is on screen
+                breaks voice control ("click Перейти на сайт"). */}
+            <span className="sr-only">
+              : {live.display}, откроется в новой вкладке
+            </span>
             <ArrowUpRight
               className="h-5 w-5 transition-transform duration-300 ease-expo group-hover/btn:rotate-45"
               aria-hidden="true"
@@ -163,7 +176,6 @@ function CaseBody({ project }: { project: PortfolioItem }) {
               href={live.href}
               target="_blank"
               rel="noopener noreferrer"
-              aria-label={`${live.label}: ${live.display} (откроется в новой вкладке)`}
               className="group flex items-center justify-between gap-4 rounded-2xl border border-ink-200 bg-white px-5 py-4 transition-colors duration-300 ease-expo hover:border-ink-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 focus-visible:ring-offset-2"
             >
               <span className="flex min-w-0 items-center gap-3.5">
@@ -173,6 +185,7 @@ function CaseBody({ project }: { project: PortfolioItem }) {
                 <span className="min-w-0">
                   <span className="block text-sm font-semibold text-ink-950">{live.label}</span>
                   <span className="block truncate text-sm text-ink-600">{live.display}</span>
+                  <span className="sr-only">, откроется в новой вкладке</span>
                 </span>
               </span>
               <ArrowUpRight className="h-5 w-5 shrink-0 text-ink-950 transition-transform duration-300 ease-expo group-hover:rotate-45" aria-hidden="true" />

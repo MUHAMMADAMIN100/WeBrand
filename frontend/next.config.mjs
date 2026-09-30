@@ -32,6 +32,29 @@ const nextConfig = {
   async redirects() {
     return [{ source: '/adsprojects', destination: '/#portfolio', permanent: true }]
   },
+  // Two public addresses carry a query string that changes what the page shows.
+  // A page that reads its query string cannot be cached — it would be rendered
+  // on the server for every visit — so each variant is a static route of its
+  // own and the public address is mapped onto it here. The address bar, the
+  // canonical and every link keep the `?…` form.
+  // `beforeFiles`, because both sources are also real pages (/news, /brief).
+  async rewrites() {
+    return {
+      beforeFiles: [
+        {
+          source: '/news',
+          has: [{ type: 'query', key: 'page', value: '(?<page>[1-9][0-9]{0,4})' }],
+          destination: '/news/p/:page',
+        },
+        {
+          source: '/brief',
+          // Mirrors LOCKABLE_DIRECTIONS (app/brief/metadata.ts, BriefForm.tsx).
+          has: [{ type: 'query', key: 'direction', value: '(?<direction>smm|design|dev|ads)' }],
+          destination: '/brief/d/:direction',
+        },
+      ],
+    }
+  },
 }
 
 export default nextConfig
