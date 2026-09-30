@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, type ReactNode } from 'react'
-import { usePathname } from 'next/navigation'
+import { usePathname } from '../lib/usePathname'
 
 // The portfolio filters are routes (/ ↔ /devprojects ↔ …) that navigate with
 // `scroll: false`. To the visitor that is a tab click, not a page change.

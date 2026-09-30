@@ -1,28 +1,9 @@
 import './globals.css'
 import type { Metadata, Viewport } from 'next'
-import { Manrope, Unbounded } from 'next/font/google'
 import { GoogleAnalytics } from '@next/third-parties/google'
 import { Providers } from './providers'
 import { SITE_URL } from '../lib/api'
-
-// Both are self-hosted by next/font. `cyrillic` is essential — the whole site
-// is in Russian, and it is the reason these faces were picked: most display
-// fonts in fashion ship Latin only. Each is exposed as a CSS variable that
-// tailwind.config.ts maps to `font-sans` / `font-display`.
-const manrope = Manrope({
-  subsets: ['latin', 'cyrillic'],
-  variable: '--font-manrope',
-  display: 'swap',
-})
-
-// Headlines. A wide geometric grotesque that rhymes with the logo lockup.
-// Loaded as a variable font (no `weight` list) so the full 200–900 axis is
-// available — the hero animates it.
-const unbounded = Unbounded({
-  subsets: ['latin', 'cyrillic'],
-  variable: '--font-unbounded',
-  display: 'swap',
-})
+import { fontVariables } from '../lib/fonts'
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -50,7 +31,7 @@ const INTRO_FLAG = `(function(){var d=document.documentElement;try{if(matchMedia
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ru" className={`${manrope.variable} ${unbounded.variable}`} suppressHydrationWarning>
+    <html lang="ru" className={fontVariables} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: INTRO_FLAG }} />
       </head>

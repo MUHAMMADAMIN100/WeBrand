@@ -2,7 +2,7 @@
 
 import { ArrowUp, Instagram, Send } from 'lucide-react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname } from '../lib/usePathname'
 import { contacts, nav } from '../data/content'
 import { useModal } from '../context/ModalContext'
 import { openTelegram } from '../lib/telegram'
