@@ -2,7 +2,7 @@
 
 import { ArrowRight, Check, Clock, Target } from 'lucide-react'
 import { useModal } from '../context/ModalContext'
-import { directionsForService } from './ContactForm'
+import { directionsForService } from '../lib/serviceDirections'
 import Button from './ui/Button'
 import Dialog, { DialogHeader } from './ui/Dialog'
 

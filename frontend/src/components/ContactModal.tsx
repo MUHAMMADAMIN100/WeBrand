@@ -32,7 +32,7 @@ export default function ContactModal() {
           className="fixed inset-0 z-[100] flex items-center justify-center p-0 lg:p-6"
         >
           {/* Backdrop */}
-          <div onClick={close} className="absolute inset-0 bg-ink-950/70 backdrop-blur-sm" aria-hidden="true" />
+          <div onClick={close} className="absolute inset-0 bg-ink-950/70 lg:backdrop-blur-sm" aria-hidden="true" />
 
           {/* Dialog */}
           <motion.div

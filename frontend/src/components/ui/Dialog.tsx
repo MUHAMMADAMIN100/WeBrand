@@ -39,7 +39,7 @@ export default function Dialog({ open, onClose, labelledBy, className, children 
           exit={{ opacity: 0, transition: DIALOG_EXIT }}
           className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4"
         >
-          <div onClick={onClose} className="absolute inset-0 bg-ink-950/70 backdrop-blur-sm" aria-hidden="true" />
+          <div onClick={onClose} className="absolute inset-0 bg-ink-950/70 lg:backdrop-blur-sm" aria-hidden="true" />
 
           <motion.div
             ref={panelRef}

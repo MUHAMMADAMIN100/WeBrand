@@ -157,7 +157,7 @@
     padding: 0.1em 0 0.2em;
     margin: -0.1em 0 -0.2em;
   }
-  /* RevealText's SplitText line masks. NOT the padding/negative-margin trick
+  /* RevealText's line masks. NOT the padding/negative-margin trick
      used above: margins of neighbouring masks collapse into the larger one
      instead of adding up, so a multi-line heading came out 0.14em taller per
      line break split than unsplit. overflow-clip-margin moves the clip edge
@@ -165,6 +165,17 @@
      the reveal runs; RevealText unsplits afterwards.) */
   .rt-line-mask {
     overflow-clip-margin: 0.28em;
+  }
+  /* One line of a heading rising into its mask. Delay and duration are set per
+     line by RevealText; `both` keeps a waiting line below its mask. */
+  .rt-line {
+    animation: rt-rise 0.95s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  /* A heading below the fold, waiting for its cue: out of sight, still in the
+     layout and still read by assistive tech. Set by script only, so without
+     script (or on paper) every heading is simply there. */
+  .rt-armed {
+    opacity: 0;
   }
   .hero-line > span {
     display: block;
@@ -190,6 +201,27 @@
   }
 }
 
+/* The weight animation is for machines that can afford it. Every frame of it is
+   a new instance of the variable font: the line is re-shaped and re-drawn sixty
+   times a second for a second and a half. On a desktop that is nothing; on a
+   mid-range phone it was a third of all the main-thread work of the page's
+   first four seconds (measured: ~0.7 s at 4x CPU slowdown), spent while the
+   page is also trying to become interactive. Phones and tablets get the line
+   at its final weight, rising into place like the first one. */
+@media (hover: none), (pointer: coarse), (max-width: 1023px) {
+  .hero-line > .hero-heavy {
+    animation: hero-rise 1.05s cubic-bezier(0.16, 1, 0.3, 1) 0.12s both;
+  }
+}
+
+@keyframes rt-rise {
+  from {
+    transform: translateY(110%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
 @keyframes hero-rise {
   from {
     transform: translateY(108%);
@@ -217,6 +249,47 @@
   }
 }
 
+/* The header drops in from above. CSS, so it needs no script: the markup is
+   server-rendered in place and this only animates it there. Replays whenever
+   the header is mounted again, i.e. on every page change — under the curtain. */
+.nav-enter {
+  animation: nav-enter 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@keyframes nav-enter {
+  from {
+    transform: translateY(-100px);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+/* Endless ticker (components/motion/Marquee.tsx). The track holds several
+   copies of its content and slides over exactly one of them, on the compositor.
+   --marquee-duration and --marquee-shift come from the component. */
+.marquee-track {
+  animation: marquee-slide var(--marquee-duration, 40s) linear infinite;
+}
+.marquee-track[data-reverse] {
+  animation-direction: reverse;
+}
+@keyframes marquee-slide {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(var(--marquee-shift, -50%), 0, 0);
+  }
+}
+
+/* A button pressed before the page's scripts were ready to answer it (see the
+   early-click script in app/layout.tsx): it shows that the press was taken,
+   and the press is delivered the moment the button comes alive. */
+button[data-pending] {
+  cursor: progress;
+  opacity: 0.7;
+}
+
 .footer-wordmark {
   pointer-events: none;
   user-select: none;
@@ -235,10 +308,11 @@
   content: 'webrand';
 }
 
-/* Intro curtain: <= ~1.3s, once per session (flag set pre-paint in layout.tsx).
+/* Intro curtain: ~0.65s, once per session (flag set pre-paint in layout.tsx).
    The page renders underneath from the first frame — the curtain only covers
    it — and the hero's own entrance is pushed back so it plays as the curtain
-   lifts rather than behind it. */
+   lifts rather than behind it. (It used to hold the page for 1.35s; every
+   number below is about half of what it was.) */
 .intro {
   position: fixed;
   inset: 0;
@@ -247,31 +321,40 @@
   place-items: center;
   background: #0b0d12;
 }
+/* The logo is a background, not an <img>: an image element is downloaded
+   even inside a `display: none` box, and the curtain is not shown on most page
+   loads (once per session, never under reduced motion). */
 .intro-logo {
   width: min(52vw, 17rem);
-  height: auto;
+  aspect-ratio: 388 / 81;
+}
+html[data-intro='play'] .intro-logo {
+  background: url('/logos/main-logo-dark.webp') center / contain no-repeat;
 }
 html[data-intro='play'] .intro {
   display: grid;
-  animation: intro-lift 0.75s cubic-bezier(0.76, 0, 0.24, 1) 0.6s both;
+  animation: intro-lift 0.4s cubic-bezier(0.76, 0, 0.24, 1) 0.28s both;
 }
 html[data-intro='play'] .intro-logo {
-  animation: intro-logo 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: intro-logo 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+html[data-intro='play'] .nav-enter {
+  animation-delay: 0.36s;
 }
 html[data-intro='play'] .hero-line > span {
-  animation-delay: 0.85s;
+  animation-delay: 0.4s;
 }
 html[data-intro='play'] .hero-line + .hero-line > span {
-  animation-delay: 0.97s;
+  animation-delay: 0.5s;
 }
 html[data-intro='play'] .hero-line > .hero-heavy {
-  animation-delay: 0.97s, 1.45s;
+  animation-delay: 0.5s, 0.95s;
 }
 html[data-intro='play'] .hero-fade {
-  animation-delay: 1.3s;
+  animation-delay: 0.75s;
 }
 html[data-intro='play'] .hero-fade-late {
-  animation-delay: 1.55s;
+  animation-delay: 0.95s;
 }
 @keyframes intro-lift {
   to {
@@ -293,7 +376,7 @@ html[data-intro='play'] .hero-fade-late {
   z-index: 90;
   background: #0b0d12;
   pointer-events: none;
-  animation: intro-lift 0.7s cubic-bezier(0.76, 0, 0.24, 1) 0.05s both;
+  animation: intro-lift 0.38s cubic-bezier(0.76, 0, 0.24, 1) 0.02s both;
 }
 
 /* Honour reduced-motion: silence the looping/auto-playing animations */
@@ -307,7 +390,10 @@ html[data-intro='play'] .hero-fade-late {
   .animate-spin-slow,
   .hero-line > span,
   .hero-line > .hero-heavy,
-  .hero-fade {
+  .hero-fade,
+  .nav-enter,
+  .marquee-track,
+  .rt-line {
     animation: none !important;
   }
   .intro,
@@ -330,4 +416,11 @@ html[data-intro='play'] .hero-fade-late {
 }
 ::-webkit-scrollbar-thumb:hover {
   background: #2B5ED3;
+}
+
+/* On paper every heading is there, whatever the scroll position was. */
+@media print {
+  .rt-armed {
+    opacity: 1;
+  }
 }

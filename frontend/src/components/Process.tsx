@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { motion, useScroll, useTransform } from 'framer-motion'
-import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { useCapabilities } from '../lib/capabilities'
 import { cn } from '../lib/utils'
 
@@ -66,12 +65,6 @@ export default function Process() {
       window.removeEventListener('resize', measure)
     }
   }, [horizontal])
-
-  // The section grows by the scene's travel, which moves everything below it:
-  // scroll-triggered reveals further down must re-measure.
-  useEffect(() => {
-    ScrollTrigger.refresh()
-  }, [horizontal, distance])
 
   const { scrollYProgress } = useScroll({ target: sectionRef, offset: ['start start', 'end end'] })
   // Reads the distance from a ref so a re-measure never needs a new transform.

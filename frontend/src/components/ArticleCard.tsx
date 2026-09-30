@@ -1,5 +1,5 @@
 import { ArrowUpRight } from 'lucide-react'
-import Link from 'next/link'
+import IntentLink from './ui/IntentLink'
 import { formatDate, type NewsListItem } from '../lib/api'
 import MediaImage from './ui/MediaImage'
 
@@ -38,12 +38,12 @@ export default function ArticleCard({ item, index = 99 }: { item: NewsListItem; 
         </time>
         <h2 className="mt-2 line-clamp-3 text-xl font-extrabold leading-snug tracking-tight text-ink-950 lg:text-[1.375rem]">
           {/* Stretched link: the whole card is the target, the title is its name. */}
-          <Link
+          <IntentLink
             href={`/news/${item.slug}`}
             className="rounded after:absolute after:inset-0 after:rounded-[1.75rem] focus-visible:outline-none focus-visible:after:ring-2 focus-visible:after:ring-brand-600 focus-visible:after:ring-offset-4 focus-visible:after:ring-offset-paper"
           >
             {item.title}
-          </Link>
+          </IntentLink>
         </h2>
         <p className="mt-3 line-clamp-3 text-base leading-relaxed text-ink-600">{item.excerpt}</p>
         <span className="mt-auto inline-flex items-center gap-1.5 pt-5 text-sm font-semibold text-ink-950" aria-hidden="true">

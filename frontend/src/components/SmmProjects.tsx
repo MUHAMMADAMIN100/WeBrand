@@ -56,8 +56,8 @@ export default function SmmProjects({
                 <h2 className="mb-7 font-display text-display-md font-black text-ink-950 md:mb-10">Топ-кейсы</h2>
                 {/* Two top cases get the wider two-column grid; a full set of three lines up with the rest. */}
                 <div className={cn('grid gap-x-6 gap-y-12 sm:grid-cols-2 xl:gap-x-8', featured.length === 3 && 'xl:grid-cols-3')}>
-                  {featured.map((item) => (
-                    <SmmProjectCard key={item.id} item={item} featured titleLevel="h3" />
+                  {featured.map((item, i) => (
+                    <SmmProjectCard key={item.id} item={item} featured titleLevel="h3" load={i === 0 ? 'first' : 'eager'} />
                   ))}
                 </div>
               </div>
@@ -71,8 +71,15 @@ export default function SmmProjects({
                 <div className="grid gap-x-6 gap-y-12 sm:grid-cols-2 xl:grid-cols-3 xl:gap-x-8">
                   {/* Under «Другие работы» a card title is an h3; with no top cases
                       there is no such heading, and it sits right under the page's h1. */}
-                  {rest.map((item) => (
-                    <SmmProjectCard key={item.id} item={item} titleLevel={featured.length > 0 ? 'h3' : 'h2'} />
+                  {/* With no top cases this grid opens the page: its first row is
+                      on screen at once, so it does not wait to be scrolled to. */}
+                  {rest.map((item, i) => (
+                    <SmmProjectCard
+                      key={item.id}
+                      item={item}
+                      titleLevel={featured.length > 0 ? 'h3' : 'h2'}
+                      load={featured.length > 0 || i > 2 ? 'lazy' : i === 0 ? 'first' : 'eager'}
+                    />
                   ))}
                 </div>
               </div>
@@ -88,16 +95,19 @@ function SmmProjectCard({
   item,
   featured = false,
   titleLevel: Title,
+  load,
 }: {
   item: ProjectItem
   featured?: boolean
+  /** Passed to the poster: see CasePoster. */
+  load: 'lazy' | 'eager' | 'first'
   /** One level under whatever heads the grid, so the outline never skips a step. */
   titleLevel: 'h2' | 'h3'
 }) {
   return (
     <article className="group/case relative flex flex-col">
       <div className="relative">
-        <CasePoster item={item} className="aspect-[4/3] rounded-[1.75rem]" />
+        <CasePoster item={item} load={load} className="aspect-[4/3] rounded-[1.75rem]" />
 
         <span className="absolute left-4 top-4 rounded-full bg-white/95 px-3 py-1.5 text-xs font-bold text-ink-950 shadow-sm">
           {item.category}

@@ -36,7 +36,7 @@ export default function Footer() {
               className="inline-flex rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime focus-visible:ring-offset-4 focus-visible:ring-offset-ink-950"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/logos/main-logo-dark.png" alt="Webrand" width={388} height={81} loading="lazy" className="h-9 w-auto object-contain" />
+              <img src="/logos/main-logo-dark.webp" alt="Webrand" width={388} height={81} loading="lazy" className="h-9 w-auto object-contain" />
             </a>
             <p className="mt-6 max-w-sm text-base leading-relaxed text-paper/65">
               Комплексные digital-решения для бизнеса в Душанбе. Сайты, дизайн, SMM и продвижение.

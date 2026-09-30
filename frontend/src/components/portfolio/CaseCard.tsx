@@ -1,9 +1,9 @@
 'use client'
 
-import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { ArrowUpRight } from 'lucide-react'
 import type { PortfolioItem } from '../../data/content'
+import IntentLink from '../ui/IntentLink'
 import CasePoster from './CasePoster'
 
 /** One case in the portfolio grid. The whole card is the link (a stretched
@@ -59,7 +59,7 @@ export default function CaseCard({ item }: { item: PortfolioItem }) {
 
       {/* Stretched link — the whole card opens the case page */}
       {href && (
-        <Link
+        <IntentLink
           href={href}
           aria-label={`Смотреть кейс: ${item.name}`}
           data-cursor="Смотреть"

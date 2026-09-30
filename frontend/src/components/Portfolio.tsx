@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import { usePathname } from '../lib/usePathname'
 import { contacts, type PortfolioItem } from '../data/content'
 import { openTelegram } from '../lib/telegram'
@@ -12,6 +11,7 @@ import { scrollToElement } from '../lib/scroll'
 import { cn } from '../lib/utils'
 import CaseCard from './portfolio/CaseCard'
 import RevealText from './motion/RevealText'
+import SlidingMarker from './motion/SlidingMarker'
 
 type Filter = 'Все' | 'Разработка' | 'SMM' | 'Дизайн'
 
@@ -37,11 +37,9 @@ const FILTER_ROUTES = new Set(
   (Object.values(filterToPath) as string[]).filter((p) => p !== '/'),
 )
 
-// Module-scoped so it survives the page-subtree remount that happens when the
-// filter routes (/ ↔ /devprojects ↔ /smmprojects) navigate client-side. This
-// reproduces the Vite app's behaviour exactly: auto-scroll to the portfolio
-// section only on a *direct* landing on a filter URL (hard load resets this
-// flag), never on an in-page filter click.
+// Module-scoped so it survives a remount of the page subtree. Auto-scroll to
+// the portfolio section happens only on a *direct* landing on a filter URL (a
+// hard load resets this flag), never on an in-page filter click.
 let didInitialPortfolioScroll = false
 
 export default function Portfolio({
@@ -52,7 +50,6 @@ export default function Portfolio({
   initialError?: boolean
 }) {
   const pathname = usePathname()
-  const router = useRouter()
 
   const active: Filter = pathToFilter[pathname] ?? 'Все'
 
@@ -74,9 +71,14 @@ export default function Portfolio({
 
   const handleSetFilter = (f: Filter) => {
     if (f === active) return
-    // scroll: false keeps the viewport in place on a filter click (Next would
-    // otherwise jump to the top of the new route).
-    router.push(filterToPath[f], { scroll: false })
+    // Only the address changes. Every filter route renders this same page with
+    // a different slice of a list that is already here, so there is nothing to
+    // ask the server for — a router navigation would fetch the page again and
+    // remount all of it, and used to keep a click waiting for up to a second.
+    // Next keeps `usePathname()` in step with the History API, which is all
+    // `active` above is derived from; a reload or a shared link still lands on
+    // the real route.
+    window.history.pushState(null, '', filterToPath[f])
   }
 
   const list =
@@ -138,13 +140,7 @@ export default function Portfolio({
                   active === f ? 'text-white' : 'text-ink-600 hover:text-ink-950',
                 )}
               >
-                {active === f && (
-                  <motion.span
-                    layoutId="filter-pill"
-                    className="absolute inset-0 rounded-full bg-ink-950"
-                    transition={{ type: 'spring', stiffness: 400, damping: 32 }}
-                  />
-                )}
+                {active === f && <SlidingMarker group="portfolio-filter" className="bg-ink-950" />}
                 <span className="relative z-10">{f}</span>
               </button>
             ))}
@@ -169,7 +165,11 @@ export default function Portfolio({
         ) : (
           <>
             <motion.div layout className="grid gap-x-6 gap-y-12 sm:grid-cols-2 xl:grid-cols-3 xl:gap-x-8 xl:gap-y-14">
-              <AnimatePresence mode="popLayout">
+              {/* initial={false}: the cards that are there from the start are
+                  simply there — in the server HTML too, where they used to be
+                  transparent until the scripts arrived. Cards that enter on a
+                  filter change still fade in. */}
+              <AnimatePresence mode="popLayout" initial={false}>
                 {pageList.map((item) => (
                   <CaseCard key={item.id} item={item} />
                 ))}

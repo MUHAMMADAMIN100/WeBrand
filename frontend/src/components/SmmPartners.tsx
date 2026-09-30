@@ -1,12 +1,16 @@
 'use client'
 
-import { useState } from 'react'
-import { ArrowUpRight, TrendingUp } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { ArrowUpRight } from 'lucide-react'
 import type { Partner } from '../lib/api'
+import { useLazy } from '../lib/useLazy'
 import RevealText from './motion/RevealText'
-import MediaImage from './ui/MediaImage'
-import Button from './ui/Button'
-import Dialog, { DialogHeader } from './ui/Dialog'
+import LogoOrInitials from './SmmPartnerLogo'
+
+// The details dialog, and the animation library behind it, are of no use to
+// someone who is only reading the page: they are fetched when a card is first
+// hovered, focused or pressed (see useLazy for why not next/dynamic).
+const loadPartnerModal = () => import('./SmmPartnerModal')
 
 // Section 4 of /smm: «сильные партнёры» cards. Every field except `name` is
 // optional — a missing logo/niche/description/result is handled gracefully.
@@ -14,6 +18,10 @@ import Dialog, { DialogHeader } from './ui/Dialog'
 // unused on the site).
 export default function SmmPartners({ partners }: { partners: Partner[] }) {
   const [selected, setSelected] = useState<Partner | null>(null)
+  const [PartnerModal, loadModal] = useLazy(loadPartnerModal, () => setSelected(null))
+  useEffect(() => {
+    if (selected) loadModal()
+  }, [selected, loadModal])
 
   if (!partners || partners.length === 0) return null
 
@@ -31,49 +39,17 @@ export default function SmmPartners({ partners }: { partners: Partner[] }) {
 
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 lg:gap-6">
           {partners.map((partner) => (
-            <PartnerCard key={partner.id} partner={partner} onOpen={() => setSelected(partner)} />
+            <PartnerCard key={partner.id} partner={partner} onOpen={() => setSelected(partner)} onIntent={loadModal} />
           ))}
         </div>
       </div>
 
-      <PartnerModal partner={selected} onClose={() => setSelected(null)} />
+      {PartnerModal && <PartnerModal partner={selected} onClose={() => setSelected(null)} />}
     </section>
   )
 }
 
-function LogoOrInitials({
-  partner,
-  className,
-  imgClassName,
-  initialsClassName,
-}: {
-  partner: Partner
-  className: string
-  imgClassName: string
-  initialsClassName: string
-}) {
-  const [imgError, setImgError] = useState(false)
-  const showLogo = Boolean(partner.logo) && !imgError
-  return (
-    <div className={className}>
-      {showLogo ? (
-        <MediaImage
-          src={partner.logo as string}
-          alt={partner.name}
-          width={320}
-          height={160}
-          sizes="160px"
-          onGiveUp={() => setImgError(true)}
-          className={imgClassName}
-        />
-      ) : (
-        <span className={initialsClassName}>{partner.name.slice(0, 2).toUpperCase()}</span>
-      )}
-    </div>
-  )
-}
-
-function PartnerCard({ partner, onOpen }: { partner: Partner; onOpen: () => void }) {
+function PartnerCard({ partner, onOpen, onIntent }: { partner: Partner; onOpen: () => void; onIntent: () => void }) {
   return (
     <article className="group relative flex h-full flex-col rounded-[1.75rem] border border-ink-200 bg-white p-6 transition-colors duration-300 ease-expo hover:border-ink-950 lg:p-7">
       <div className="flex w-full items-start justify-between gap-4">
@@ -103,72 +79,12 @@ function PartnerCard({ partner, onOpen }: { partner: Partner; onOpen: () => void
       <button
         type="button"
         onClick={onOpen}
+        onPointerEnter={onIntent}
+        onFocus={onIntent}
         aria-label={`Подробнее о партнёре: ${partner.name}`}
         aria-haspopup="dialog"
         className="absolute inset-0 rounded-[1.75rem] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 focus-visible:ring-offset-4 focus-visible:ring-offset-paper"
       />
     </article>
-  )
-}
-
-function PartnerModal({ partner, onClose }: { partner: Partner | null; onClose: () => void }) {
-  return (
-    <Dialog open={!!partner} onClose={onClose} labelledBy="partner-modal-title" className="max-w-lg">
-      {partner && (
-        <>
-          <DialogHeader>
-            <div className="flex items-center gap-4">
-              <LogoOrInitials
-                key={partner.id}
-                partner={partner}
-                className="grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-2xl bg-white p-2"
-                imgClassName="h-auto max-h-12 w-auto max-w-12 object-contain"
-                initialsClassName="font-display text-xl font-black text-brand-600"
-              />
-              <div className="min-w-0">
-                <h2
-                  id="partner-modal-title"
-                  className="font-display text-2xl font-black leading-tight tracking-tight [overflow-wrap:anywhere] sm:text-3xl"
-                >
-                  {partner.name}
-                </h2>
-                {partner.niche && (
-                  <p className="mt-2.5 inline-flex rounded-full bg-white/15 px-3 py-1 text-xs font-semibold">{partner.niche}</p>
-                )}
-              </div>
-            </div>
-          </DialogHeader>
-
-          {(partner.result || partner.description) && (
-            <div className="space-y-6 p-6 sm:p-9">
-              {partner.result && (
-                <div className="flex items-start gap-3.5 rounded-2xl bg-lime-soft p-4">
-                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-lime text-ink-950">
-                    <TrendingUp className="h-5 w-5" aria-hidden="true" />
-                  </span>
-                  <div>
-                    <h3 className="text-sm font-semibold text-ink-600">Результат</h3>
-                    <p className="mt-0.5 font-semibold text-ink-950">{partner.result}</p>
-                  </div>
-                </div>
-              )}
-
-              {partner.description && (
-                <div>
-                  <h3 className="mb-2 font-display text-base font-bold text-ink-950">О компании</h3>
-                  <p className="whitespace-pre-line text-sm leading-relaxed text-ink-700 sm:text-base">{partner.description}</p>
-                </div>
-              )}
-            </div>
-          )}
-
-          <div className="flex justify-end border-t border-ink-100 px-6 py-4 sm:px-9">
-            <Button variant="ink" onClick={onClose}>
-              Закрыть
-            </Button>
-          </div>
-        </>
-      )}
-    </Dialog>
   )
 }

@@ -23,6 +23,12 @@ type Props = {
   item: PortfolioItem
   /** Larger type and plate, for the case page. */
   size?: 'card' | 'hero'
+  /** Where the picture stands in the page's loading order. A grid card waits
+   *  until it is scrolled to (`lazy`, the default); a card in the first row of
+   *  a page is fetched with the page (`eager`); the one picture a page is
+   *  judged by is fetched ahead of everything else (`first`). The case page's
+   *  hero is always `first`. */
+  load?: 'lazy' | 'eager' | 'first'
   className?: string
 }
 
@@ -31,8 +37,9 @@ type Props = {
  *  have: its accent colour, its name and (usually) its logo. So the grid looks
  *  finished whatever the admin has uploaded, and a cover simply takes over the
  *  day it arrives. Hover effects hang off the parent's `group/case`. */
-export default function CasePoster({ item, size = 'card', className }: Props) {
+export default function CasePoster({ item, size = 'card', load = 'lazy', className }: Props) {
   const tone = readableOn(item.accent)
+  const first = size === 'hero' || load === 'first'
 
   if (item.cover) {
     return (
@@ -42,8 +49,8 @@ export default function CasePoster({ item, size = 'card', className }: Props) {
           alt={`${item.name} — ${item.subtitle}`}
           width={1600}
           height={1000}
-          // The case page opens on this image; in a grid it waits its turn.
-          priority={size === 'hero'}
+          priority={first}
+          loading={first || load === 'eager' ? 'eager' : 'lazy'}
           sizes={size === 'hero' ? '(min-width: 1440px) 83rem, 94vw' : '(min-width: 1280px) 30vw, (min-width: 640px) 46vw, 92vw'}
           className="h-full w-full object-cover transition-transform duration-700 ease-expo group-hover/case:scale-[1.04]"
         />
@@ -89,6 +96,8 @@ export default function CasePoster({ item, size = 'card', className }: Props) {
               width={640}
               height={640}
               sizes={size === 'hero' ? '(min-width: 768px) 26vw, 36vw' : '(min-width: 640px) 21vw, 41vw'}
+              priority={first}
+              loading={first || load === 'eager' ? 'eager' : 'lazy'}
               className={cn('absolute inset-0 h-full w-full object-contain', size === 'hero' ? 'p-[6%]' : 'p-[8%]')}
             />
           </div>

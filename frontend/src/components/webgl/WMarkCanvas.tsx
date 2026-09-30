@@ -220,42 +220,64 @@ export default function WMarkCanvas({ onReady }: { onReady?: () => void }) {
     }
     window.addEventListener('pointermove', onPointer, { passive: true })
 
-    let visible = true
-    const viewObserver = new IntersectionObserver(([entry]) => {
-      visible = entry.isIntersecting
-    })
-    viewObserver.observe(canvas)
+    // How often the letter is redrawn. Every frame of this shader is real GPU
+    // work — about 5 ms on integrated graphics — and at a screen's full refresh
+    // rate (100 Hz and up is common now) that kept the GPU half busy for as long
+    // as the hero was on screen, for a letter that mostly just drifts. So: a
+    // steady 50–60 fps while it is inflating or the pointer is steering it, and
+    // about 30 while it only sways, which is slow enough to look the same.
+    const STEERED_MS = 16
+    const DRIFTING_MS = 30
 
     let raf = 0
-    let start = 0
-    let last = 0
+    let running = false
+    let visible = true
+    let start = 0 // time of the first drawn frame
+    let lastTick = 0 // previous frame callback
+    let lastDraw = 0 // previous drawn frame
+    let drewLast = false // the previous callback drew
+    let refresh = 1000 / 60 // the display's frame interval, learned as the smallest gap seen
     let slowFrames = 0
+    let steeredAt = 0 // when the pointer last moved
     let announced = false
     const easeOutExpo = (t: number) => (t >= 1 ? 1 : 1 - Math.pow(2, -10 * t))
 
     const frame = (now: number) => {
       raf = requestAnimationFrame(frame)
-      if (!visible || document.hidden) {
-        last = now
-        return
+      const gap = lastTick ? now - lastTick : refresh
+      lastTick = now
+      if (gap > 4) refresh = Math.min(refresh, gap)
+
+      // A draw that overran its frame shows up as a late next frame. After a
+      // sustained run of those, drop the resolution; never climb back (that
+      // would oscillate). Judged against this display's own frame interval, so
+      // a 100 Hz screen is held to 100 Hz, not to a fixed 26 ms.
+      if (drewLast) {
+        if (gap > refresh * 1.75 + 2) slowFrames++
+        else slowFrames = Math.max(0, slowFrames - 1)
+        if (slowFrames > 12 && dpr > 0.6) {
+          dpr = dpr > 1 ? 1 : dpr > 0.75 ? 0.75 : 0.6
+          slowFrames = 0
+          resize()
+        }
       }
+      drewLast = false
+
       if (!start) start = now
       const time = (now - start) / 1000
-      const delta = last ? now - last : 16
-      last = now
+      const steered = time < 2.1 || now - steeredAt < 900 || Math.abs(pointer.tx - pointer.x) + Math.abs(pointer.ty - pointer.y) > 0.004
+      // 2 ms of slack: frame times jitter, and a frame that arrives a hair
+      // early must not be skipped in favour of one a whole interval later.
+      if (now - lastDraw < (steered ? STEERED_MS : DRIFTING_MS) - 2) return
+      const dt = lastDraw ? Math.min(now - lastDraw, 100) / 1000 : 1 / 60
+      lastDraw = now
+      drewLast = true
 
-      // Drop resolution after a sustained run of slow frames; never climb back
-      // (that would oscillate). Two steps, then it is what it is.
-      if (delta > 26) slowFrames++
-      else slowFrames = Math.max(0, slowFrames - 1)
-      if (slowFrames > 24 && dpr > 0.75) {
-        dpr = dpr > 1 ? 1 : 0.75
-        slowFrames = 0
-        resize()
-      }
-
-      pointer.x += (pointer.tx - pointer.x) * 0.06
-      pointer.y += (pointer.ty - pointer.y) * 0.06
+      // Ease toward the pointer at the same pace whatever the frame rate
+      // (this is the old 6%-per-frame at 60 fps, expressed per second).
+      const follow = 1 - Math.exp(-3.7 * dt)
+      pointer.x += (pointer.tx - pointer.x) * follow
+      pointer.y += (pointer.ty - pointer.y) * follow
 
       const intro = easeOutExpo(Math.min(time / 1.9, 1))
       const yaw = (1 - intro) * -1.5 + pointer.x * 0.55 + Math.sin(time * 0.55) * 0.12
@@ -272,10 +294,36 @@ export default function WMarkCanvas({ onReady }: { onReady?: () => void }) {
         onReady?.()
       }
     }
-    raf = requestAnimationFrame(frame)
+
+    // The loop exists only while there is something to look at: scrolled out of
+    // view or in a background tab, there is no frame callback at all.
+    const sync = () => {
+      const want = visible && !document.hidden
+      if (want === running) return
+      running = want
+      if (want) {
+        lastTick = 0
+        drewLast = false
+        raf = requestAnimationFrame(frame)
+      } else {
+        cancelAnimationFrame(raf)
+      }
+    }
+    const viewObserver = new IntersectionObserver(([entry]) => {
+      visible = entry.isIntersecting
+      sync()
+    })
+    viewObserver.observe(canvas)
+    document.addEventListener('visibilitychange', sync)
+    const onSteer = () => {
+      steeredAt = performance.now()
+    }
+    window.addEventListener('pointermove', onSteer, { passive: true })
+    sync()
 
     const onLost = (e: Event) => {
       e.preventDefault()
+      running = false
       cancelAnimationFrame(raf)
     }
     canvas.addEventListener('webglcontextlost', onLost)
@@ -284,6 +332,8 @@ export default function WMarkCanvas({ onReady }: { onReady?: () => void }) {
       cancelAnimationFrame(raf)
       canvas.removeEventListener('webglcontextlost', onLost)
       window.removeEventListener('pointermove', onPointer)
+      window.removeEventListener('pointermove', onSteer)
+      document.removeEventListener('visibilitychange', sync)
       resizeObserver.disconnect()
       viewObserver.disconnect()
       // Free what this effect allocated, but do NOT lose the context: a canvas

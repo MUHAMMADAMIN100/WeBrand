@@ -1,44 +1,40 @@
 'use client'
 
 import { useEffect, useRef, type ReactNode } from 'react'
+import type Lenis from 'lenis'
 import { usePathname } from '../../lib/usePathname'
-import Lenis from 'lenis'
-import gsap from 'gsap'
-import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import { getLenis, PROGRAMMATIC_SCROLL, setLenis } from '../../lib/scroll'
+import { getLenis, jumpToElement, scrollToElement, setLenis } from '../../lib/scroll'
 
-gsap.registerPlugin(ScrollTrigger)
-
-/** Owns page scrolling: Lenis smooths the wheel, GSAP's ticker drives it so
- *  ScrollTrigger scenes and the scroll position never drift a frame apart.
+/** Owns page scrolling.
  *
- *  Lenis already honours prefers-reduced-motion (lerp is forced to 1 and
- *  programmatic scrolls turn instant), so it stays mounted in that mode too —
- *  that keeps one code path for "land this anchor below the sticky header". */
+ *  With a mouse or trackpad, Lenis smooths the wheel. On a touch screen there
+ *  is no Lenis at all: it would smooth nothing there (touch scrolling stays
+ *  native either way) and its touch listeners are non-passive, which makes the
+ *  browser wait for the main thread before every scroll gesture — exactly the
+ *  moments a phone has the least to spare. Touch devices scroll natively, off
+ *  the main thread, and anchors use the browser's own smooth scroll.
+ *
+ *  Both modes share the rest: same-page `#hash` links, keeping a hash target in
+ *  place while a new page settles, and holding the page still under a dialog.
+ *
+ *  Lenis already honours prefers-reduced-motion (the wheel stops easing and
+ *  programmatic scrolls turn instant), so it stays on in that mode too. */
 export default function SmoothScroll({ children }: { children: ReactNode }) {
   const pathname = usePathname()
   // True while the current page was reached by Back/Forward rather than a click.
   const traversed = useRef(false)
 
   useEffect(() => {
-    const lenis = new Lenis({
-      lerp: 0.11,
-      // Modals and the mobile menu scroll natively inside the locked page.
-      allowNestedScroll: true,
-    })
-    setLenis(lenis)
-
-    lenis.on('scroll', ScrollTrigger.update)
-    const tick = (time: number) => lenis.raf(time * 1000)
-    gsap.ticker.add(tick)
-    gsap.ticker.lagSmoothing(0)
+    let lenis: Lenis | null = null
+    let disposed = false
+    let frame = 0
 
     // In-page `#hash` links. Lenis has an `anchors` option for this, but it
     // measures the target from its own cached scroll position, which lags the
     // real one by a frame after any native scroll (the browser bringing a
     // focused link into view, a scrollbar drag, a test runner's click). A jump
     // issued in that window lands short by exactly the stale amount. So: adopt
-    // the real position first, then scroll.
+    // the real position first, then scroll — which is what scrollToElement does.
     const onAnchorClick = (e: MouseEvent) => {
       traversed.current = false // whatever navigates next, a click caused it
       if (e.defaultPrevented || e.button !== 0) return
@@ -62,8 +58,7 @@ export default function SmoothScroll({ children }: { children: ReactNode }) {
       if (!target.hasAttribute('tabindex')) target.setAttribute('tabindex', '-1')
       target.focus({ preventScroll: true })
 
-      lenis.scrollTo(window.scrollY, { immediate: true, force: true })
-      lenis.scrollTo(id === 'top' ? 0 : target, PROGRAMMATIC_SCROLL)
+      scrollToElement(target, id === 'top' ? 0 : undefined)
     }
     document.addEventListener('click', onAnchorClick)
     const onTraverse = () => {
@@ -73,26 +68,85 @@ export default function SmoothScroll({ children }: { children: ReactNode }) {
 
     // Every overlay in the app (contact modal, service modal, partner modal,
     // mobile menu) locks the page the same way: `body.style.overflow = 'hidden'`.
-    // That stops the user's wheel but not Lenis, which scrolls programmatically.
-    // Watching the one shared signal covers all of them, present and future,
-    // without each overlay having to know Lenis exists.
+    // That stops the user's wheel but not Lenis, which scrolls programmatically;
+    // and on older iOS it does not stop a finger either. Watching the one shared
+    // signal covers all of them, present and future, without each overlay
+    // having to know how the page scrolls.
+    const blockTouch = (e: TouchEvent) => {
+      // Inside an overlay's own scroller (a long form, the mobile menu on a
+      // short screen) the finger scrolls that, not the page behind it.
+      for (let node = e.target as Element | null; node && node !== document.body; node = node.parentElement) {
+        if (node.hasAttribute('data-lenis-prevent')) return
+        const overflowY = getComputedStyle(node).overflowY
+        if ((overflowY === 'auto' || overflowY === 'scroll') && node.scrollHeight > node.clientHeight) return
+      }
+      if (e.cancelable) e.preventDefault()
+    }
+    let touchBlocked = false
     const syncLock = () => {
-      if (document.body.style.overflow === 'hidden') lenis.stop()
-      else lenis.start()
+      const locked = document.body.style.overflow === 'hidden'
+      if (lenis) {
+        if (locked) lenis.stop()
+        else lenis.start()
+        return
+      }
+      // No Lenis: the listener exists only while something is open, so normal
+      // scrolling never waits on it.
+      if (locked && !touchBlocked) document.addEventListener('touchmove', blockTouch, { passive: false })
+      if (!locked && touchBlocked) document.removeEventListener('touchmove', blockTouch)
+      touchBlocked = locked
     }
     const lockObserver = new MutationObserver(syncLock)
     lockObserver.observe(document.body, { attributes: true, attributeFilter: ['style'] })
     syncLock()
 
-    // Webfonts change text metrics, and with them every trigger position.
-    document.fonts?.ready.then(() => ScrollTrigger.refresh())
+    // A wheel to smooth means a mouse or a trackpad.
+    if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+      // Its own chunk: nothing on the page waits for it, and until it arrives
+      // the wheel simply scrolls natively.
+      import('lenis').then(({ default: LenisClass }) => {
+        if (disposed) return
+        lenis = new LenisClass({
+          // How quickly the page catches up with the wheel: 90% of a notch in
+          // about 0.2 s. (0.11, the old value, took 0.37 s and felt like drag.)
+          lerp: 0.2,
+          // Modals and the mobile menu scroll natively inside the locked page.
+          allowNestedScroll: true,
+        })
+
+        // Lenis only needs a frame callback while it is animating a scroll.
+        // Driving it from a permanent loop wakes the main thread a hundred
+        // times a second on a 100 Hz screen for nothing, so the loop runs from
+        // the moment a scroll starts until the page has settled.
+        const instance = lenis
+        const loop = (now: number) => {
+          instance.raf(now)
+          frame = instance.isScrolling === 'smooth' ? requestAnimationFrame(loop) : 0
+        }
+        const scrollTo = instance.scrollTo.bind(instance)
+        // The one door every animated scroll goes through, Lenis's own wheel
+        // handling included.
+        instance.scrollTo = (...args) => {
+          scrollTo(...args)
+          if (frame) return
+          // Its clock stood still while idle: start with a zero step, not a leap.
+          instance.time = 0
+          frame = requestAnimationFrame(loop)
+        }
+
+        setLenis(lenis)
+        syncLock()
+      })
+    }
 
     return () => {
+      disposed = true
+      cancelAnimationFrame(frame)
       document.removeEventListener('click', onAnchorClick)
       window.removeEventListener('popstate', onTraverse)
+      document.removeEventListener('touchmove', blockTouch)
       lockObserver.disconnect()
-      gsap.ticker.remove(tick)
-      lenis.destroy()
+      lenis?.destroy()
       setLenis(null)
     }
   }, [])
@@ -102,8 +156,8 @@ export default function SmoothScroll({ children }: { children: ReactNode }) {
   // that moment it ignores the native scroll and, a frame later, drags the new
   // page back toward the old target. So drop whatever it was doing and adopt
   // the position the navigation produced. Adopt, never impose: forcing 0 here
-  // would break scroll restoration and the portfolio filter routes, which
-  // navigate with `scroll: false` precisely to stay put.
+  // would break scroll restoration and the portfolio filter, which changes the
+  // address precisely without moving the page.
   //
   // Re-measure first. Lenis clamps every target to its cached scroll limit, and
   // until its own (debounced) resize runs that limit still belongs to the page
@@ -114,28 +168,24 @@ export default function SmoothScroll({ children }: { children: ReactNode }) {
     const lenis = getLenis()
     lenis?.resize()
     lenis?.scrollTo(window.scrollY, { immediate: true, force: true })
-    ScrollTrigger.refresh()
 
     // A navigation that names a section (`/#portfolio` from a case page). Next
     // jumps to it once, at commit — before the new page has finished laying
-    // itself out: the Process scene unfolds by a screen and a half, headings
-    // split, webfonts land, and the section slides out from under the jump.
-    // So hold the section in place while the page height is still changing.
+    // itself out: the Process scene unfolds by a screen and a half, webfonts
+    // land, and the section slides out from under the jump. So hold the section
+    // in place while the page height is still changing.
     // Only for a navigation that went to the section: Back/Forward restores
     // the exact position the person left, hash or no hash, and that wins. And
     // never against the user — the first wheel, touch or key hands the page back.
     if (traversed.current) return
     const id = decodeURIComponent(window.location.hash.slice(1))
     const target = id ? document.getElementById(id) : null
-    if (!lenis || !target) return
+    if (!target) return
     const margin = parseFloat(getComputedStyle(target).scrollMarginTop) || 0
     if (Math.abs(target.getBoundingClientRect().top - margin) > 12) return
 
     const events = ['wheel', 'touchstart', 'keydown', 'pointerdown'] as const
-    const observer = new ResizeObserver(() => {
-      lenis.resize()
-      lenis.scrollTo(target, { immediate: true, force: true })
-    })
+    const observer = new ResizeObserver(() => jumpToElement(target))
     const release = () => {
       observer.disconnect()
       window.clearTimeout(timer)

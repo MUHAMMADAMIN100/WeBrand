@@ -5,7 +5,7 @@ import { motion, useScroll, useTransform, type MotionStyle, type MotionValue } f
 import { ArrowUpRight } from 'lucide-react'
 import { services, contacts, type Service, type SubService } from '../data/content'
 import { useModal } from '../context/ModalContext'
-import { directionsForService } from './ContactForm'
+import { directionsForService } from '../lib/serviceDirections'
 import { SERVICE_HIGHLIGHT_EVENT, serviceAnchorId } from '../lib/serviceAnchors'
 import { openTelegram } from '../lib/telegram'
 import { useCapabilities } from '../lib/capabilities'

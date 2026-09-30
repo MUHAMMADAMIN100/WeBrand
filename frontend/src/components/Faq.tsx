@@ -1,7 +1,6 @@
 'use client'
 
 import { useId, useState } from 'react'
-import { motion } from 'framer-motion'
 import { Plus } from 'lucide-react'
 import { faq } from '../data/content'
 import { useModal } from '../context/ModalContext'
@@ -68,21 +67,25 @@ export default function Faq() {
                 </h3>
                 {/* Collapsed answers stay in the HTML (height 0), they are not
                     unmounted: crawlers read them, and the FAQPage structured data
-                    on the home page must match text that is really on the page. */}
-                <motion.div
+                    on the home page must match text that is really on the page.
+                    The height animates as a grid row going 0fr → 1fr: pure CSS,
+                    no measuring, and it opens before any script has loaded state. */}
+                <div
                   id={panelId}
                   role="region"
                   aria-labelledby={buttonId}
                   aria-hidden={!expanded}
-                  initial={false}
-                  animate={{ height: expanded ? 'auto' : 0, opacity: expanded ? 1 : 0 }}
-                  transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
-                  className="overflow-hidden"
+                  className={cn(
+                    'grid transition-[grid-template-rows,opacity] duration-[450ms] ease-expo motion-reduce:transition-none',
+                    expanded ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0',
+                  )}
                 >
-                  <p className="max-w-2xl pb-6 pr-14 text-base leading-relaxed text-ink-600 lg:pb-7 lg:text-lg">
-                    {item.a}
-                  </p>
-                </motion.div>
+                  <div className="min-h-0 overflow-hidden">
+                    <p className="max-w-2xl pb-6 pr-14 text-base leading-relaxed text-ink-600 lg:pb-7 lg:text-lg">
+                      {item.a}
+                    </p>
+                  </div>
+                </div>
               </li>
             )
           })}

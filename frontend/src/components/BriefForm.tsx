@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
-import { motion } from 'framer-motion'
 import {
   AlignLeft,
   ArrowRight,
@@ -28,11 +27,12 @@ import {
   validateName,
   validatePhone,
   type Answers,
-} from './ContactForm'
+} from '../lib/leadForm'
 import { contacts } from '../data/content'
 import { scrollToElement } from '../lib/scroll'
 import { openTelegram } from '../lib/telegram'
 import { cn } from '../lib/utils'
+import SlidingMarker from './motion/SlidingMarker'
 
 // Same intake the quiz modal uses — no hardcoded origin.
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
@@ -269,13 +269,7 @@ export default function BriefForm({ initialDirection = '' }: { initialDirection?
                     active ? 'text-white' : 'text-ink-600 hover:text-ink-950',
                   )}
                 >
-                  {active && (
-                    <motion.span
-                      layoutId="brief-mode-pill"
-                      className="absolute inset-0 rounded-full bg-ink-950"
-                      transition={{ type: 'spring', stiffness: 400, damping: 32 }}
-                    />
-                  )}
+                  {active && <SlidingMarker group="brief-mode" className="bg-ink-950" />}
                   <span className="relative z-10 inline-flex items-center gap-2 whitespace-nowrap">
                     <m.icon className="hidden h-4 w-4 min-[400px]:block" aria-hidden="true" />
                     {m.label}

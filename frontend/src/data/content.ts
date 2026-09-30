@@ -557,23 +557,27 @@ export type Partner = {
   logo?: string
 }
 
+// Logos here are the display-sized copies in public/partners (fitted to the
+// 136x48 plate at 2.5x, WebP) — not the originals in public/logos, some of which
+// are 2000px wide. Regenerate them with the script described in
+// docs/superpowers/plans/2026-09-30-performance.md when a logo changes.
 export const partners: Partner[] = [
-  { name: "Корманд TJ", logo: "/logos/kormand.png" },
-  { name: "SHAKL", logo: "/logos/shakl.png" },
-  { name: "SABT", logo: "/logos/sabt.png" },
-  { name: "Айва", logo: "/logos/aiva.webp" },
-  { name: "LOFTORY", logo: "/logos/loftory.webp" },
-  { name: "GetUp", logo: "/logos/getup.jpg" },
-  { name: "АСАН", logo: "/logos/asan.webp" },
-  { name: "Армут", logo: "/logos/armut.png" },
-  { name: "STAR", logo: "/logos/star.webp" },
-  { name: "SAPPORO", logo: "/logos/sapporo.webp" },
-  { name: "BARF", logo: "/logos/barf.webp" },
-  { name: "Khotiri Jam", logo: "/logos/khotiri-jam.png" },
-  { name: "Todo", logo: "/logos/todo.webp" },
-  { name: "Grant China", logo: "/logos/grantchina.webp" },
-  { name: "iram.cinema", logo: "/logos/iram-cinema.png" },
-  { name: "Javonon Group", logo: "/logos/javonon-group.webp" },
+  { name: "Корманд TJ", logo: "/partners/kormand.webp" },
+  { name: "SHAKL", logo: "/partners/shakl.webp" },
+  { name: "SABT", logo: "/partners/sabt.webp" },
+  { name: "Айва", logo: "/partners/aiva.webp" },
+  { name: "LOFTORY", logo: "/partners/loftory.webp" },
+  { name: "GetUp", logo: "/partners/getup.webp" },
+  { name: "АСАН", logo: "/partners/asan.webp" },
+  { name: "Армут", logo: "/partners/armut.webp" },
+  { name: "STAR", logo: "/partners/star.webp" },
+  { name: "SAPPORO", logo: "/partners/sapporo.webp" },
+  { name: "BARF", logo: "/partners/barf.webp" },
+  { name: "Khotiri Jam", logo: "/partners/khotiri-jam.webp" },
+  { name: "Todo", logo: "/partners/todo.webp" },
+  { name: "Grant China", logo: "/partners/grantchina.webp" },
+  { name: "iram.cinema", logo: "/partners/iram-cinema.webp" },
+  { name: "Javonon Group", logo: "/partners/javonon-group.webp" },
 ]
 
 // Applicant experience enum — cross-app contract. Keep in sync with
