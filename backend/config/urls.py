@@ -7,7 +7,9 @@ from django.views.static import serve as static_serve
 from drf_yasg import openapi
 from drf_yasg.views import get_schema_view
 from rest_framework import permissions
+from rest_framework.response import Response
 from rest_framework.throttling import ScopedRateThrottle
+from rest_framework.views import APIView
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
@@ -23,6 +25,28 @@ class ThrottledTokenObtainPairView(TokenObtainPairView):
 
     throttle_classes = [ScopedRateThrottle]
     throttle_scope = "login"
+
+
+class MeView(APIView):
+    """Whose token this is — answered for staff only.
+
+    The public site caches its pages and rebuilds them when the admin panel
+    tells it content changed. It must not take that on anyone's word, so it
+    forwards the caller's bearer token here: 200 means "a staff user", 401/403
+    means "not one". Nothing about the user beyond that is needed.
+    """
+
+    permission_classes = [permissions.IsAdminUser]
+
+    def get(self, request):
+        return Response({"username": request.user.get_username(), "is_staff": True})
+
+
+#: How long a browser or CDN may keep a public media file. An upload never
+#: changes under its name (storage gives a replacement a new one), so a long
+#: life is safe — and it spares the image optimiser and repeat visitors a
+#: download of files that weigh up to a megabyte.
+MEDIA_CACHE_CONTROL = "public, max-age=2592000"
 
 
 #: Private upload prefixes (PII / client files) never served at a public /media/
@@ -42,7 +66,9 @@ def protected_media_serve(request, path):
     normalized = path.replace("\\", "/")
     if normalized.startswith(PRIVATE_MEDIA_PREFIXES):
         raise Http404
-    return static_serve(request, path, document_root=settings.MEDIA_ROOT)
+    response = static_serve(request, path, document_root=settings.MEDIA_ROOT)
+    response.headers.setdefault("Cache-Control", MEDIA_CACHE_CONTROL)
+    return response
 
 
 urlpatterns = [
@@ -54,6 +80,7 @@ urlpatterns = [
     # JWT auth (admin panel)
     path("api/auth/login/", ThrottledTokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("api/auth/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
+    path("api/auth/me/", MeView.as_view(), name="auth_me"),
     # Uploaded media (logos public; resumes blocked here — see above).
     re_path(r"^media/(?P<path>.*)$", protected_media_serve),
 ]
