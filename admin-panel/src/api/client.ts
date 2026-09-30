@@ -1,4 +1,5 @@
 import { API_BASE } from './config'
+import { notifySite } from './site'
 import { clearTokens, getAccess, getRefresh, setAccess } from './tokens'
 
 // Fired when a refresh attempt fails — AuthContext listens and forces logout.
@@ -35,6 +36,10 @@ async function refreshAccess(): Promise<string | null> {
 
 type FetchOpts = RequestInit & { auth?: boolean }
 
+// What the public site shows. A successful write to any of these means its
+// cached pages are out of date (leads and auth are not content).
+const SITE_CONTENT = /^\/api\/(vacancies|projects|news|reels|partners)\//
+
 /**
  * fetch wrapper: attaches `Authorization: Bearer <access>` and, on a 401,
  * transparently refreshes the access token once and retries. If the refresh
@@ -59,6 +64,10 @@ export async function apiFetch(path: string, opts: FetchOpts = {}): Promise<Resp
       window.dispatchEvent(new Event(AUTH_LOGOUT_EVENT))
     }
   }
+
+  const method = (rest.method || 'GET').toUpperCase()
+  if (res.ok && method !== 'GET' && method !== 'HEAD' && SITE_CONTENT.test(path)) notifySite()
+
   return res
 }
 
