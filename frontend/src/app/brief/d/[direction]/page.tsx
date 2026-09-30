@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { notFound } from 'next/navigation'
 import SiteShell from '../../../../components/SiteShell'
 import BriefForm from '../../../../components/BriefForm'
 import { LOCKABLE_DIRECTIONS, briefMetadata } from '../../metadata'
@@ -8,18 +9,23 @@ import { LOCKABLE_DIRECTIONS, briefMetadata } from '../../metadata'
 // it, so the four variants are plain static pages.
 export const metadata: Metadata = briefMetadata
 
-// Only the known directions exist; anything else is a 404 here (and never
-// reaches this route anyway — the rewrite only matches these four).
-export const dynamicParams = false
-
 type Params = { direction: string }
 
 export function generateStaticParams(): Params[] {
   return LOCKABLE_DIRECTIONS.map((direction) => ({ direction }))
 }
 
+// Anything but the four known directions is a 404 (and never reaches this
+// route anyway — the rewrite only matches those four). Checked here rather
+// than with `dynamicParams = false`: with that flag, the first request after
+// the cache has been dropped (POST /api/revalidate) answered 404 for the
+// known directions too.
+const isLockable = (value: string): value is (typeof LOCKABLE_DIRECTIONS)[number] =>
+  (LOCKABLE_DIRECTIONS as readonly string[]).includes(value)
+
 export default async function Page({ params }: { params: Promise<Params> }) {
   const { direction } = await params
+  if (!isLockable(direction)) notFound()
 
   return (
     <SiteShell>
