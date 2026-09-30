@@ -230,30 +230,60 @@ export default function WMarkCanvas({ onReady }: { onReady?: () => void }) {
     const DRIFTING_MS = 30
 
     let raf = 0
+    let timer = 0
     let running = false
     let visible = true
     let start = 0 // time of the first drawn frame
-    let lastTick = 0 // previous frame callback
     let lastDraw = 0 // previous drawn frame
-    let drewLast = false // the previous callback drew
-    let refresh = 1000 / 60 // the display's frame interval, learned as the smallest gap seen
+    let askedAt = 0 // when the frame now being drawn was asked for
+    let refresh = 1000 / 60 // the display's frame interval, learned below
+    let learning = 8 // consecutive frames still to watch for that
+    let lastTick = 0
     let slowFrames = 0
     let steeredAt = 0 // when the pointer last moved
     let announced = false
     const easeOutExpo = (t: number) => (t >= 1 ? 1 : 1 - Math.pow(2, -10 * t))
 
-    const frame = (now: number) => {
+    const ask = () => {
+      timer = 0
+      askedAt = performance.now()
       raf = requestAnimationFrame(frame)
-      const gap = lastTick ? now - lastTick : refresh
-      lastTick = now
-      if (gap > 4) refresh = Math.min(refresh, gap)
+    }
 
-      // A draw that overran its frame shows up as a late next frame. After a
-      // sustained run of those, drop the resolution; never climb back (that
-      // would oscillate). Judged against this display's own frame interval, so
-      // a 100 Hz screen is held to 100 Hz, not to a fixed 26 ms.
-      if (drewLast) {
-        if (gap > refresh * 1.75 + 2) slowFrames++
+    // A frame callback is asked for only when a frame is due — not on every
+    // display frame to then skip most of them. Each callback makes the browser
+    // run a main-thread frame, and with it a style pass for every CSS animation
+    // on screen (the tickers); a hundred of those a second for thirty draws is
+    // the work this avoids.
+    const scheduleNext = (steered: boolean, drawnAt: number) => {
+      if (!running) return
+      // The next draw belongs on the first display frame at least one interval
+      // (less 2 ms of slack for jitter) after this one: `skip` frames from now.
+      // A frame callback lands on the first display frame after it is asked
+      // for, so ask just after the frame before that one has gone by.
+      const skip = Math.max(1, Math.ceil(((steered ? STEERED_MS : DRIFTING_MS) - 2) / refresh))
+      if (learning > 0 || skip === 1) {
+        ask()
+        return
+      }
+      const wait = (skip - 1) * refresh + 2 - (performance.now() - drawnAt)
+      timer = window.setTimeout(ask, Math.max(0, wait))
+    }
+
+    const frame = (now: number) => {
+      raf = 0
+      // The first few frames come back to back, to learn how far apart this
+      // display's frames are (the smallest gap seen).
+      if (learning > 0) {
+        if (lastTick && now - lastTick > 4) refresh = Math.min(refresh, now - lastTick)
+        lastTick = now
+        learning--
+      } else {
+        // A frame that arrives long after it was asked for means the GPU is not
+        // keeping up. After a sustained run of those, drop the resolution;
+        // never climb back (that would oscillate). Judged against this
+        // display's own frame interval, not a fixed number of milliseconds.
+        if (now - askedAt > refresh * 1.75 + 2) slowFrames++
         else slowFrames = Math.max(0, slowFrames - 1)
         if (slowFrames > 12 && dpr > 0.6) {
           dpr = dpr > 1 ? 1 : dpr > 0.75 ? 0.75 : 0.6
@@ -261,17 +291,15 @@ export default function WMarkCanvas({ onReady }: { onReady?: () => void }) {
           resize()
         }
       }
-      drewLast = false
 
       if (!start) start = now
       const time = (now - start) / 1000
-      const steered = time < 2.1 || now - steeredAt < 900 || Math.abs(pointer.tx - pointer.x) + Math.abs(pointer.ty - pointer.y) > 0.004
-      // 2 ms of slack: frame times jitter, and a frame that arrives a hair
-      // early must not be skipped in favour of one a whole interval later.
-      if (now - lastDraw < (steered ? STEERED_MS : DRIFTING_MS) - 2) return
+      const steered =
+        time < 2.1 ||
+        now - steeredAt < 900 ||
+        Math.abs(pointer.tx - pointer.x) + Math.abs(pointer.ty - pointer.y) > 0.004
       const dt = lastDraw ? Math.min(now - lastDraw, 100) / 1000 : 1 / 60
       lastDraw = now
-      drewLast = true
 
       // Ease toward the pointer at the same pace whatever the frame rate
       // (this is the old 6%-per-frame at 60 fps, expressed per second).
@@ -293,21 +321,23 @@ export default function WMarkCanvas({ onReady }: { onReady?: () => void }) {
         announced = true
         onReady?.()
       }
+      scheduleNext(steered, now)
+    }
+
+    const halt = () => {
+      cancelAnimationFrame(raf)
+      window.clearTimeout(timer)
+      raf = timer = 0
     }
 
     // The loop exists only while there is something to look at: scrolled out of
-    // view or in a background tab, there is no frame callback at all.
+    // view or in a background tab, nothing is scheduled at all.
     const sync = () => {
       const want = visible && !document.hidden
       if (want === running) return
       running = want
-      if (want) {
-        lastTick = 0
-        drewLast = false
-        raf = requestAnimationFrame(frame)
-      } else {
-        cancelAnimationFrame(raf)
-      }
+      if (want) ask()
+      else halt()
     }
     const viewObserver = new IntersectionObserver(([entry]) => {
       visible = entry.isIntersecting
@@ -315,8 +345,13 @@ export default function WMarkCanvas({ onReady }: { onReady?: () => void }) {
     })
     viewObserver.observe(canvas)
     document.addEventListener('visibilitychange', sync)
+    // A pointer that starts moving must not wait out a drifting-pace timer.
     const onSteer = () => {
       steeredAt = performance.now()
+      if (running && timer) {
+        window.clearTimeout(timer)
+        ask()
+      }
     }
     window.addEventListener('pointermove', onSteer, { passive: true })
     sync()
@@ -324,12 +359,13 @@ export default function WMarkCanvas({ onReady }: { onReady?: () => void }) {
     const onLost = (e: Event) => {
       e.preventDefault()
       running = false
-      cancelAnimationFrame(raf)
+      halt()
     }
     canvas.addEventListener('webglcontextlost', onLost)
 
     return () => {
-      cancelAnimationFrame(raf)
+      running = false
+      halt()
       canvas.removeEventListener('webglcontextlost', onLost)
       window.removeEventListener('pointermove', onPointer)
       window.removeEventListener('pointermove', onSteer)

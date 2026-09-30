@@ -559,8 +559,8 @@ export type Partner = {
 
 // Logos here are the display-sized copies in public/partners (fitted to the
 // 136x48 plate at 2.5x, WebP) — not the originals in public/logos, some of which
-// are 2000px wide. Regenerate them with the script described in
-// docs/superpowers/plans/2026-09-30-performance.md when a logo changes.
+// are 2000px wide. Made by frontend/scripts/make_partner_logos.py; run it again
+// when a partner is added or a logo changes.
 export const partners: Partner[] = [
   { name: "Корманд TJ", logo: "/partners/kormand.webp" },
   { name: "SHAKL", logo: "/partners/shakl.webp" },

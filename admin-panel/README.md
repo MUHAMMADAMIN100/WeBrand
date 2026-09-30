@@ -22,6 +22,21 @@ Log in with any Django **staff/superuser** account.
 `VITE_API_URL` — base URL of the Django API. Defaults in code to
 `http://localhost:8000`; set it in the deployment environment for production.
 
+`VITE_SITE_URL` — origin of the public site. Optional: by default it follows the
+API (a local API means `http://localhost:3000`, anything else
+`https://www.webrand.tj`), so nothing needs setting unless the site moves.
+
+## Telling the site about a change
+
+The public site serves cached pages. After every successful write to
+vacancies, projects, news, reels or partners, `api/client.ts` calls
+`POST <site>/api/revalidate` with the admin's own access token (`api/site.ts`);
+the site asks the API whether the token is a staff user's and then drops its
+cache, so the edit is live within seconds. Calls made close together collapse
+into one (a drag reorder saves several rows at once). It is best effort: if the
+call fails nothing is shown here, and the site picks the change up with its own
+re-check five minutes later at the latest.
+
 ## Auth / tokens
 
 - `POST /api/auth/login/` → `{ access, refresh }`.

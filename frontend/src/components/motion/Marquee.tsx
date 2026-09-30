@@ -27,8 +27,8 @@ const SURGE_MAX = 4
  *  The drift itself is a CSS animation (`marquee-track`, globals.css): it runs
  *  on the compositor, starts with the first paint — before any script — and
  *  costs the main thread nothing. Script only turns its speed up while the page
- *  is being scrolled and pauses it off screen. Under prefers-reduced-motion the
- *  CSS gives it no animation at all, and there is nothing for the script to find. */
+ *  is being scrolled. Under prefers-reduced-motion the CSS gives it no animation
+ *  at all, and there is nothing for the script to find. */
 export default function Marquee({ children, speed = 3, reverse = false, copies = 2, className }: Props) {
   const root = useRef<HTMLDivElement>(null)
   const track = useRef<HTMLDivElement>(null)
@@ -81,15 +81,16 @@ export default function Marquee({ children, speed = 3, reverse = false, copies =
       }
     }
 
+    // Off screen the ticker only stops listening to the scroll. It is NOT paused:
+    // a running transform animation lives on the compositor and costs the main
+    // thread nothing, but a paused one next to a running one (the hero's ticker
+    // on screen, the partners' ticker far below) makes the browser re-apply
+    // animations on the main thread on every frame — measured at 100 style
+    // recalculations a second and 13% of the main thread, for nothing moving.
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting) {
-          animation.play()
-          window.addEventListener('scroll', onScroll, { passive: true })
-        } else {
-          animation.pause()
-          window.removeEventListener('scroll', onScroll)
-        }
+        if (entry.isIntersecting) window.addEventListener('scroll', onScroll, { passive: true })
+        else window.removeEventListener('scroll', onScroll)
       },
       { rootMargin: '200px 0px' },
     )
