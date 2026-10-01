@@ -19,6 +19,15 @@ const nextConfig = {
   // outside Next's built-in list. Our metadata costs nothing to resolve up
   // front, so there is no first-byte win to give up.
   htmlLimitedBots: /.*/,
+  // Production builds compile from scratch. Vercel restores the previous
+  // build's webpack cache, and a preview build once came out with two modules'
+  // ids swapped while a module importing both kept its cached code: on /smm
+  // the CTA heading rendered as the Mail icon and the icon as the heading
+  // (React then failed hydration). Cold compiles cost a few seconds per build.
+  webpack(config, { dev }) {
+    if (!dev) config.cache = false
+    return config
+  },
   images: {
     remotePatterns: [
       { protocol: api.protocol.replace(':', ''), hostname: api.hostname, port: api.port, pathname: '/media/**' },
