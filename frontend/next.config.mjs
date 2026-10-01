@@ -19,6 +19,17 @@ const nextConfig = {
   // outside Next's built-in list. Our metadata costs nothing to resolve up
   // front, so there is no first-byte win to give up.
   htmlLimitedBots: /.*/,
+  experimental: {
+    // The stylesheet travels inside the HTML instead of as its own file. As a
+    // file it was requested together with the font files, and the CDN sent the
+    // fonts first: the page stayed blank until ~120 KB of fonts had arrived,
+    // and the scripts were not even requested before it (Chrome holds back
+    // low-priority requests while a render-blocking stylesheet is in flight).
+    // The CSS is one small Tailwind file shared by every page, so inlining it
+    // costs ~13 KB of HTML. Production builds only; client-side navigations to
+    // our (prerendered) pages still use the cached file.
+    inlineCss: true,
+  },
   images: {
     remotePatterns: [
       { protocol: api.protocol.replace(':', ''), hostname: api.hostname, port: api.port, pathname: '/media/**' },
