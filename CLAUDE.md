@@ -37,7 +37,7 @@ npm run dev      # Next dev server on 3000
 npm run build    # next build (type-checks; ESLint is skipped during builds)
 npm run start    # serves the production build on 3000 — acceptance runs happen here, not on dev
 ```
-Never run `next build` while `next dev` is running: they share `.next/` and the build corrupts it. Stop dev first (on Windows kill the process that owns port 3000; `rm -rf .next` if in doubt). After editing `tailwind.config.ts` restart dev with a clean `.next/`. `next build` prerenders the pages, so it calls the API — but it does not need it: with the API down the build still passes (from the data cache of an earlier build, or with the pages' "could not load" state).
+Never run `next build` while `next dev` is running: they share `.next/` and the build corrupts it. Stop dev first (on Windows kill the process that owns port 3000; `rm -rf .next` if in doubt). After editing `tailwind.config.ts` restart dev with a clean `.next/`. Production builds deliberately skip the webpack cache (`webpack` hook in `next.config.mjs`): with the cache Vercel restores from the previous build, a preview once shipped two modules with swapped ids under a module that still had its cached code (the CTA heading rendered as an icon, hydration failed) — keep it off. `next build` prerenders the pages, so it calls the API — but it does not need it: with the API down the build still passes (from the data cache of an earlier build, or with the pages' "could not load" state).
 
 **Admin panel** (`admin-panel/`):
 ```bash
