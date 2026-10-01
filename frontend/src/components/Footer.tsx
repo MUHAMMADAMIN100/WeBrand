@@ -2,22 +2,17 @@
 
 import { ArrowUp, Instagram, Send } from 'lucide-react'
 import Link from 'next/link'
-import { usePathname } from '../lib/usePathname'
 import { contacts, nav } from '../data/content'
 import { useModal } from '../context/ModalContext'
 import { openTelegram } from '../lib/telegram'
 import Button from './ui/Button'
+import SectionLink from './ui/SectionLink'
 
 const linkClass =
   'rounded font-display text-xl font-bold tracking-tight text-paper transition-colors duration-300 hover:text-lime focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime focus-visible:ring-offset-4 focus-visible:ring-offset-ink-950 lg:text-2xl'
 
 export default function Footer() {
   const { open: openModal } = useModal()
-  const pathname = usePathname()
-
-  // On non-home routes, prefix hash links with "/" so they navigate home first.
-  const resolveHash = (href: string) =>
-    pathname === '/' ? href : '/' + href
 
   const socials = [
     { Icon: Send, href: contacts.socials.telegram, label: 'Telegram' },
@@ -30,14 +25,14 @@ export default function Footer() {
       <div className="mx-auto max-w-[88rem] px-5 lg:px-10">
         <div className="grid gap-12 border-b border-white/10 pb-12 md:pb-16 lg:grid-cols-12 lg:gap-10">
           <div className="lg:col-span-5">
-            <a
-              href={resolveHash('#top')}
+            <SectionLink
+              hash="#top"
               aria-label="Webrand — на главную"
               className="inline-flex rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime focus-visible:ring-offset-4 focus-visible:ring-offset-ink-950"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/logos/main-logo-dark.webp" alt="Webrand" width={388} height={81} loading="lazy" className="h-9 w-auto object-contain" />
-            </a>
+            </SectionLink>
             <p className="mt-6 max-w-sm text-base leading-relaxed text-paper/65">
               Комплексные digital-решения для бизнеса в Душанбе. Сайты, дизайн, SMM и продвижение.
             </p>
@@ -59,9 +54,9 @@ export default function Footer() {
                     {item.label}
                   </Link>
                 ) : (
-                  <a key={item.href} href={resolveHash(item.href)} className={linkClass}>
+                  <SectionLink key={item.href} hash={item.href} className={linkClass}>
                     {item.label}
-                  </a>
+                  </SectionLink>
                 ),
               )}
               {/* Blog/News — intentionally not in the header nav, but linked here
@@ -100,8 +95,11 @@ export default function Footer() {
           <p>© {new Date().getFullYear()} «ВиБренд». Все права защищены.</p>
           <div className="flex items-center gap-5">
             <p>Создано с любовью в Душанбе.</p>
+            {/* The top of this page, whichever page it is (SmoothScroll; `#top`
+                means the top of the document to the browser even with no such
+                element). It used to lead to the home page from everywhere else. */}
             <a
-              href={resolveHash('#top')}
+              href="#top"
               aria-label="Наверх"
               className="grid h-11 w-11 place-items-center rounded-full border border-white/20 text-paper transition-colors duration-300 ease-expo hover:border-lime hover:bg-lime hover:text-ink-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime focus-visible:ring-offset-2 focus-visible:ring-offset-ink-950"
             >

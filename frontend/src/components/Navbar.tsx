@@ -11,6 +11,7 @@ import { cn } from '../lib/utils'
 import Button from './ui/Button'
 import Magnetic from './motion/Magnetic'
 import SlidingMarker from './motion/SlidingMarker'
+import SectionLink from './ui/SectionLink'
 
 // The header is on every page and its code is on the path to the first screen
 // answering a click, so it uses no animation library: every movement here is a
@@ -31,12 +32,6 @@ export default function Navbar() {
   const reduce = useReducedMotion()
   const menuRef = useRef<HTMLDivElement>(null)
   const pathname = usePathname()
-
-  // Hash links scroll within the home page; when we're on another route
-  // (e.g. /vacancies) prefix them with "/" so the browser navigates home and
-  // then jumps to the section.
-  const resolveHash = (href: string) =>
-    pathname === '/' ? href : '/' + href
 
   // Past the first 24px the bar lifts off into a floating pill. The state only
   // changes at that threshold, so the listener costs a comparison per scroll.
@@ -154,8 +149,8 @@ export default function Navbar() {
           )}
         >
           {/* Logo */}
-          <a
-            href={resolveHash('#top')}
+          <SectionLink
+            hash="#top"
             className="relative z-50 flex shrink-0 select-none items-center rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 focus-visible:ring-offset-4"
             aria-label="Webrand — на главную"
           >
@@ -170,7 +165,7 @@ export default function Navbar() {
                 floating ? 'h-7' : 'h-8 sm:h-9',
               )}
             />
-          </a>
+          </SectionLink>
 
           {/* Desktop nav */}
           <nav className="hidden items-center gap-1 lg:flex" aria-label="Основная навигация">
@@ -188,10 +183,10 @@ export default function Navbar() {
                   {item.label}
                 </Link>
               ) : (
-                <a key={item.href} href={resolveHash(item.href)} aria-current={active ? 'true' : undefined} className={className}>
+                <SectionLink key={item.href} hash={item.href} aria-current={active ? 'true' : undefined} className={className}>
                   {active && <SlidingMarker group="nav" className="-z-10 bg-lime" />}
                   {item.label}
-                </a>
+                </SectionLink>
               )
             })}
           </nav>
@@ -276,9 +271,9 @@ export default function Navbar() {
                   {item.label}
                 </Link>
               ) : (
-                <a key={item.href} href={resolveHash(item.href)} onClick={() => setOpen(false)} className={className} style={row.style}>
+                <SectionLink key={item.href} hash={item.href} onClick={() => setOpen(false)} className={className} style={row.style}>
                   {item.label}
-                </a>
+                </SectionLink>
               )
             })}
 

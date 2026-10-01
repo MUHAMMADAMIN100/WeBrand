@@ -45,8 +45,11 @@ export default function SmoothScroll({ children }: { children: ReactNode }) {
       if (url.origin !== window.location.origin || url.pathname !== window.location.pathname) return
       const id = decodeURIComponent(url.hash.slice(1))
       if (!id) return
+      // `#top` needs no element: to the browser it means the top of the
+      // document on any page, which is what lets the footer's «Наверх» be the
+      // same link everywhere — only the home page has a hero with that id.
       const target = document.getElementById(id)
-      if (!target) return
+      if (!target && id !== 'top') return
 
       e.preventDefault()
       // Keep what a native jump would have done: the URL, the hashchange event
@@ -55,10 +58,12 @@ export default function SmoothScroll({ children }: { children: ReactNode }) {
         window.history.pushState(null, '', url.hash)
         window.dispatchEvent(new HashChangeEvent('hashchange'))
       }
-      if (!target.hasAttribute('tabindex')) target.setAttribute('tabindex', '-1')
-      target.focus({ preventScroll: true })
+      if (target) {
+        if (!target.hasAttribute('tabindex')) target.setAttribute('tabindex', '-1')
+        target.focus({ preventScroll: true })
+      }
 
-      scrollToElement(target, id === 'top' ? 0 : undefined)
+      scrollToElement(target ?? document.documentElement, id === 'top' ? 0 : undefined)
     }
     document.addEventListener('click', onAnchorClick)
     const onTraverse = () => {
