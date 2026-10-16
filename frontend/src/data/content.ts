@@ -666,6 +666,14 @@ export const contacts = {
   phone: "+992 988 64 55 43",
   phoneRaw: "+992988645543",
   email: "info@webrand.tj",
+  address: "г. Душанбе, р-н Шохмансур, ул. Абуабдуллохи Рудаки, 405",
+  // The legal entity, shown in the footer. Meta's business verification reads
+  // it off the site: the Latin spelling must match the application letter for
+  // letter — do not "correct" it.
+  legal: {
+    ru: "ИП Бобоев Маҳмадсаид Мирзоалиевич, ИНН 046991000",
+    en: "Individual Entrepreneur Boboev Mahmadsaid Mirzoalievich · TIN 046991000 · Abuabdullohi Rudaki Street, 405, Shohmansur district, Dushanbe, Tajikistan",
+  },
   telegram: "https://t.me/Webrandushanbe",
   socials: {
     telegram: "https://t.me/Webrandushanbe",

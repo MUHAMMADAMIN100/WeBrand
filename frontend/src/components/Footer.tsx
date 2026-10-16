@@ -36,14 +36,15 @@ export default function Footer() {
             <p className="mt-6 max-w-sm text-base leading-relaxed text-paper/65">
               Комплексные digital-решения для бизнеса в Душанбе. Сайты, дизайн, SMM и продвижение.
             </p>
-            <div className="mt-7 flex flex-col items-start gap-2">
+            <address className="mt-7 flex flex-col items-start gap-2 not-italic">
               <a href={`mailto:${contacts.email}`} className="rounded text-base font-semibold text-paper transition-colors hover:text-lime focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime">
                 {contacts.email}
               </a>
               <a href={`tel:${contacts.phoneRaw}`} className="rounded text-base font-semibold text-paper transition-colors hover:text-lime focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime">
                 {contacts.phone}
               </a>
-            </div>
+              <p className="text-balance text-base leading-relaxed text-paper/65">{contacts.address}</p>
+            </address>
           </div>
 
           <div className="flex flex-col gap-10 lg:col-span-7 lg:items-end">
@@ -92,7 +93,13 @@ export default function Footer() {
         </div>
 
         <div className="flex flex-wrap items-center justify-between gap-4 py-7 text-sm text-paper/65">
-          <p>© {new Date().getFullYear()} «ВиБренд». Все права защищены.</p>
+          {/* Who is behind the site, in Russian and in English. Plain text in the
+              row's own size and colour: Meta's reviewer has to be able to read
+              it, select it and find it with the page search. */}
+          <div className="w-full space-y-1 text-pretty lg:w-auto lg:min-w-0 lg:flex-1">
+            <p>© {new Date().getFullYear()} WebRand. {contacts.legal.ru}. Все права защищены.</p>
+            <p lang="en">{contacts.legal.en}</p>
+          </div>
           <div className="flex items-center gap-5">
             <p>Создано с любовью в Душанбе.</p>
             {/* The top of this page, whichever page it is (SmoothScroll; `#top`
